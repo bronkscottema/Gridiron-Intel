@@ -1,0 +1,13 @@
+# Default ignored files
+/shelf/
+/workspace.xml
+/venv/
+/config.txt
+/dist/
+/build/
+/.idea/shelf
+AudibleAnalytics.spec
+.env
+/Lib
+/Scripts
+/share

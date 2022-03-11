@@ -1,0 +1,11 @@
+# Project exclude paths
+/venv/
+/config.txt
+/dist/
+/build/
+/.idea/shelf
+AudibleAnalytics.spec
+.env
+/Lib
+/Scripts
+/share
