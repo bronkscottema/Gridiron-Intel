@@ -4,11 +4,12 @@ from urllib.request import urlopen
 from PyQt5 import QtGui
 from PyQt5.QtCore import QTimer, Qt
 from PyQt5.QtWidgets import *
-from PyQt5.QtGui import QPixmap, QFontDatabase, QFont
+from PyQt5.QtGui import QPixmap, QFontDatabase, QFont, QIcon
 import all
 from collegeFBTeams import *
 from collegeFBGames import *
 from getNFLGames import *
+from Roster import *
 from psycopg2 import connect
 from dotenv import load_dotenv
 
@@ -29,6 +30,7 @@ nflkeys = ["id", "type", "awayScore", "homeScore", "period", "clock", "start", "
 class Window(QWidget):
     def __init__(self):
         super().__init__()
+        self.setWindowIcon(QIcon('images/favicon.ico'))
         self.ok_btn = QPushButton("Submit")
         self.offense_left_or_right_label = QLabel("Is the offense going from Left to Right on Screen?")
         self.offense_left_or_right = QComboBox(self)
@@ -54,6 +56,7 @@ class Window(QWidget):
         self.ui()
 
     def ui(self):
+        self.tab_widget()
         #layout section
         main_layout = QVBoxLayout()
         top_layout = QHBoxLayout()
@@ -155,6 +158,7 @@ class Window(QWidget):
 
         if self.league.currentText() == 'NFL':
             self.api_table.setColumnCount(len(nflheaders))
+            self.week = getNFLWeek(yearOf=self.year.currentText(), teamName=self.offense.currentText(), opponent=self.opponent.currentText())
             result = getNFLGameData(self.offense.currentText(), self.year.currentText(), self.opponent.currentText())
             try:
                 self.api_table.setHorizontalHeaderLabels(nflheaders)
@@ -206,11 +210,11 @@ class Window(QWidget):
         else:
             self.api_table.setColumnCount(len(keys))
             try:
-                week = getWeek(yearOf=self.year.currentText(), regOrPost=self.regular_post.currentText(),
+                self.week = getWeek(yearOf=self.year.currentText(), regOrPost=self.regular_post.currentText(),
                                teamName=self.offense.currentText(), opponent=self.opponent.currentText())
                 result = getGameData(year=int(self.year.currentText()), team=self.offense.currentText(),
                                      opponent=self.opponent.currentText(), regOrPost=self.regular_post.currentText(),
-                                     week=int(week[0]))
+                                     week=int(self.week[0]))
                 self.api_table.setHorizontalHeaderLabels(collegeheaders)
                 for n, key in enumerate(result):
                     self.api_table.insertRow(n)
@@ -235,16 +239,21 @@ class Window(QWidget):
             self.gameid_value = self.api_table.item(self.current_row, 0).text()[0:8]
             self.playid_value = self.api_table.item(self.current_row, 0).text()
             self.yard_value = self.api_table.item(self.current_row, 7).text()
+            self.play_text = self.api_table.item(self.current_row, 9).text()
+            self.ok_btn.setVisible(True)
         else:
             self.gameid_value = self.api_table.item(self.current_row, 0).text()
             self.playid_value = self.api_table.item(self.current_row, 1).text()
             self.yard_value = self.api_table.item(self.current_row, 7).text()
-        self.ok_btn.setVisible(True)
+            self.play_text = self.api_table.item(self.current_row, 11).text()
+            self.ok_btn.setVisible(True)
 
     def submit_pushed(self):
         url = QFileDialog.getOpenFileName(self, "Open a file", "", "All Files(*);;")
-        all.opencv(url[0], self.hashmark_number.currentText(), self.gameid_value,
-                   self.offense_left_or_right.currentText(), self.playid_value)
+        all.opencv(url[0], hash_or_num=self.hashmark_number.currentText(), gameid_number=self.gameid_value, playid_number=self.playid_value,
+                   offense_l_or_r=self.offense_left_or_right.currentText(), yard_line=int(self.yard_value), offense=self.offense.currentText(),
+                   defense=self.opponent.currentText(), league=self.league.currentText(), year=self.year.currentText(),
+                   week=self.week, regular_post=self.regular_post.currentText(), play_text=self.play_text)
 
     def update_opponent(self, ix):
         if self.league.currentText() == 'NFL' and ix == 0:

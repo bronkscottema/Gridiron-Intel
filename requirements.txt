@@ -1,4 +1,6 @@
-opencv-python~=4.5.5.64
+opencv-contrib-python==4.4.0.46
+opencv-python==4.2.0.32
+opencv-python-headless==4.4.0.46
 numpy~=1.22.3
 PyQt5~=5.15.6
 Pillow~=9.0.1
