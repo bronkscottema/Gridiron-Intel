@@ -1,17 +1,22 @@
 import os
+import tkinter
 from tkinter import *
 from tkinter import simpledialog
 import cv2
 import numpy as np
-from PyQt5.QtWidgets import QInputDialog
 from psycopg2 import connect, sql
-import requests
 import base64
 import io
 from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime, timezone
-from dotenv import load_dotenv
 from start import *
+from end import *
+
+import psycopg2.extras
+from typing import Iterator, Dict, Any, List, Tuple
+
+
+from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -99,12 +104,16 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
     speed_pts2 = []
     if league == "NFL":
         if yard_line >= 70:
+            points_image = cv2.imread('images/nfl_g_40.png')
             field = cv2.imread('images/nfl_g_40.png')
         elif 70 > yard_line > 50:
+            points_image = cv2.imread('images/nfl_20_30.png')
             field = cv2.imread('images/nfl_20_30.png')
         elif 50 > yard_line > 30:
+            points_image = cv2.imread('images/nfl_40_10.png')
             field = cv2.imread('images/nfl_40_10.png')
         else:
+            points_image = cv2.imread('images/nfl_40_g.png')
             field = cv2.imread('images/nfl_40_g.png')
 
         cur.execute("select rgb1 from nfl_team_colors where team_name = '" + offense + "'")
@@ -115,12 +124,16 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
         away = eval(away[0])[::-1]
     else:
         if 0 < yard_line < 30:
+            points_image = cv2.imread('images/ncaa_g_40.png')
             field = cv2.imread('images/ncaa_g_40.png')
         elif 30 < yard_line < 50:
+            points_image = cv2.imread('images/ncaa_20_30.png')
             field = cv2.imread('images/ncaa_20_30.png')
         elif 50 < yard_line < 70:
+            points_image = cv2.imread('images/ncaa_40_10.png')
             field = cv2.imread('images/ncaa_40_10.png')
         else:
+            points_image = cv2.imread('images/ncaa_40_g.png')
             field = cv2.imread('images/ncaa_40_g.png')
 
         cur.execute("select rgb1 from college_team_colors where team_name = '" + offense + "'")
@@ -133,6 +146,7 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
     screenshot = 0
     null_variable = None
     result = []
+    biglist = []
     json_prediction = []
 
     def mouse_func(event, x1, y1, flags, param):
@@ -223,24 +237,25 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
                 json_prediction.append(player_class)
                 tracker = OPENCV_OBJECT_TRACKERS[tracker_name]()
                 trackers.add(tracker, frame_cap, (x1, y1, w, h))
-                draw.rectangle([
-                    x1, y1, x2, y2
-                ], outline=color, width=5)
-
-                if True:
-                    text = box['class']
-                    text_size = font.getsize(text)
-
-                    # set button size + 10px margins
-                    button_size = (text_size[0] + 20, text_size[1] + 20)
-                    button_img = Image.new('RGBA', button_size, color)
-                    # put text on button with 10px margins
-                    button_draw = ImageDraw.Draw(button_img)
-                    button_draw.text((10, 10), text, font=font, fill=(255, 255, 255, 255))
-
-                    # put button on source image in position (0, 0)
-                    image.paste(button_img, (int(x1), int(y1)))
-            cv2.imwrite("boxes.jpg", image)
+            #     draw.rectangle([
+            #         x1, y1, x2, y2
+            #     ], outline=color, width=5)
+            #
+            #     if True:
+            #         text = box['class']
+            #         text_size = font.getsize(text)
+            #
+            #         # set button size + 10px margins
+            #         button_size = (text_size[0] + 20, text_size[1] + 20)
+            #         button_img = Image.new('RGBA', button_size, color)
+            #         # put text on button with 10px margins
+            #         button_draw = ImageDraw.Draw(button_img)
+            #         button_draw.text((10, 10), text, font=font, fill=(255, 255, 255, 255))
+            #
+            #         # put button on source image in position (0, 0)
+            #         image.paste(button_img, (int(x1), int(y1)))
+            # opencvImage = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
+            # cv2.imwrite("boxes.jpg", opencvImage)
             screenshot = cap.get(cv2.CAP_PROP_POS_FRAMES)
 
         # loop over the bounding boxes and draw them on the frame
@@ -310,17 +325,27 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
                                     else:
                                         cv2.rectangle(field, ((int(abs(x1))), int(abs(y1))),
                                                       (int(abs(x1)) + 1, int(abs(y1)) + 1), home, 2)
-                                    cur.execute(
-                                        sql.SQL("INSERT INTO temp_table VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"),
-                                        (str(playid_number), int(box_id), (int(abs(x1))), (int(abs(y1))),
+                                    # cur.execute(
+                                    #     sql.SQL("INSERT INTO temp_table VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"),
+                                    #     (str(playid_number), int(box_id), (int(abs(x1))), (int(abs(y1))),
+                                    #      cap.get(cv2.CAP_PROP_POS_FRAMES), null_variable,
+                                    #      str(json_prediction[face_no]), gameid_number))
+                                    tup = (str(playid_number), int(box_id), (int(abs(x1))), (int(abs(y1))),
                                          cap.get(cv2.CAP_PROP_POS_FRAMES), null_variable,
-                                         str(json_prediction[face_no]), gameid_number))
+                                         str(json_prediction[face_no]), gameid_number)
+
+                                    biglist.append(tup)
                                 else:
-                                    cur.execute(
-                                        sql.SQL("INSERT INTO temp_table VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"),
-                                        (str(playid_number), int(box_id), (int(abs(x1))), (int(abs(y1))),
-                                         cap.get(cv2.CAP_PROP_POS_FRAMES), null_variable,
-                                         null_variable, gameid_number))
+                                    # cur.execute(
+                                    #     sql.SQL("INSERT INTO temp_table VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"),
+                                    #     (str(playid_number), int(box_id), (int(abs(x1))), (int(abs(y1))),
+                                    #      cap.get(cv2.CAP_PROP_POS_FRAMES), null_variable,
+                                    #      null_variable, gameid_number))
+                                    tup = (str(playid_number), int(box_id), (int(abs(x1))), (int(abs(y1))),
+                                           cap.get(cv2.CAP_PROP_POS_FRAMES), null_variable,
+                                           str(json_prediction[face_no]), gameid_number)
+
+                                    biglist.append(tup)
                                 screenshot += 1
                                 break
                             speed_pts2.clear()
@@ -331,7 +356,7 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
         cv2.imshow("Frame", frame_cap)
         if screenshot > 0 or exists == True:
             cv2.imshow("field", field)
-            cv2.destroyWindow("points")
+            cv2.destroyWindow("points_image")
 
         # if the 'space' key is selected, we are going to "select" a bounding
         # box to track
@@ -364,10 +389,10 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
         elif key == ord("p"):
             i = 1
             for points in source_points:
-                cv2.circle(field, points, 5, (20, 131, 60), -1)
-                cv2.putText(field, str(i), (points[0] + 5, points[1] + 5), cv2.FONT_HERSHEY_TRIPLEX,
+                cv2.circle(points_image, points, 5, (20, 131, 60), -1)
+                cv2.putText(points_image, str(i), (points[0] + 5, points[1] + 5), cv2.FONT_HERSHEY_TRIPLEX,
                             .7, (20, 131, 60), 1, cv2.LINE_AA)
-                cv2.imshow("points", field)
+                cv2.imshow("points", points_image)
                 i += 1
             field_point_tracker = cv2.MultiTracker_create()
 
@@ -378,19 +403,43 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
                 field_point_tracker.add(tracker, frame_cap, dstbb)
 
         if cap.get(cv2.CAP_PROP_POS_FRAMES) >= end:
+            cv2.imwrite("boxes.jpg", frame_cap)
+
+            def insert_execute_values_iterator(
+                    connection,
+                    insertList,
+            ) -> None:
+                with connection.cursor() as cursor:
+                    psycopg2.extras.execute_values(cursor, """
+                        INSERT INTO temp_table VALUES %s;
+                    """, ((
+                        datainsert[0],
+                        datainsert[1],
+                        datainsert[2],
+                        datainsert[3],
+                        datainsert[4],
+                        datainsert[5],
+                        datainsert[6],
+                        datainsert[7],
+                    ) for datainsert in insertList))
+
+            insert_execute_values_iterator(conn, insertList=biglist)
             cv2.imwrite("dottedfield.jpg", field)
+            root = tkinter.Tk()
+            root.withdraw()
 
             # write sql query to drop rows with result numbers
-            text, ok = QInputDialog.getText('input dialog', 'Is this ok?')
-            result.append(text)
+            USER_INP = simpledialog.askstring(title="Delete",
+                                              prompt="Any ID's you'd like to delete? (Comma Seperated Values Only Please e.g. 1,2,3")
+            result.append(USER_INP)
 
-        for value in result[0].split(","):
-            try:
-                cur.execute(sql.SQL(
-                    "DELETE FROM temp_table WHERE playerid = %s and playid = '" + str(playid_number) + "';"),
-                            (value,))
-            except:
-                continue
+            for value in result[0].split(","):
+                try:
+                    cur.execute(sql.SQL(
+                        "DELETE FROM temp_table WHERE playerid = %s and playid = '" + str(playid_number) + "';"),
+                                (value,))
+                except:
+                    continue
             if not exists:
                 cur.execute(sql.SQL(
                     "INSERT INTO recently_viewed (game_id, playid, offense, defense, play_text, date_added, file_path, league, year, regular_post, week)"
@@ -442,6 +491,7 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
             conn.close()
             cap.release()
             cv2.destroyAllWindows()
+            end_page()
 
     cap.release()
     cv2.destroyAllWindows()

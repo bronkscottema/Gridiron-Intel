@@ -56,7 +56,6 @@ class Window(QWidget):
         self.ui()
 
     def ui(self):
-        self.tab_widget()
         #layout section
         main_layout = QVBoxLayout()
         top_layout = QHBoxLayout()

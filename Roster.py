@@ -18,7 +18,12 @@ api_instance = cfbd.TeamsApi(cfbd.ApiClient(configuration))
 
 nfl_player = []
 college_player = []
+home_college_player = []
+away_college_player = []
+
+
 def identify_college_player(year, team, jerseyNo):
+    college_player.clear()
     try:
         # Play stats by play
         api_response = api_instance.get_roster(year=year, team=team)
@@ -44,6 +49,40 @@ def identify_college_player(year, team, jerseyNo):
                     continue
     except ApiException as e:
         print("Exception when calling PlaysApi->get_play_stats: %s\n" % e)
+
+
+def get_whole_ncaa_home_roster(team, year):
+    home_college_player.clear()
+    api_response = api_instance.get_roster(year=year, team=team)
+    # pprint(api_response)
+    i = []
+    for i in enumerate(api_response):
+        if i[1].__getattribute__("jersey") is None and i[1].__getattribute__("first_name") is None and i[1].__getattribute__("last_name") is None:
+            continue
+        elif i[1].__getattribute__("jersey") is None:
+            continue
+        else:
+            home_college_player.append(i[1])
+
+    home_college_player.sort(key=lambda y: y.__getattribute__("jersey"))
+    return home_college_player
+
+
+def get_whole_ncaa_away_roster(team, year):
+    away_college_player.clear()
+    api_response = api_instance.get_roster(year=year, team=team)
+    # pprint(api_response)
+    i = []
+    for i in enumerate(api_response):
+        if i[1].__getattribute__("jersey") is None and i[1].__getattribute__("first_name") is None and i[1].__getattribute__("last_name") is None:
+            continue
+        elif i[1].__getattribute__("jersey") is None:
+            continue
+        else:
+            away_college_player.append(i[1])
+
+    away_college_player.sort(key=lambda y: y.__getattribute__("jersey"))
+    return away_college_player
 
 
 def identify_nfl_player(team_name, name_or_number):
