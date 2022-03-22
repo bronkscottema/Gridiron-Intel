@@ -1,10 +1,11 @@
 import os
 import sys
 
-from PyQt5.QtCore import Qt, QSortFilterProxyModel, QMimeData, QModelIndex
+from PyQt5.QtCore import Qt, QSortFilterProxyModel, QMimeData, QModelIndex, QDataStream, QIODevice, QVariant
 from PyQt5.QtGui import QFont, QPixmap, QIcon, QFontDatabase, QStandardItemModel, QStandardItem, QDrag
 from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QVBoxLayout, QHBoxLayout, QFormLayout, QTableWidget, \
-    QHeaderView, QApplication, QTableWidgetItem, QTabWidget, QLineEdit, QTableView, QAbstractItemView
+    QHeaderView, QApplication, QTableWidgetItem, QTabWidget, QLineEdit, QTableView, QAbstractItemView, QStyleOption, \
+    QProxyStyle
 from psycopg2 import connect
 import psycopg2.extras
 from typing import Iterator, Dict, Any
@@ -62,11 +63,9 @@ class Window(QWidget):
         self.image_layout.addWidget(self.play_pic)
 
         self.recently_viewed_model = QStandardItemModel(len(roster_labels), 1)
-        self.recently_filter_proxy_model = QSortFilterProxyModel()
-        self.recently_filter_proxy_model.setSourceModel(self.recently_viewed_model)
-        self.recently_filter_proxy_model.setFilterKeyColumn(0)
+
         header = self.recently_viewed_table.horizontalHeader()
-        self.recently_viewed_table.setModel(self.recently_filter_proxy_model)
+        self.recently_viewed_table.setModel(self.recently_viewed_model)
         self.recently_viewed_table.horizontalHeader().setDefaultAlignment(Qt.AlignCenter)
         self.recently_viewed_table.horizontalHeader().setFont(self.table_font)
         self.recently_viewed_table.verticalHeader().setVisible(False)
@@ -243,34 +242,63 @@ class roster_recent(QTableView):
 
     def __init__(self):
         super().__init__()
+        self.setDragEnabled(True)
         self.setAcceptDrops(True)
-        # self.setDragEnabled(True)
-        self.setDragDropOverwriteMode(True)
-        # self.setDragDropMode(QAbstractItemView.DropOnly)
-        # self.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.setDragDropOverwriteMode(False)
+        # self.setSelectionMode(QAbstractItemView.SingleSelection)
 
-    def dragEnterEvent(self, e):
-        e.accept()
+        self.last_drop_row = None
+
+    # Override this method to get the correct row index for insertion
+    def dropMimeData(self, row, col, mimeData, action):
+        self.last_drop_row = row
+        return True
 
     def dropEvent(self, event):
-        if self.viewport().rect().contains(event.pos()):
-            fake_model = QStandardItemModel()
-            fake_model.dropMimeData(
-                event.mimeData(), event.dropAction(), 0, 0, QModelIndex()
-            )
-            print("from:")
-            for r in range(fake_model.rowCount()):
-                for c in range(fake_model.columnCount()):
-                    ix = fake_model.index(r, c)
-                    print(ix.data())
-            to_index = self.indexAt(event.globalPos())
-            if to_index.isValid():
-                print("to:", to_index.data())
+        # The QTableWidget from which selected rows will be moved
+        sender = event.source()
+
+        # Default dropEvent method fires dropMimeData with appropriate parameters (we're interested in the row index).
         super().dropEvent(event)
+        # Now we know where to insert selected row(s)
+        md = event.mimeData()
+        fmt = "application/x-qabstractitemmodeldatalist"
+        if md.hasFormat(fmt):
+            encoded = md.data(fmt)
+            stream = QDataStream(encoded, QIODevice.ReadOnly)
+            table_items = []
+            while not stream.atEnd():
+                # row and column where it comes from
+                row = stream.readInt32()
+                column = stream.readInt32()
+                map_items = stream.readInt32()
+                it = QTableWidgetItem()
+
+                for i in range(map_items):
+                    role = stream.readInt32()
+                    value = QVariant()
+                    stream >> value
+                    it.setData(role, value)
+                table_items.append(it)
 
 
-    def dragMoveEvent(self, e):
-        e.accept()
+            index = self.indexAt(event.pos())
+            if index.isValid():
+                for column_number, data in enumerate(recent_roster_keys):
+                    if data != "playerid":
+                        item = QStandardItem(str(table_items[column_number-1].text()))
+                        self.model().setItem(index.row(), column_number, item)
+
+        event.accept()
+
+    def getselectedRowsFast(self):
+        selectedRows = []
+        for item in self.selectedItems():
+            if item.row() not in selectedRows:
+                selectedRows.append(item.row())
+        selectedRows.sort()
+        return selectedRows
 
 class home_table(QTableView):
 
@@ -297,6 +325,12 @@ class home_table(QTableView):
     def dragMoveEvent(self, e):
         e.accept()
 
+    def getselectedRowsFast(self):
+        selectedRows = []
+        for item in selectedRows:
+            selectedRows.append(item)
+        selectedRows.sort()
+        return selectedRows
 
 def end_page():
     app = QApplication(sys.argv)
