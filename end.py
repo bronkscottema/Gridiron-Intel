@@ -245,20 +245,13 @@ class roster_recent(QTableView):
         self.setDragEnabled(True)
         self.setAcceptDrops(True)
         self.setSelectionBehavior(QAbstractItemView.SelectRows)
-        self.setDragDropOverwriteMode(False)
-        # self.setSelectionMode(QAbstractItemView.SingleSelection)
-
-        self.last_drop_row = None
+        self.setDragDropOverwriteMode(True)
+        self.item = None
+        self.id = None
+        self.id_row = None
 
     # Override this method to get the correct row index for insertion
-    def dropMimeData(self, row, col, mimeData, action):
-        self.last_drop_row = row
-        return True
-
     def dropEvent(self, event):
-        # The QTableWidget from which selected rows will be moved
-        sender = event.source()
-
         # Default dropEvent method fires dropMimeData with appropriate parameters (we're interested in the row index).
         super().dropEvent(event)
         # Now we know where to insert selected row(s)
@@ -286,32 +279,42 @@ class roster_recent(QTableView):
             index = self.indexAt(event.pos())
             if index.isValid():
                 for column_number, data in enumerate(recent_roster_keys):
-                    if data != "playerid":
-                        item = QStandardItem(str(table_items[column_number-1].text()))
-                        self.model().setItem(index.row(), column_number, item)
+                    if data == "playerid":
+                        self.id = self.model().index(index.row(), 0).data()
+                        self.id_row = index.row()
+                    else:
+                        self.item = QStandardItem(str(table_items[column_number-1].text()))
+                        self.model().setItem(index.row(), column_number, self.item)
 
         event.accept()
 
-    def getselectedRowsFast(self):
-        selectedRows = []
-        for item in self.selectedItems():
-            if item.row() not in selectedRows:
-                selectedRows.append(item.row())
-        selectedRows.sort()
-        return selectedRows
+    def keyPressEvent(self, event):
+        if event.key()==(Qt.Key_Control and Qt.Key_Z):
+            for i in range(0,50):
+                if self.id == str(i):
+                    cur.execute(
+                        "select playid from temp_table where playid = (select playid from recently_viewed order by date_added desc limit 1);")
+                    result = cur.fetchone()
+                    cur.execute("select playerid, last_name, first_name, number, position, height, weight, year from roster where playid = '" + result[0] + "' and playerid = %s;",(i,))
+                    play_table_result = cur.fetchall()
+                    for column_number in range(0,7):
+                        self.item = QStandardItem(str(play_table_result[0][column_number]))
+                        self.model().setItem(self.id_row, column_number, self.item)
+
+
+
+
 
 class home_table(QTableView):
 
     def __init__(self):
         super(home_table, self).__init__()
         self.setDragEnabled(True)
-        self.setDropIndicatorShown(True)
-        self.setDragDropMode(QAbstractItemView.DragDrop)
         self.setSelectionBehavior(QAbstractItemView.SelectRows)
 
 
-    def dragEnterEvent(self, e):
-        e.accept()
+    # def dragEnterEvent(self, e):
+    #     e.accept()
 
     def dropEvent(self, e):
 
@@ -325,12 +328,6 @@ class home_table(QTableView):
     def dragMoveEvent(self, e):
         e.accept()
 
-    def getselectedRowsFast(self):
-        selectedRows = []
-        for item in selectedRows:
-            selectedRows.append(item)
-        selectedRows.sort()
-        return selectedRows
 
 def end_page():
     app = QApplication(sys.argv)
