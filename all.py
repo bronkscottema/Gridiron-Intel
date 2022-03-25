@@ -116,18 +116,24 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
         away = cur.fetchone()
         away = eval(away[0])[::-1]
     else:
-        if 0 < yard_line < 30:
-            points_image = cv2.imread('images/ncaa_g_40.png')
-            field = cv2.imread('images/ncaa_g_40.png')
-        elif 30 < yard_line < 50:
-            points_image = cv2.imread('images/ncaa_20_30.png')
-            field = cv2.imread('images/ncaa_20_30.png')
-        elif 50 < yard_line < 70:
+        if 0 < yard_line < 20:
+            points_image = cv2.imread('images/ncaa_g_50.png')
+            field = cv2.imread('images/ncaa_g_50.png')
+        elif 20 < yard_line < 40:
+            points_image = cv2.imread('images/ncaa_10_40.png')
+            field = cv2.imread('images/ncaa_10_40.png')
+        elif 40 < yard_line < 50:
+            points_image = cv2.imread('images/ncaa_30_20.png')
+            field = cv2.imread('images/ncaa_30_20.png')
+        elif 50 < yard_line < 60:
             points_image = cv2.imread('images/ncaa_40_10.png')
             field = cv2.imread('images/ncaa_40_10.png')
-        else:
-            points_image = cv2.imread('images/ncaa_40_g.png')
-            field = cv2.imread('images/ncaa_40_g.png')
+        elif 60 < yard_line < 80:
+            points_image = cv2.imread('images/ncaa_50_g.png')
+            field = cv2.imread('images/ncaa_50_g.png')
+        elif 80 < yard_line < 100:
+            points_image = cv2.imread('images/ncaa_30_g.png')
+            field = cv2.imread('images/ncaa_30_g.png')
 
         cur.execute("select rgb1 from college_team_colors where team_name = '" + offense + "'")
         home = cur.fetchone()
@@ -247,8 +253,7 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
             #
             #         # put button on source image in position (0, 0)
             #         image.paste(button_img, (int(x1), int(y1)))
-            # opencvImage = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
-            # cv2.imwrite("boxes.jpg", opencvImage)
+            cv2.imwrite("boxes.jpg", frame_cap)
             screenshot = cap.get(cv2.CAP_PROP_POS_FRAMES)
 
         # loop over the bounding boxes and draw them on the frame
@@ -385,9 +390,8 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
             for dstbb in dstbox:
                 tracker = OPENCV_OBJECT_TRACKERS[tracker_name]()
                 field_point_tracker.add(tracker, frame_cap, dstbb)
-
+            cv2.setMouseCallback('field', mouse_func)
         if cap.get(cv2.CAP_PROP_POS_FRAMES) >= end:
-            cv2.imwrite("boxes.jpg", frame_cap)
 
             def insert_execute_values_iterator(
                     connection,

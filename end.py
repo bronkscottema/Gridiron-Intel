@@ -1,10 +1,9 @@
-import os
-import sys
-
-from PyQt5.QtCore import Qt, QSortFilterProxyModel, QMimeData, QModelIndex, QDataStream, QIODevice, QVariant
-from PyQt5.QtGui import QFont, QPixmap, QIcon, QFontDatabase, QStandardItemModel, QStandardItem
+from PyQt5.QtCore import Qt, QSortFilterProxyModel, QDataStream, QIODevice, QVariant, QRectF, \
+    pyqtSignal, QPoint
+from PyQt5.QtGui import QFont, QPixmap, QIcon, QFontDatabase, QStandardItemModel, QStandardItem, QBrush, QColor
 from PyQt5.QtWidgets import QWidget, QLabel, QVBoxLayout, QHBoxLayout, QApplication, QTableWidgetItem, \
-    QTabWidget, QLineEdit, QTableView, QAbstractItemView, QDesktopWidget, QPushButton
+    QTabWidget, QLineEdit, QTableView, QAbstractItemView, QDesktopWidget, QPushButton,  QGraphicsView, QFrame, \
+    QGraphicsScene, QGraphicsPixmapItem
 from psycopg2 import connect
 import psycopg2.extras
 from typing import Iterator, Dict, Any
@@ -29,6 +28,7 @@ team_roster = ["Last Name", "First Name", "Number", "Position", "Height", "Weigh
 class Window(QWidget):
     def __init__(self):
         super().__init__()
+        self.viewer = PhotoViewer(self)
         self.image_layout = QVBoxLayout()
         self.away_model = QStandardItemModel(len(team_roster), 1)
         self.away_filter_proxy_model = QSortFilterProxyModel()
@@ -60,6 +60,7 @@ class Window(QWidget):
         main_layout = QHBoxLayout()
         field_layout = QVBoxLayout()
         self.image_layout = QVBoxLayout()
+        move_image_layout = QHBoxLayout()
         roster_layout = QHBoxLayout()
         game_roster_layout = QVBoxLayout()
         api_roster_layout = QVBoxLayout()
@@ -68,20 +69,11 @@ class Window(QWidget):
         field_layout.addWidget(self.fieldpic)
         main_layout.addLayout(field_layout)
 
-        self.button_zoom_in = QPushButton('Zoom IN', self)
-        self.button_zoom_in.clicked.connect(self.on_zoom_in)
-        self.image_layout.addWidget(self.button_zoom_in)
 
-        self.button_zoom_out = QPushButton('Zoom OUT', self)
-        self.button_zoom_out.clicked.connect(self.on_zoom_out)
-        self.image_layout.addWidget(self.button_zoom_out)
-
-        self.pixmap = QPixmap('boxes.jpg')
-
-        self.label = QLabel(self)
-        self.label.setPixmap(self.pixmap)
-        self.image_layout.addWidget(self.label)
-        self.height = self.pixmap.height()
+        self.viewer.setPhoto(QPixmap("boxes.jpg"))
+        move_image_layout.addWidget(self.viewer)
+        self.image_layout.addLayout(move_image_layout)
+        # self.height = self.pixmap.height()
 
         self.image_layout.addWidget(self.play_pic)
         self.image_layout.addLayout(roster_layout)
@@ -303,17 +295,79 @@ class Window(QWidget):
                                 "position = %s, height = %s, weight = %s, year = %s where playerid = %s;"), \
                     (j[1], j[2], j[3], j[4], j[5], j[6], j[8], j[0])
 
-    def on_zoom_in(self, event):
-        self.height += 100
-        self.resize_image()
 
-    def on_zoom_out(self, event):
-        self.height -= 100
-        self.resize_image()
+class PhotoViewer(QGraphicsView):
+    photoClicked = pyqtSignal(QPoint)
 
-    def resize_image(self):
-        scaled_pixmap = self.pixmap.scaledToHeight(self.height)
-        self.label.setPixmap(scaled_pixmap)
+    def __init__(self, parent):
+        super(PhotoViewer, self).__init__(parent)
+        self._zoom = 0
+        self._empty = True
+        self._scene = QGraphicsScene(self)
+        self._photo = QGraphicsPixmapItem()
+        self._scene.addItem(self._photo)
+        self.setScene(self._scene)
+        self.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
+        self.setResizeAnchor(QGraphicsView.AnchorUnderMouse)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setBackgroundBrush(QBrush(QColor(30, 30, 30)))
+        self.setFrameShape(QFrame.NoFrame)
+
+    def hasPhoto(self):
+        return not self._empty
+
+    def fitInView(self, scale=True):
+        rect = QRectF(self._photo.pixmap().rect())
+        if not rect.isNull():
+            self.setSceneRect(rect)
+            if self.hasPhoto():
+                unity = self.transform().mapRect(QRectF(0, 0, 1, 1))
+                self.scale(1 / unity.width(), 1 / unity.height())
+                viewrect = self.viewport().rect()
+                scenerect = self.transform().mapRect(rect)
+                factor = min(viewrect.width() / scenerect.width(),
+                             viewrect.height() / scenerect.height())
+                self.scale(factor, factor)
+            self._zoom = 0
+
+    def setPhoto(self, pixmap=None):
+        self._zoom = 0
+        if pixmap and not pixmap.isNull():
+            self._empty = False
+            self.setDragMode(QGraphicsView.ScrollHandDrag)
+            self._photo.setPixmap(pixmap)
+        else:
+            self._empty = True
+            self.setDragMode(QGraphicsView.NoDrag)
+            self._photo.setPixmap(QPixmap())
+        self.fitInView()
+
+    def wheelEvent(self, event):
+        if self.hasPhoto():
+            if event.angleDelta().y() > 0:
+                factor = 1.25
+                self._zoom += 1
+            else:
+                factor = 0.8
+                self._zoom -= 1
+            if self._zoom > 0:
+                self.scale(factor, factor)
+            elif self._zoom == 0:
+                self.fitInView()
+            else:
+                self._zoom = 0
+
+    def toggleDragMode(self):
+        if self.dragMode() == QGraphicsView.ScrollHandDrag:
+            self.setDragMode(QGraphicsView.NoDrag)
+        elif not self._photo.pixmap().isNull():
+            self.setDragMode(QGraphicsView.ScrollHandDrag)
+
+    def mousePressEvent(self, event):
+        if self._photo.isUnderMouse():
+            self.photoClicked.emit(self.mapToScene(event.pos()).toPoint())
+        super(PhotoViewer, self).mousePressEvent(event)
 
 class roster_recent(QTableView):
 
