@@ -1,21 +1,15 @@
-import os
 import tkinter
 from tkinter import *
 from tkinter import simpledialog
 import cv2
 import numpy as np
-from psycopg2 import connect, sql
+from psycopg2 import sql
 import base64
 import io
 from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime, timezone
-from start import *
 from end import *
-
 import psycopg2.extras
-from typing import Iterator, Dict, Any, List, Tuple
-
-
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -64,12 +58,11 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
     # conn = connect(dbname="footballiq", host="52.91.161.249", user="postgres", password="F00tball")
     conn.autocommit = True
     cur = conn.cursor()
-    file.strip()
 
-    cur.execute(sql.SQL("select count(*) from temp_table where playid = '" + str(playid_number) + "';"))
+    cur.execute(sql.SQL("select count(*) from main_table where playid = '" + str(playid_number) + "';"))
     exists = cur.fetchone()[0]
     if exists > 0:
-        cur.execute("select max(playerid) from temp_table where playid ='" + str(playid_number) + "';")
+        cur.execute("select max(playerid) from main_table where playid ='" + str(playid_number) + "';")
         total_players = cur.fetchone()
         total_players = total_players[0] + 1
     else:
@@ -190,7 +183,7 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
             endpoint = os.getenv('ROBOFLOW_URL')
             access_token = os.getenv('ROBOFLOW_API_KEY')
             format = '&format=json'
-            confidence = '&confidence=70'
+            confidence = '&confidence=75'
             stroke = '&stroke=4'
             overlap = '&overlap=0'
             parts.append(url_base)
@@ -287,10 +280,10 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
                                 x1, y1 = x[0]
                                 cv2.circle(field, (int(abs(x1) + 50), int(abs(y1))), 5, (0, 0, 0), 2)
                                 cur.execute(
-                                    sql.SQL("INSERT INTO temp_table VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"),
-                                    (str(playid_number), int(box_id), (int(abs(x1))), (int(abs(y1))),
-                                     cap.get(cv2.CAP_PROP_POS_FRAMES), null_variable,
-                                     null_variable, gameid_number))
+                                    sql.SQL("INSERT INTO main_table VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"),
+                                    (gameid_number, str(playid_number), int(box_id), (int(abs(x1))), (int(abs(y1))),
+                                         cap.get(cv2.CAP_PROP_POS_FRAMES), null_variable,
+                                         str(json_prediction[face_no])))
                                 screenshot += 1
                                 break
                             speed_pts2.clear()
@@ -325,25 +318,16 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
                                     else:
                                         cv2.rectangle(field, ((int(abs(x1))), int(abs(y1))),
                                                       (int(abs(x1)) + 1, int(abs(y1)) + 1), home, 2)
-                                    # cur.execute(
-                                    #     sql.SQL("INSERT INTO temp_table VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"),
-                                    #     (str(playid_number), int(box_id), (int(abs(x1))), (int(abs(y1))),
-                                    #      cap.get(cv2.CAP_PROP_POS_FRAMES), null_variable,
-                                    #      str(json_prediction[face_no]), gameid_number))
-                                    tup = (str(playid_number), int(box_id), (int(abs(x1))), (int(abs(y1))),
+
+                                    tup = (gameid_number, str(playid_number), int(box_id), (int(abs(x1))), (int(abs(y1))),
                                          cap.get(cv2.CAP_PROP_POS_FRAMES), null_variable,
-                                         str(json_prediction[face_no]), gameid_number)
+                                         str(json_prediction[face_no]))
 
                                     biglist.append(tup)
                                 else:
-                                    # cur.execute(
-                                    #     sql.SQL("INSERT INTO temp_table VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"),
-                                    #     (str(playid_number), int(box_id), (int(abs(x1))), (int(abs(y1))),
-                                    #      cap.get(cv2.CAP_PROP_POS_FRAMES), null_variable,
-                                    #      null_variable, gameid_number))
-                                    tup = (str(playid_number), int(box_id), (int(abs(x1))), (int(abs(y1))),
+                                    tup = (gameid_number, str(playid_number), int(box_id), (int(abs(x1))), (int(abs(y1))),
                                            cap.get(cv2.CAP_PROP_POS_FRAMES), null_variable,
-                                           str(json_prediction[face_no]), gameid_number)
+                                           null_variable, gameid_number)
 
                                     biglist.append(tup)
                                 screenshot += 1
@@ -362,7 +346,7 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
         # box to track
         if key == ord(" "):
             if exists == True:
-                cur.execute("select min(frame) from temp_table where playid=" + str(playid_number) + ";")
+                cur.execute("select min(frame) from main_table where playid=" + str(playid_number) + ";")
                 frameStart = cur.fetchone()[0]
                 cap.set(cv2.CAP_PROP_POS_FRAMES, frameStart)
                 box = cv2.selectROIs("Frame", frame_cap, fromCenter=False, showCrosshair=True)
@@ -411,7 +395,7 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
             ) -> None:
                 with connection.cursor() as cursor:
                     psycopg2.extras.execute_values(cursor, """
-                        INSERT INTO temp_table VALUES %s;
+                        INSERT INTO main_table VALUES %s;
                     """, ((
                         datainsert[0],
                         datainsert[1],
@@ -436,19 +420,19 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
             for value in result[0].split(","):
                 try:
                     cur.execute(sql.SQL(
-                        "DELETE FROM temp_table WHERE playerid = %s and playid = '" + str(playid_number) + "';"),
+                        "DELETE FROM main_table WHERE playerid = %s and playid = '" + str(playid_number) + "';"),
                                 (value,))
                 except:
                     continue
             if not exists:
                 cur.execute(sql.SQL(
-                    "INSERT INTO recently_viewed (game_id, playid, offense, defense, play_text, date_added, file_path, league, year, regular_post, week)"
-                    "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"),
+                    "INSERT INTO recently_viewed (game_id, playid, offense, defense, play_text, date_added, league, year, regular_post, week)"
+                    "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"),
                             (gameid_number, playid_number, offense, defense,
-                             play_text, datetime.now(timezone.utc), file, league, year, regular_post, week))
+                             play_text, datetime.now(timezone.utc), league, year, regular_post, week))
 
             cur.execute(
-                "select frame,player_position, color, y_pos, playerid from temp_table where playid = '" + playid_number + "' order by frame asc")
+                "select frame, position, color, y_pos, playerid from main_table where playid = '" + playid_number + "' order by frame asc")
             off_vs_def = cur.fetchall()
             for x in off_vs_def:
                 if x[1] == 'C':
@@ -457,11 +441,11 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
                         playerid = y[4]
                         if y[3] < y_pos:
                             cur.execute(sql.SQL(
-                                "update temp_table set color = 'defense' where playid = '" + playid_number + "' and playerid = %s"),
+                                "update main_table set color = 'defense' where playid = '" + playid_number + "' and playerid = %s"),
                                         (playerid,))
                         else:
                             cur.execute(sql.SQL(
-                                "update temp_table set color = 'offense' where playid = '" + playid_number + "' and playerid = %s"),
+                                "update main_table set color = 'offense' where playid = '" + playid_number + "' and playerid = %s"),
                                         (playerid,))
                     break
                 else:
@@ -473,25 +457,24 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
                 for x in off_vs_def:
                     if x[4] == USER_INP:
                         cur.execute(sql.SQL(
-                            "update temp_table set player_position = 'C' where playid = '" + playid_number + "' and playerid = %s"),
+                            "update main_table set position = 'C' where playid = '" + playid_number + "' and playerid = %s"),
                                     (USER_INP,))
                         y_pos = x[3]
                         for y in off_vs_def:
                             playerid = y[4]
                             if y[3] < y_pos:
                                 cur.execute(sql.SQL(
-                                    "update temp_table set color = 'defense' where playid = '" + playid_number + "' and playerid = %s"),
+                                    "update main_table set color = 'defense' where playid = '" + playid_number + "' and playerid = %s"),
                                             (playerid,))
                             else:
                                 cur.execute(sql.SQL(
-                                    "update temp_table set color = 'offense' where playid = '" + playid_number + "' and playerid = %s"),
+                                    "update main_table set color = 'offense' where playid = '" + playid_number + "' and playerid = %s"),
                                             (playerid,))
 
             cur.close()
             conn.close()
             cap.release()
             cv2.destroyAllWindows()
-            end_page()
 
     cap.release()
     cv2.destroyAllWindows()

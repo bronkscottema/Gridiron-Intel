@@ -1,4 +1,3 @@
-import sys
 import urllib
 from urllib.request import urlopen
 from PyQt5 import QtGui
@@ -8,6 +7,7 @@ from PyQt5.QtGui import QPixmap, QFontDatabase, QFont, QIcon
 import all
 from collegeFBTeams import *
 from collegeFBGames import *
+from end import end_page
 from getNFLGames import *
 from Roster import *
 from psycopg2 import connect
@@ -130,17 +130,19 @@ class Window(QWidget):
 
         # middle widget Table
         self.api_table = QTableWidget(0,len(keys))
-        header = self.api_table.horizontalHeader()
+        self.header = self.api_table.horizontalHeader()
         self.api_table.horizontalHeader().setDefaultAlignment(Qt.AlignCenter)
         self.api_table.horizontalHeader().setFont(self.table_font)
-        header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
-        header.setSectionResizeMode(6, QHeaderView.ResizeToContents)
-        header.setSectionResizeMode(7, QHeaderView.ResizeToContents)
-        header.setSectionResizeMode(8, QHeaderView.ResizeToContents)
-        header.setSectionResizeMode(9, QHeaderView.ResizeToContents)
-        header.setSectionResizeMode(10, QHeaderView.ResizeToContents)
-        header.setSectionResizeMode(11, QHeaderView.Stretch)
+        self.api_table.setAlternatingRowColors(True)
+        self.api_table.verticalHeader().setVisible(False)
+        self.header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        self.header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
+        self.header.setSectionResizeMode(6, QHeaderView.ResizeToContents)
+        self.header.setSectionResizeMode(7, QHeaderView.ResizeToContents)
+        self.header.setSectionResizeMode(8, QHeaderView.ResizeToContents)
+        self.header.setSectionResizeMode(9, QHeaderView.ResizeToContents)
+        self.header.setSectionResizeMode(10, QHeaderView.ResizeToContents)
+        self.header.setSectionResizeMode(11, QHeaderView.Stretch)
         self.api_table.clicked.connect(self.set_submit_button)
         middle_layout.addWidget(self.api_table)
         self.setLayout(main_layout)
@@ -153,6 +155,7 @@ class Window(QWidget):
         self.show()
 
     def update_table(self, ix):
+        self.api_table.setRowCount(0)
         self.api_table.setSortingEnabled(False)
 
         if self.league.currentText() == 'NFL':
@@ -208,6 +211,15 @@ class Window(QWidget):
                 pass
         else:
             self.api_table.setColumnCount(len(keys))
+            self.header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
+            self.header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
+            self.header.setSectionResizeMode(6, QHeaderView.ResizeToContents)
+            self.header.setSectionResizeMode(7, QHeaderView.ResizeToContents)
+            self.header.setSectionResizeMode(8, QHeaderView.ResizeToContents)
+            self.header.setSectionResizeMode(9, QHeaderView.ResizeToContents)
+            self.header.setSectionResizeMode(10, QHeaderView.ResizeToContents)
+            self.header.setSectionResizeMode(11, QHeaderView.Stretch)
+
             try:
                 self.week = getWeek(yearOf=self.year.currentText(), regOrPost=self.regular_post.currentText(),
                                teamName=self.offense.currentText(), opponent=self.opponent.currentText())
@@ -253,6 +265,7 @@ class Window(QWidget):
                    offense_l_or_r=self.offense_left_or_right.currentText(), yard_line=int(self.yard_value), offense=self.offense.currentText(),
                    defense=self.opponent.currentText(), league=self.league.currentText(), year=self.year.currentText(),
                    week=self.week, regular_post=self.regular_post.currentText(), play_text=self.play_text)
+        end_page()
 
     def update_opponent(self, ix):
         if self.league.currentText() == 'NFL' and ix == 0:
