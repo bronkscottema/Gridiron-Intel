@@ -34,6 +34,14 @@ class Window(QWidget):
         self.setWindowIcon(QIcon('images/favicon.ico'))
         self.ok_btn = QPushButton("Submit")
 
+        self.toggle_2 = AnimatedToggle(
+            checked_color="#4400B0EE",
+            pulse_checked_color="#4400B0EE"
+        )
+        self.toggle_2.setStyleSheet("max-width: 75px;")
+        self.toggle_2.setObjectName("toggle")
+        self.toggle_2.clicked.connect(self.set_light_dark_mode)
+
         self.offense_left_or_right_label = QLabel("Is the offense going from Left to Right on Screen?")
         self.offense_left_or_right_label.setWordWrap(True)
         self.offense_left_or_right_label.setObjectName("questions")
@@ -79,7 +87,6 @@ class Window(QWidget):
         self.font = QFont("proxima", 18)
         self.table_font = QFont("proxima", 12)
         self.offense.setStyleSheet('QLineEdit {background-color:white}')
-        self.offense.currentIndexChanged.connect(self.set_style_background)
 
         self.ui()
 
@@ -87,12 +94,15 @@ class Window(QWidget):
         #layout section
         main_layout = QVBoxLayout()
         top_layout = QHBoxLayout()
+        toggle_layout = QVBoxLayout()
         top_left_layout = QVBoxLayout()
         top_right_layout = QFormLayout()
         middle_layout = QHBoxLayout()
         main_layout.addLayout(top_layout)
+        top_layout.addLayout(toggle_layout)
         top_layout.addLayout(top_left_layout)
         top_layout.addLayout(top_right_layout)
+        top_layout.insertWidget(10, self.toggle_2, 0, alignment=Qt.AlignTop)
         main_layout.addLayout(middle_layout)
 
         # top Left
@@ -124,6 +134,7 @@ class Window(QWidget):
         self.offense.setFont(self.font)
         self.offense_label.setFont(self.font)
         self.offense.currentIndexChanged.connect(self.start)
+        self.offense.currentIndexChanged.connect(self.set_light_dark_mode)
         top_right_layout.addRow(self.offense_label, self.offense)
 
         self.regular_post.addItems(["regular", "postseason"])
@@ -178,6 +189,7 @@ class Window(QWidget):
 
         self.ok_btn.setFont(self.font)
         self.ok_btn.setVisible(False)
+        self.ok_btn.setObjectName("push")
         top_right_layout.addWidget(self.ok_btn)
         self.ok_btn.clicked.connect(self.submit_pushed)
         top_right_layout.setContentsMargins(200, 75, 200, 0)
@@ -397,17 +409,56 @@ class Window(QWidget):
     def start(self):
         self.timer.start()
 
-    def set_style_background(self):
+    def set_light_dark_mode(self):
+        if self.toggle_2.checkState() == 2:
+            self.style = '''
+            QWidget {
+                background-color: black;
+            }
+            QLabel {
+                color: white;
+            }
+            QComboBox QAbstractItemView {
+                background-color: white;
+            }
+            QTableView {
+                background-color: white;
+            }
+            QComboBox::drop-down {
+                border: 0px; /* This seems to replace the whole arrow of the combo box */
+                color: white;
+            }
+            QComboBox {
+                background-color: white;
+            }
+            '''
+        else:
+            self.style = '''
+            QWidget {
+                background - color: white;
+            }
+            '''
         if self.offense.currentText() is not None:
-            team_name = self.offense.currentText()
-            team_name =  team_name.replace(" ", "").lower()
-            #set stylesheet here
-            teamFile="styles/" + team_name + ".qss"
-            try:
-                with open(teamFile,"r") as fh:
-                    self.setStyleSheet(fh.read())
-            except:
-                pass
+            if self.league.currentText() == "NFL":
+                team_name = self.offense.currentText()
+                team_name = team_name.replace(" ", "").lower()
+                # set stylesheet here
+                teamFile = "styles/nfl/" + team_name + ".qss"
+                try:
+                    with open(teamFile, "r") as self.fh:
+                        self.setStyleSheet(self.fh.read() + self.style)
+                except:
+                    pass
+            else:
+                team_name = self.offense.currentText()
+                team_name = team_name.replace(" ", "").lower()
+                # set stylesheet here
+                teamFile = "styles/ncaa/" + team_name + ".qss"
+                try:
+                    with open(teamFile, "r") as self.fh:
+                        self.setStyleSheet(self.fh.read() + self.style)
+                except:
+                    pass
 
 
 def main():
@@ -415,6 +466,7 @@ def main():
     QFontDatabase().addApplicationFont("fonts/proxima.ttf")
     window = Window()
     window.start()
+    window.set_light_dark_mode()
     window.update_table(0)
     sys.exit(app.exec_())
 
