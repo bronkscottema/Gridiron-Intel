@@ -1,0 +1,65 @@
+QWidget {
+    background-color: white;
+}
+
+QLabel {
+    color: black;
+}
+
+#questions {
+    max-width: 350px;
+    min-width: 300px;
+    max-height: 120px;
+}
+
+QPushButton {
+    color: white;
+    background-color: #98002E; /*primary*/
+    border :3px outset;
+    border-color: #BC9B6A;
+    border-radius: 5px;
+    max-width: 260px;
+    min-width: 200px;
+}
+
+QComboBox {
+    max-width: 250px;
+    min-width: 200px;
+    padding: 5px;
+    border-style: outset;
+    border-width: 2px;
+    border-radius: 5px;
+    border-color: #98002E; /*primary*/
+}
+
+QComboBox::drop-down {
+    border: 0px; /* This seems to replace the whole arrow of the combo box */
+}
+
+/* combobox dropdown arrow image?
+QComboBox::down-arrow {
+    image: url("images/arrow.png");
+    width: 25px;
+    height: 32px;
+    padding-right: 5px;
+}
+*/
+
+QTableView {
+    alternate-background-color: #BC9B6A;
+    selection-background-color: #98002E; /*primary*/
+}
+
+QTableCornerButton {
+    background-color: #98002E; /*primary*/
+}
+
+QHeaderView::section {
+    background-color: #98002E; /*primary*/
+    border: 0.5px solid white;
+    color: white;
+}
+
+QComboBox QAbstractItemView {
+    selection-background-color: #98002E;
+}

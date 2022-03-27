@@ -1,15 +1,19 @@
+import os
+
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import matplotlib.font_manager as font_manager
+from matplotlib import rcParams
 
-pd.set_option('max_columns', 100)
+pd_options = {
+'display.max_columns' : 100,
+}
+[pd.set_option(option, setting) for option, setting in pd_options.items()]
 
-font_dirs = ['C:\\Users\\scott.000\\Desktop\\FootballiQ\\pythonFootball\\']
-# font_dirs = ['/my/custom/font/dir', ]
-font_files = font_manager.findSystemFonts(fontpaths=font_dirs)
-font_list = font_manager.createFontList(font_files)
-font_manager.fontManager.ttflist.extend(font_list)
+font_dirs = ['C:\\Users\\bronkscottema\\Desktop\\Development\\Audible_Analytics\\fonts\\']
+for font in font_manager.findSystemFonts(font_dirs):
+    font_manager.fontManager.addfont(font)
 plt.rcParams['font.family'] = 'Superstar M54'
 
 def create_football_field(linenumbers=True,
@@ -62,41 +66,41 @@ def create_football_field(linenumbers=True,
                 numb = 120 - x
             #10 yard line
             if numb - 10 == 10:
-                plt.text(7, x - .75, str(numb - 10).replace("", " "),
+                plt.text(12, x - .65, str(numb - 10).replace("", " "),
                          horizontalalignment='center',
                          fontsize=19, fontname='Superstar M54',
                          color='black', rotation=90)
-                plt.text(53.3 - 7, x - .75, str(numb - 10).replace("", " "),
+                plt.text(53.3 - 12, x - .65, str(numb - 10).replace("", " "),
                          horizontalalignment='center',
                          fontsize=19, fontname='Superstar M54',
                          color='black', rotation=90)
             elif numb - 10 == 30:
-                plt.text(7, x - 1.1, str(numb - 10).replace("", " "),
+                plt.text(12, x - .75, str(numb - 10).replace("", " "),
                          horizontalalignment='center',
                          fontsize=19, fontname='Superstar M54',
                          color='black', rotation=90)
-                plt.text(53.3 - 7, x - 1.1, str(numb - 10).replace("", " "),
+                plt.text(53.3 - 12, x - 1, str(numb - 10).replace("", " "),
                          horizontalalignment='center',
                          fontsize=19, fontname='Superstar M54',
                          color='black', rotation=90)
             elif numb - 10 == 40:
-                 plt.text(7, x - 1.1, str(numb - 10).replace("", " "),
-                          horizontalalignment='center',
-                          fontsize=19, fontname='Superstar M54',
-                          color='black', rotation=90)
-                 plt.text(53.3 - 7, x - 1.1, str(numb - 10).replace("", " "),
-                          horizontalalignment='center',
-                          fontsize=19, fontname='Superstar M54',
-                          color='black', rotation=90)
+                plt.text(12, x - .75, str(numb - 10).replace("", " "),
+                         horizontalalignment='center',
+                         fontsize=19, fontname='Superstar M54',
+                         color='black', rotation=90)
+                plt.text(53.3 - 12, x - 1, str(numb - 10).replace("", " "),
+                         horizontalalignment='center',
+                         fontsize=19, fontname='Superstar M54',
+                         color='black', rotation=90)
             else:
-                 plt.text(7, x - 1, str(numb - 10).replace("", " "),
-                          horizontalalignment='center',
-                          fontsize=19, fontname='Superstar M54',
-                          color='black', rotation=90)
-                 plt.text(53.3 - 7, x - 1, str(numb - 10).replace("", " "),
-                          horizontalalignment='center',
-                          fontsize=19, fontname='Superstar M54',
-                          color='black', rotation=90)
+                plt.text(12, x - .85, str(numb - 10).replace("", " "),
+                         horizontalalignment='center',
+                         fontsize=19, fontname='Superstar M54',
+                         color='black', rotation=90)
+                plt.text(53.3 - 12, x - .85, str(numb - 10).replace("", " "),
+                         horizontalalignment='center',
+                         fontsize=19, fontname='Superstar M54',
+                         color='black', rotation=90)
     if endzones:
         hash_range = range(11, 110)
     else:
@@ -229,11 +233,11 @@ plt.show()
 #              color='black', rotation=90)
 #NCAA ZOOMED IN
 # if numb - 10 == 10:
-#     plt.text(7, x - .75, str(numb - 10).replace("", " "),
+#     plt.text(12, x - .75, str(numb - 10).replace("", " "),
 #              horizontalalignment='center',
 #              fontsize=19, fontname='Superstar M54',
 #              color='black', rotation=90)
-#     plt.text(53.3 - 7, x - .75, str(numb - 10).replace("", " "),
+#     plt.text(53.3 - 12, x - .75, str(numb - 10).replace("", " "),
 #              horizontalalignment='center',
 #              fontsize=19, fontname='Superstar M54',
 #              color='black', rotation=90)

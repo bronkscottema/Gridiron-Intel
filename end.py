@@ -69,7 +69,6 @@ class Window(QWidget):
         field_layout.addWidget(self.fieldpic)
         main_layout.addLayout(field_layout)
 
-
         self.viewer.setPhoto(QPixmap("boxes.jpg"))
         move_image_layout.addWidget(self.viewer)
         self.image_layout.addLayout(move_image_layout)

@@ -11,6 +11,7 @@ from end import end_page
 from getNFLGames import *
 from Roster import *
 from psycopg2 import connect
+from qtwidgets import Toggle, AnimatedToggle
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -32,27 +33,54 @@ class Window(QWidget):
         super().__init__()
         self.setWindowIcon(QIcon('images/favicon.ico'))
         self.ok_btn = QPushButton("Submit")
+
         self.offense_left_or_right_label = QLabel("Is the offense going from Left to Right on Screen?")
+        self.offense_left_or_right_label.setWordWrap(True)
+        self.offense_left_or_right_label.setObjectName("questions")
         self.offense_left_or_right = QComboBox(self)
+
         self.hashmark_number_label = QLabel("Hashmarks of Numbers?")
+        self.hashmark_number_label.setWordWrap(True)
+        self.hashmark_number_label.setObjectName("questions")
         self.hashmark_number = QComboBox(self)
+
         self.opponent_label = QLabel("Who is the opponent?")
+        self.opponent_label.setObjectName("questions")
+        self.opponent_label.setWordWrap(True)
         self.opponent = QComboBox(self)
+
         self.regular_post_label = QLabel("Was it regular season or postseason?")
+        self.regular_post_label.setWordWrap(True)
+        self.regular_post_label.setObjectName("questions")
         self.regular_post = QComboBox(self)
+
         self.offense_label = QLabel("Which team is on offense?")
+        self.offense_label.setObjectName("questions")
+        self.offense_label.setWordWrap(True)
         self.offense = QComboBox(self)
+
         self.year_label = QLabel("Which Year was the game?")
+        self.year_label.setWordWrap(True)
+        self.year_label.setObjectName("questions")
         self.year = QComboBox(self)
+
         self.leaque_label = QLabel("Which League?")
+        self.leaque_label.setWordWrap(True)
+        self.leaque_label.setObjectName("questions")
         self.league = QComboBox(self)
+
         self.value = 0
         self.timer = QTimer()
         self.league_pic = QLabel(self)
+        self.league_pic.style().unpolish(self.league_pic)
+        self.league_pic.style().polish(self.league_pic)
         self.setGeometry(0, 0, 1920, 1080)
         self.setWindowTitle("Audible Analytics")
         self.font = QFont("proxima", 18)
         self.table_font = QFont("proxima", 12)
+        self.offense.setStyleSheet('QLineEdit {background-color:white}')
+        self.offense.currentIndexChanged.connect(self.set_style_background)
+
         self.ui()
 
     def ui(self):
@@ -71,9 +99,10 @@ class Window(QWidget):
         self.league_pic.setPixmap(QPixmap('images/ncaa.png'))
         self.league_pic.setMaximumSize(500, 500)
         top_left_layout.addWidget(self.league_pic)
+        top_left_layout.setAlignment(Qt.AlignCenter)
 
         # Timer for images
-        self.timer.setInterval(500)
+        self.timer.setInterval(1000)
         self.timer.timeout.connect(self.change_image)
 
         # top Right
@@ -102,8 +131,7 @@ class Window(QWidget):
         self.regular_post_label.setFont(self.font)
         top_right_layout.addRow(self.regular_post_label, self.regular_post)
 
-        self.opponent.addItems(
-            getOpponent(self.year.currentText(), self.regular_post.currentText(), self.offense.currentText()))
+        self.opponent.addItems(getOpponent(self.year.currentText(), self.regular_post.currentText(), self.offense.currentText()))
         self.opponent.setFont(self.font)
         self.opponent_label.setFont(self.font)
         top_right_layout.addRow(self.opponent_label, self.opponent)
@@ -117,7 +145,8 @@ class Window(QWidget):
         self.offense_left_or_right_label.setFont(self.font)
         self.offense_left_or_right.addItems(["Offense Left", "Offense Right"])
         top_right_layout.addRow(self.offense_left_or_right_label, self.offense_left_or_right)
-        
+        top_right_layout.setAlignment(Qt.AlignCenter)
+
         # update calls
         self.year.currentIndexChanged.connect(self.update_opponent)
         self.regular_post.currentIndexChanged.connect(self.update_opponent)
@@ -367,6 +396,18 @@ class Window(QWidget):
 
     def start(self):
         self.timer.start()
+
+    def set_style_background(self):
+        if self.offense.currentText() is not None:
+            team_name = self.offense.currentText()
+            team_name =  team_name.replace(" ", "").lower()
+            #set stylesheet here
+            teamFile="styles/" + team_name + ".qss"
+            try:
+                with open(teamFile,"r") as fh:
+                    self.setStyleSheet(fh.read())
+            except:
+                pass
 
 
 def main():
