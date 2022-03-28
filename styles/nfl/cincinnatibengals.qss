@@ -8,7 +8,7 @@
     color: white;
     background-color: #FB4F14; /*primary*/
     border :3px outset;
-    border-color: #000000;
+    border-color: #828A8F;
     border-radius: 5px;
     max-width: 260px;
     min-width: 200px;
@@ -38,62 +38,7 @@ QComboBox::down-arrow {
 */
 
 QTableView {
-    alternate-background-color: #000000;
-    selection-background-color: #FB4F14; /*primary*/
-}
-
-QTableCornerButton {
-    background-color: #FB4F14; /*primary*/
-}
-
-QHeaderView::section {
-    background-color: #FB4F14; /*primary*/
-    border: 0.5px solid white;
-}
-
-QComboBox QAbstractItemView {
-    selection-background-color: #FB4F14;
-}#questions {
-    max-width: 350px;
-    min-width: 300px;
-    max-height: 120px;
-}
-
-#push {
-    color: white;
-    background-color: #FB4F14; /*primary*/
-    border :3px outset;
-    border-color: #000000;
-    border-radius: 5px;
-    max-width: 260px;
-    min-width: 200px;
-}
-
-QComboBox {
-    max-width: 250px;
-    min-width: 200px;
-    padding: 5px;
-    border-style: outset;
-    border-width: 2px;
-    border-radius: 5px;
-    border-color: #FB4F14; /*primary*/
-}
-
-QComboBox::drop-down {
-    border: 0px; /* This seems to replace the whole arrow of the combo box */
-}
-
-/* combobox dropdown arrow image?
-QComboBox::down-arrow {
-    image: url("images/arrow.png");
-    width: 25px;
-    height: 32px;
-    padding-right: 5px;
-}
-*/
-
-QTableView {
-    alternate-background-color: #000000;
+    alternate-background-color: #828A8F;
     selection-background-color: #FB4F14; /*primary*/
 }
 

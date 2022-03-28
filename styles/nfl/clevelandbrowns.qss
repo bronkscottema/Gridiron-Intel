@@ -6,9 +6,9 @@
 
 #push {
     color: white;
-    background-color: #FF3A00; /*primary*/
+    background-color: #311D00; /*primary*/
     border :3px outset;
-    border-color: #FFFFFF;
+    border-color: #FF3C00;
     border-radius: 5px;
     max-width: 260px;
     min-width: 200px;
@@ -21,7 +21,7 @@ QComboBox {
     border-style: outset;
     border-width: 2px;
     border-radius: 5px;
-    border-color: #FF3A00; /*primary*/
+    border-color: #311D00; /*primary*/
 }
 
 QComboBox::drop-down {
@@ -38,74 +38,20 @@ QComboBox::down-arrow {
 */
 
 QTableView {
-    alternate-background-color: #FFFFFF;
-    selection-background-color: #FF3A00; /*primary*/
+    alternate-background-color: #FF3C00;
+    selection-background-color: #311D00; /*primary*/
 }
 
 QTableCornerButton {
-    background-color: #FF3A00; /*primary*/
+    background-color: #311D00; /*primary*/
 }
 
 QHeaderView::section {
-    background-color: #FF3A00; /*primary*/
+    background-color: #311D00; /*primary*/
     border: 0.5px solid white;
-}
-
-QComboBox QAbstractItemView {
-    selection-background-color: #FF3A00;
-}#questions {
-    max-width: 350px;
-    min-width: 300px;
-    max-height: 120px;
-}
-
-#push {
     color: white;
-    background-color: #FF3A00; /*primary*/
-    border :3px outset;
-    border-color: #FFFFFF;
-    border-radius: 5px;
-    max-width: 260px;
-    min-width: 200px;
-}
-
-QComboBox {
-    max-width: 250px;
-    min-width: 200px;
-    padding: 5px;
-    border-style: outset;
-    border-width: 2px;
-    border-radius: 5px;
-    border-color: #FF3A00; /*primary*/
-}
-
-QComboBox::drop-down {
-    border: 0px; /* This seems to replace the whole arrow of the combo box */
-}
-
-/* combobox dropdown arrow image?
-QComboBox::down-arrow {
-    image: url("images/arrow.png");
-    width: 25px;
-    height: 32px;
-    padding-right: 5px;
-}
-*/
-
-QTableView {
-    alternate-background-color: #FFFFFF;
-    selection-background-color: #FF3A00; /*primary*/
-}
-
-QTableCornerButton {
-    background-color: #FF3A00; /*primary*/
-}
-
-QHeaderView::section {
-    background-color: #FF3A00; /*primary*/
-    border: 0.5px solid white;
 }
 
 QComboBox QAbstractItemView {
-    selection-background-color: #FF3A00;
+    selection-background-color: #311D00;
 }

@@ -6,9 +6,9 @@
 
 #push {
     color: white;
-    background-color: #002445; /*primary*/
+    background-color: #002664; /*primary*/
     border :3px outset;
-    border-color: #F0B510;
+    border-color: #EAAB00;
     border-radius: 5px;
     max-width: 260px;
     min-width: 200px;
@@ -21,7 +21,7 @@ QComboBox {
     border-style: outset;
     border-width: 2px;
     border-radius: 5px;
-    border-color: #002445; /*primary*/
+    border-color: #002664; /*primary*/
 }
 
 QComboBox::drop-down {
@@ -38,19 +38,20 @@ QComboBox::down-arrow {
 */
 
 QTableView {
-    alternate-background-color: #F0B510;
-    selection-background-color: #002445; /*primary*/
+    alternate-background-color: #EAAB00;
+    selection-background-color: #002664; /*primary*/
 }
 
 QTableCornerButton {
-    background-color: #002445; /*primary*/
+    background-color: #002664; /*primary*/
 }
 
 QHeaderView::section {
-    background-color: #002445; /*primary*/
+    background-color: #002664; /*primary*/
     border: 0.5px solid white;
+    color: white;
 }
 
 QComboBox QAbstractItemView {
-    selection-background-color: #002445;
+    selection-background-color: #002664;
 }
