@@ -1,12 +1,16 @@
+import urllib
+
+from PyQt5 import QtGui, QtWidgets, QtCore
 from PyQt5.QtCore import Qt, QSortFilterProxyModel, QDataStream, QIODevice, QVariant, QRectF, \
     pyqtSignal, QPoint
 from PyQt5.QtGui import QFont, QPixmap, QIcon, QFontDatabase, QStandardItemModel, QStandardItem, QBrush, QColor
 from PyQt5.QtWidgets import QWidget, QLabel, QVBoxLayout, QHBoxLayout, QApplication, QTableWidgetItem, \
-    QTabWidget, QLineEdit, QTableView, QAbstractItemView, QDesktopWidget, QPushButton,  QGraphicsView, QFrame, \
-    QGraphicsScene, QGraphicsPixmapItem
+    QTabWidget, QLineEdit, QTableView, QAbstractItemView, QDesktopWidget, QPushButton, QGraphicsView, QFrame, \
+    QGraphicsScene, QGraphicsPixmapItem, QSlider
 from psycopg2 import connect
 import psycopg2.extras
 from typing import Iterator, Dict, Any
+from qtwidgets import Toggle, AnimatedToggle
 from Roster import *
 from dotenv import load_dotenv
 
@@ -24,11 +28,13 @@ roster_labels = ["Player Id", "Last Name", "First Name", "Number", "Position", "
 roster_keys = ["last_name", "first_name", "jersey", "position", "height", "weight", "year"]
 team_roster = ["Last Name", "First Name", "Number", "Position", "Height", "Weight", "Year"]
 
+cur.execute("select offense,defense,year,league from recently_viewed order by date_added desc limit  1;")
+result = cur.fetchone()
 
 class Window(QWidget):
     def __init__(self):
         super().__init__()
-        self.viewer = PhotoViewer(self)
+        self.viewer = PhotoViewer()
         self.image_layout = QVBoxLayout()
         self.away_model = QStandardItemModel(len(team_roster), 1)
         self.away_filter_proxy_model = QSortFilterProxyModel()
@@ -37,6 +43,8 @@ class Window(QWidget):
         self.recently_viewed_model = QStandardItemModel(len(roster_labels), 1)
         self.refresh_button = QPushButton('Refresh', self)
         self.submit_button = QPushButton('Submit', self)
+        self.submit_button.setObjectName("endPush")
+        self.refresh_button.setObjectName("endPush")
         self.search_field = QLineEdit()
         self.away_search_field = QLineEdit()
         self.tab2 = QWidget()
@@ -48,11 +56,14 @@ class Window(QWidget):
         self.setWindowIcon(QIcon('images/favicon.ico'))
         screen = QDesktopWidget().screenGeometry()
         self.setGeometry(0, 0, screen.width(), screen.height())
+        self.showMaximized()
         self.setWindowTitle("Audible Analytics")
         self.font = QFont("proxima", 18)
         self.table_font = QFont("proxima", 11)
         self.fieldpic = QLabel(self)
         self.play_pic = QLabel(self)
+        self.home_logo = QLabel(self)
+        self.away_logo = QLabel(self)
         self.ui()
 
     def ui(self):
@@ -60,10 +71,12 @@ class Window(QWidget):
         main_layout = QHBoxLayout()
         field_layout = QVBoxLayout()
         self.image_layout = QVBoxLayout()
+        self.logo_layout = QVBoxLayout()
         move_image_layout = QHBoxLayout()
         roster_layout = QHBoxLayout()
         game_roster_layout = QVBoxLayout()
         api_roster_layout = QVBoxLayout()
+        button_layout = QHBoxLayout()
 
         self.fieldpic.setPixmap(QPixmap('dottedfield.jpg'))
         field_layout.addWidget(self.fieldpic)
@@ -72,7 +85,32 @@ class Window(QWidget):
         self.viewer.setPhoto(QPixmap("boxes.jpg"))
         move_image_layout.addWidget(self.viewer)
         self.image_layout.addLayout(move_image_layout)
-        # self.height = self.pixmap.height()
+
+        # pixmap_home = QPixmap('images/nfl.png')
+        # pixmap_home = pixmap_home.scaled(100, 100)
+        # self.home_logo.setPixmap(pixmap_home)
+        #
+        # pixmap_away = QPixmap('images/ncaa.png')
+        # pixmap_away = pixmap_away.scaled(100, 100)
+        # self.away_logo.setPixmap(pixmap_away)
+
+        self.toggle_2 = AnimatedToggle(
+            checked_color="#4400B0EE",
+            pulse_checked_color="#4400B0EE"
+        )
+        self.slider = QSlider(self)
+        self.slider.setOrientation(Qt.Vertical)
+        self.slider.setSliderPosition(50)
+
+        # self.slider.valueChanged.connect(self.setLabelValue)
+        self.toggle_2.setStyleSheet("max-width: 100px;")
+        self.toggle_2.setObjectName("toggle")
+        self.toggle_2.clicked.connect(self.set_light_dark_mode)
+        self.logo_layout.addWidget(self.toggle_2, alignment=Qt.AlignTop)
+        self.logo_layout.addWidget(self.slider, alignment=Qt.AlignHCenter)
+        # self.logo_layout.addWidget(self.home_logo)
+        # self.logo_layout.addWidget(self.away_logo)
+        move_image_layout.addLayout(self.logo_layout)
 
         self.image_layout.addWidget(self.play_pic)
         self.image_layout.addLayout(roster_layout)
@@ -83,21 +121,23 @@ class Window(QWidget):
         self.recently_viewed_table.horizontalHeader().setDefaultAlignment(Qt.AlignCenter)
         self.recently_viewed_table.horizontalHeader().setFont(self.table_font)
         self.recently_viewed_table.verticalHeader().setVisible(False)
-        self.recently_viewed_table.verticalHeader().setVisible(False)
+        self.recently_viewed_table.setAlternatingRowColors(True)
         game_roster_layout.addWidget(self.recently_viewed_table)
-        game_roster_layout.addWidget(self.submit_button)
-        game_roster_layout.addWidget(self.refresh_button)
+        game_roster_layout.addLayout(button_layout)
+        button_layout.addWidget(self.submit_button)
+        button_layout.addWidget(self.refresh_button)
         self.submit_button.clicked.connect(self.submit_pushed)
+        self.submit_button.setFont(self.font)
+        self.refresh_button.setFont(self.font)
         self.refresh_button.clicked.connect(self.refresh_pushed)
 
 
         # api roster data
-        cur.execute(
-            "select offense,defense from recently_viewed order by date_added desc limit  1;")
-        result = cur.fetchall()
 
-        self.tabs.addTab(self.tab1, result[0][0])
-        self.tabs.addTab(self.tab2, result[0][1])
+
+        self.tabs.addTab(self.tab1, "")
+        self.tabs.addTab(self.tab2, "")
+
         self.tab1.layout = QVBoxLayout()
         self.tab2.layout = QVBoxLayout()
 
@@ -107,6 +147,7 @@ class Window(QWidget):
         self.filter_proxy_model.setFilterKeyColumn(1)
         self.filter_proxy_model.setFilterKeyColumn(2)
         self.search_field.setStyleSheet('font-size: 14px; height: 30px;')
+        self.search_field.setPlaceholderText("Search by last name")
         self.search_field.textChanged.connect(self.filter_proxy_model.setFilterRegExp)
         self.home_roster_table.horizontalHeader()
         self.home_roster_table.setModel(self.filter_proxy_model)
@@ -115,14 +156,15 @@ class Window(QWidget):
         self.home_roster_table.setAlternatingRowColors(True)
         self.home_roster_table.verticalHeader().setVisible(False)
 
-        self.tab1.layout.addWidget(self.search_field)
         self.tab1.layout.addWidget(self.home_roster_table)
+        self.tab1.layout.addWidget(self.search_field)
         self.tab1.setLayout(self.tab1.layout)
 
         # tab2/awayteam
         self.away_filter_proxy_model.setSourceModel(self.away_model)
         self.away_filter_proxy_model.setFilterKeyColumn(0)
         self.away_search_field.setStyleSheet('font-size: 14px; height: 30px;')
+        self.away_search_field.setPlaceholderText("Search by last name")
         self.away_search_field.textChanged.connect(self.away_filter_proxy_model.setFilterRegExp)
         self.away_roster_table.horizontalHeader()
         self.away_roster_table.setModel(self.away_filter_proxy_model)
@@ -130,8 +172,8 @@ class Window(QWidget):
         self.away_roster_table.horizontalHeader().setFont(self.table_font)
         self.away_roster_table.setAlternatingRowColors(True)
         self.away_roster_table.verticalHeader().setVisible(False)
-        self.tab2.layout.addWidget(self.away_search_field)
         self.tab2.layout.addWidget(self.away_roster_table)
+        self.tab2.layout.addWidget(self.away_search_field)
         self.tab2.setLayout(self.tab2.layout)
         api_roster_layout.addWidget(self.tabs)
 
@@ -146,16 +188,15 @@ class Window(QWidget):
         self.recently_viewed_table.setSortingEnabled(False)
         cur.execute(
             "select playid from main_table where playid = (select playid from recently_viewed order by date_added desc limit 1);")
-        result = cur.fetchone()
+        result_main = cur.fetchone()
 
-        cur.execute("select * from roster where playid = '" + result[0] + "';")
+        cur.execute("select * from roster where playid = '" + result_main[0] + "';")
         roster_exist = cur.fetchall()
 
         if len(roster_exist) == 0:
             cur.execute(
-                "select gameid, playid, playerid, player_position from main_table where playid = '" + result[0] + "' "
-                                                                                                                  "and frame = (select min(frame) from main_table where playid = '" +
-                result[0] + "');")
+                "select gameid, playid, playerid, player_position from main_table where playid = '" + result_main[0] + "' "
+                "and frame = (select min(frame) from main_table where playid = '" + result_main[0] + "');")
             play_table_result = cur.fetchall()
 
 
@@ -208,7 +249,7 @@ class Window(QWidget):
             self.recently_viewed_model.clear()
             cur.execute(
                 "select playerid, last_name, first_name, position, height, weight, year from roster where playid = '" +
-                result[0] + "' order by playerid;")
+                result_main[0] + "' order by playerid;")
             play_table_result = cur.fetchall()
 
             try:
@@ -231,11 +272,6 @@ class Window(QWidget):
                 pass
 
     def update_roster_table(self):
-
-        cur.execute(
-            "select offense,defense,year,league from recently_viewed order by date_added desc limit  1;")
-        result = cur.fetchall()[0]
-
         if result[3] == "NCAA":
             self.home_model.clear()
 
@@ -282,9 +318,9 @@ class Window(QWidget):
 
         cur.execute(
             "select playid from main_table where playid = (select playid from recently_viewed order by date_added desc limit 1);")
-        result = cur.fetchone()
+        result_main = cur.fetchone()
 
-        cur.execute("select min(playerid), max(playerid) from roster where playid = '" + result[0] + "';")
+        cur.execute("select min(playerid), max(playerid) from roster where playid = '" + result_main[0] + "';")
         min_max_playerid = cur.fetchall()[0]
 
         for i in range(min_max_playerid[0], min_max_playerid[1]):
@@ -294,12 +330,115 @@ class Window(QWidget):
                                 "position = %s, height = %s, weight = %s, year = %s where playerid = %s;"), \
                     (j[1], j[2], j[3], j[4], j[5], j[6], j[8], j[0])
 
+    def set_light_dark_mode(self):
+        self.tabs.setCurrentIndex(0)
+        if self.toggle_2.checkState() == 2:
+            self.style = '''
+            QLayout {
+                margin: 0;
+                spacing: 0;
+            }
+            QTabWidget::pane{
+                border:none; 
+            }
+            QWidget {
+                background-color: black;
+            }
+            QLabel {
+                color: white;
+            }
+            QComboBox QAbstractItemView {
+                background-color: white;
+            }
+            QTableView {
+                background-color: white;
+            }
+            QComboBox::drop-down {
+                border: 0px; /* This seems to replace the whole arrow of the combo box */
+                color: white;
+            }
+            QComboBox {
+                background-color: white;
+            }
+            '''
+        else:
+            self.style = '''
+            QTabWidget::pane { 
+                border: none;
+                margin: -9px, -9px, -9px, -9px;
+            }
+        
+            QWidget {
+                background - color: white;
+            }
+            '''
+        if result[0] is not None:
+            if result[3] == "NFL":
+                team_name = result[0]
+                team_name = team_name.replace(" ", "").lower()
+                # set stylesheet here
+                teamFile = "styles/nfl/" + team_name + ".qss"
+                try:
+                    with open(teamFile, "r") as self.fh:
+                        self.setStyleSheet(self.fh.read() + self.style)
+                except:
+                    pass
+            else:
+                data = (result[0], result[1])
+                cur.mogrify("select logo from college_team_colors where team_name IN %s;", (data,))
+                cur.execute("select logo from college_team_colors where team_name IN %s;",
+                            (data,))
+                url = cur.fetchall()
+                data_logo = urllib.request.urlopen(url[0][0]).read()
+                image = QtGui.QImage()
+                image.loadFromData(data_logo)
+                image1 = image.scaled(100, 100, Qt.KeepAspectRatio)
+                # self.home_logo.setPixmap(QPixmap(image1))
+                # self.home_logo.setObjectName("home_logo")
+                # self.home_logo.mousePressEvent = self.getHome
+
+                data_logo_2 = urllib.request.urlopen(url[1][0]).read()
+                image_away = QtGui.QImage()
+                image_away.loadFromData(data_logo_2)
+                image_away1 = image_away.scaled(100,100, Qt.KeepAspectRatio)
+                # self.away_logo.setPixmap(QPixmap(image_away1))
+                # self.away_logo.setObjectName("away_logo")
+                # self.away_logo.mousePressEvent = self.getAway
+                self.tabs.setIconSize(QtCore.QSize(60, 60))
+                self.tabs.setTabIcon(0, QIcon(QPixmap(image1).transformed(QtGui.QTransform().rotate(-90))))
+                self.tabs.setTabIcon(1, QIcon(QPixmap(image_away1).transformed(QtGui.QTransform().rotate(-90))))
+                self.tabs.setTabPosition(QtWidgets.QTabWidget.East)
+                # self.tabs.setTabVisible(0,False)
+                # self.tabs.setTabVisible(1,False)
+
+                team_name = result[0]
+                team_name = team_name.replace(" ", "").lower()
+                # set stylesheet here
+                teamFile = "styles/ncaa/" + team_name + ".qss"
+                try:
+                    with open(teamFile, "r") as self.fh:
+                        self.setStyleSheet(self.fh.read() + self.style)
+                except:
+                    pass
+
+
+    # def getHome(self, event):
+    #     x = event.pos().x()
+    #     y = event.pos().y()
+    #     print("home")
+    #     self.tabs.setCurrentIndex(0)
+    #
+    # def getAway(self, event):
+    #     x = event.pos().x()
+    #     y = event.pos().y()
+    #     print("away")
+    #     self.tabs.setCurrentIndex(1)
 
 class PhotoViewer(QGraphicsView):
     photoClicked = pyqtSignal(QPoint)
 
-    def __init__(self, parent):
-        super(PhotoViewer, self).__init__(parent)
+    def __init__(self):
+        super(PhotoViewer, self).__init__()
         self._zoom = 0
         self._empty = True
         self._scene = QGraphicsScene(self)
@@ -466,6 +605,7 @@ def end_page():
     app = QApplication(sys.argv)
     QFontDatabase().addApplicationFont("fonts/proxima.ttf")
     window = Window()
+    window.set_light_dark_mode()
     window.update_play_table()
     window.update_roster_table()
     sys.exit(app.exec_())

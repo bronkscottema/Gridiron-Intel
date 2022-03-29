@@ -1,5 +1,5 @@
 QWidget {
-    background-color: #2E2D29;
+    background-color: white;
 }
 
 #questions {

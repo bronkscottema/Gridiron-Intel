@@ -49,6 +49,7 @@ QTableCornerButton {
 QHeaderView::section {
     background-color: #006778; /*primary*/
     border: 0.5px solid #D7A22A;
+    color: white;
 }
 
 QComboBox QAbstractItemView {
