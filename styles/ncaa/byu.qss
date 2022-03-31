@@ -53,4 +53,65 @@ QHeaderView::section {
 
 QComboBox QAbstractItemView {
     selection-background-color: #0062B8;
+}#endPush {
+    color: white;
+    background-color: #003087; /*primary*/
+    border :3px outset;
+    border-color: #828A8F;
+    border-radius: 5px;
+    max-width: 150px;
+    min-width: 100px;
+    min-height: 30px;
+}
+
+QScrollBar:vertical {
+    border: 0px solid #999999;
+    background:white;
+    width:10px;
+    margin: 0px 0px 0px 0px;
+}
+
+QScrollBar::handle:vertical {
+    min-height: 0px;
+    border: 0px solid red;
+    border-radius: 4px;
+    background-color: #003087;
+}
+
+QScrollBar::add-line:vertical {
+    height: 0px;
+    subcontrol-position: bottom;
+    subcontrol-origin: margin;
+}
+
+QScrollBar::sub-line:vertical {
+    height: 0px;
+    subcontrol-position: top;
+    subcontrol-origin: margin;
+}
+
+QScrollBar:horizontal {
+    border: 0px solid #999999;
+    background:white;
+    height: 10px;
+    margin: 0px 0px 0px 0px;
+}
+
+QScrollBar::handle:horizontal {
+    min-height: 0px;
+    border: 0px solid red;
+    border-radius: 4px;
+    background-color: #003087;
+}
+
+QScrollBar::add-line:horizontal {
+    height: 0px;
+    subcontrol-position: right;
+    subcontrol-origin: margin;
+}
+
+QScrollBar::sub-line:horizontal {
+    height: 0px;
+    subcontrol-position: left;
+    subcontrol-origin: margin;
 }
