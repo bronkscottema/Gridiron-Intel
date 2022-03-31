@@ -4,7 +4,7 @@ from tkinter import simpledialog
 import cv2
 import numpy as np
 from psycopg2 import sql
-import base64
+from requests_toolbelt.multipart.encoder import MultipartEncoder
 import io
 from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime, timezone
@@ -114,7 +114,8 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
         home = eval(home[0])[::-1]
         cur.execute("select rgb1 from nfl_team_colors where team_name = '" + defense + "'")
         away = cur.fetchone()
-        away = eval(away[0])[::-1]
+        if away is not None:
+            away = eval(away[0])[::-1]
     else:
         if 0 < yard_line < 20:
             points_image = cv2.imread('images/ncaa_g_50.png')
@@ -140,27 +141,32 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
         home = eval(home[0])[::-1]
         cur.execute("select rgb1 from college_team_colors where team_name = '" + defense + "'")
         away = cur.fetchone()
-        away = eval(away[0])[::-1]
+        if away is not None:
+            away = eval(away[0])[::-1]
 
     screenshot = 0
     null_variable = None
     result = []
     biglist = []
     json_prediction = []
+    dst_list = []
 
     def mouse_func(event, x1, y1, flags, param):
         if event == cv2.EVENT_RBUTTONDBLCLK:
             ix, iy = x1, y1
-            print(ix, iy)
+            dst_list.append((ix, iy))
         elif event == cv2.EVENT_RBUTTONDOWN:
             ix, iy = x1, y1
             print(ix, iy)
+            dst_list.append((ix, iy))
         elif event == cv2.EVENT_LBUTTONDBLCLK:
             ix, iy = x1, y1
             print(ix, iy)
+            dst_list.append((ix, iy))
         elif event == cv2.EVENT_LBUTTONDOWN:
             ix, iy = x1, y1
             print(ix, iy)
+            dst_list.append((ix, iy))
 
     while cap.isOpened():
         key = cv2.waitKey(50) & 0xFF
@@ -202,18 +208,14 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
             url = ''.join(parts)
 
             f = 'file.jpg'
-            image = Image.open(f)
+            image = Image.open(f).convert("RGB")
+            # Convert to JPEG Buffer
             buffered = io.BytesIO()
-            image = image.convert("RGB")
-            image.save(buffered, quality=100, format="JPEG")
-            img_str = base64.b64encode(buffered.getvalue())
-            img_str = img_str.decode("ascii")
-
-            headers = {'accept': 'application/json'}
-            # start = time.time()
-            r = requests.post(url, data=img_str, headers=headers)
+            image.save(buffered, quality=90, format="JPEG")
+            # Construct the URL
+            m = MultipartEncoder(fields={'file': (f, buffered.getvalue(), "image/jpeg")})
+            r = requests.post(url, data=m, headers={'Content-Type': m.content_type})
             # print('post took ' + str(time.time() - start))
-
             # POST to the API
             # re = requests.post("https://app.roboflow.com/bronkscottema/football-players-zm06l/upload?api_key=UkLzsuZSvsQOnmhR2JaS", data=img_str, headers={
             #     'accept': 'application/json'})
@@ -224,15 +226,22 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
 
             draw = ImageDraw.Draw(image)
             font = ImageFont.load_default()
+            detect = detections
+
+            for xydata in detect:
+                for second in detections:
+                    if xydata['x'] - 5 <= second['x'] <= xydata['x'] + 5 or xydata['x'] == second['x']:
+                        if xydata['y'] - 5 <= second['y'] <= xydata['y'] + 5 or xydata['y'] == second['y']:
+                            del second
+
+
             for box in detections:
                 color = "#4892EA"
                 w = box['width']
                 h = box['height']
                 player_class = box['class']
                 x1 = box['x'] - box['width'] / 2
-                x2 = box['x'] + box['width'] / 2
                 y1 = box['y'] - box['height'] / 2
-                y2 = box['y'] + box['height'] / 2
                 json_prediction.append(player_class)
                 tracker = OPENCV_OBJECT_TRACKERS[tracker_name]()
                 trackers.add(tracker, frame_cap, (x1, y1, w, h))
@@ -253,7 +262,6 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
             #
             #         # put button on source image in position (0, 0)
             #         image.paste(button_img, (int(x1), int(y1)))
-            cv2.imwrite("boxes.jpg", frame_cap)
             screenshot = cap.get(cv2.CAP_PROP_POS_FRAMES)
 
         # loop over the bounding boxes and draw them on the frame
@@ -377,12 +385,14 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
 
         elif key == ord("p"):
             i = 1
+            cv2.imwrite(frame_cap, "boxes.jpg")
             for points in source_points:
                 cv2.circle(points_image, points, 5, (20, 131, 60), -1)
                 cv2.putText(points_image, str(i), (points[0] + 5, points[1] + 5), cv2.FONT_HERSHEY_TRIPLEX,
                             .7, (20, 131, 60), 1, cv2.LINE_AA)
                 cv2.imshow("points", points_image)
                 i += 1
+
             field_point_tracker = cv2.MultiTracker_create()
 
             dstbox = cv2.selectROIs("Frame", frame_cap, fromCenter=False, showCrosshair=True)
@@ -390,7 +400,10 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
             for dstbb in dstbox:
                 tracker = OPENCV_OBJECT_TRACKERS[tracker_name]()
                 field_point_tracker.add(tracker, frame_cap, dstbb)
+
+            cv2.setMouseCallback('Frame', mouse_func)
             cv2.setMouseCallback('field', mouse_func)
+
         if cap.get(cv2.CAP_PROP_POS_FRAMES) >= end:
 
             def insert_execute_values_iterator(
@@ -462,7 +475,7 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
                     if x[4] == USER_INP:
                         cur.execute(sql.SQL(
                             "update main_table set position = 'C' where playid = '" + playid_number + "' and playerid = %s"),
-                                    (USER_INP,))
+                                    (int(USER_INP),))
                         y_pos = x[3]
                         for y in off_vs_def:
                             playerid = y[4]

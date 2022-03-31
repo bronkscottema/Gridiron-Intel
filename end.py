@@ -2,7 +2,7 @@ import urllib
 
 from PyQt5 import QtGui, QtWidgets, QtCore
 from PyQt5.QtCore import Qt, QSortFilterProxyModel, QDataStream, QIODevice, QVariant, QRectF, \
-    pyqtSignal, QPoint
+    pyqtSignal, QPoint, QRegExp
 from PyQt5.QtGui import QFont, QPixmap, QIcon, QFontDatabase, QStandardItemModel, QStandardItem, QBrush, QColor
 from PyQt5.QtWidgets import QWidget, QLabel, QVBoxLayout, QHBoxLayout, QApplication, QTableWidgetItem, \
     QTabWidget, QLineEdit, QTableView, QAbstractItemView, QDesktopWidget, QPushButton, QGraphicsView, QFrame, \
@@ -37,8 +37,8 @@ class Window(QWidget):
         self.viewer = PhotoViewer()
         self.image_layout = QVBoxLayout()
         self.away_model = QStandardItemModel(len(team_roster), 1)
-        self.away_filter_proxy_model = QSortFilterProxyModel()
-        self.filter_proxy_model = QSortFilterProxyModel()
+        self.away_filter_proxy_model = QSortFilterProxyModel(self)
+        self.filter_proxy_model = QSortFilterProxyModel(self)
         self.home_model = QStandardItemModel(len(team_roster), 1)
         self.recently_viewed_model = QStandardItemModel(len(roster_labels), 1)
         self.refresh_button = QPushButton('Refresh', self)
@@ -51,7 +51,7 @@ class Window(QWidget):
         self.tab1 = QWidget()
         self.tabs = QTabWidget()
         self.recently_viewed_table = roster_recent()
-        self.away_roster_table = QTableView()
+        self.away_roster_table = away_table()
         self.home_roster_table = home_table()
         self.setWindowIcon(QIcon('images/favicon.ico'))
         screen = QDesktopWidget().screenGeometry()
@@ -84,6 +84,8 @@ class Window(QWidget):
 
         self.viewer.setPhoto(QPixmap("boxes.jpg"))
         move_image_layout.addWidget(self.viewer)
+        self.image_layout.setSpacing(0)
+        self.image_layout.setContentsMargins(0,0,0,0)
         self.image_layout.addLayout(move_image_layout)
 
         # pixmap_home = QPixmap('images/nfl.png')
@@ -98,16 +100,16 @@ class Window(QWidget):
             checked_color="#4400B0EE",
             pulse_checked_color="#4400B0EE"
         )
-        self.slider = QSlider(self)
-        self.slider.setOrientation(Qt.Vertical)
-        self.slider.setSliderPosition(50)
+        # self.slider = QSlider(self)
+        # self.slider.setOrientation(Qt.Vertical)
+        # self.slider.setSliderPosition(50)
 
         # self.slider.valueChanged.connect(self.setLabelValue)
-        self.toggle_2.setStyleSheet("max-width: 100px;")
+        self.toggle_2.setStyleSheet("min-width: 75px; max-width: 75px;")
         self.toggle_2.setObjectName("toggle")
         self.toggle_2.clicked.connect(self.set_light_dark_mode)
         self.logo_layout.addWidget(self.toggle_2, alignment=Qt.AlignTop)
-        self.logo_layout.addWidget(self.slider, alignment=Qt.AlignHCenter)
+        # self.logo_layout.addWidget(self.slider, alignment=Qt.AlignHCenter)
         # self.logo_layout.addWidget(self.home_logo)
         # self.logo_layout.addWidget(self.away_logo)
         move_image_layout.addLayout(self.logo_layout)
@@ -116,6 +118,7 @@ class Window(QWidget):
         self.image_layout.addLayout(roster_layout)
         roster_layout.addLayout(game_roster_layout)
         roster_layout.addLayout(api_roster_layout)
+
 
         self.recently_viewed_table.setModel(self.recently_viewed_model)
         self.recently_viewed_table.horizontalHeader().setDefaultAlignment(Qt.AlignCenter)
@@ -144,8 +147,6 @@ class Window(QWidget):
         # tab1/hometeam
         self.filter_proxy_model.setSourceModel(self.home_model)
         self.filter_proxy_model.setFilterKeyColumn(0)
-        self.filter_proxy_model.setFilterKeyColumn(1)
-        self.filter_proxy_model.setFilterKeyColumn(2)
         self.search_field.setStyleSheet('font-size: 14px; height: 30px;')
         self.search_field.setPlaceholderText("Search by last name")
         self.search_field.textChanged.connect(self.filter_proxy_model.setFilterRegExp)
@@ -195,12 +196,38 @@ class Window(QWidget):
 
         if len(roster_exist) == 0:
             cur.execute(
-                "select gameid, playid, playerid, player_position from main_table where playid = '" + result_main[0] + "' "
+                "select gameid, playid, playerid, position from main_table where playid = '" + result_main[0] + "' "
                 "and frame = (select min(frame) from main_table where playid = '" + result_main[0] + "');")
             play_table_result = cur.fetchall()
 
+            defense_count = 0
+            for i in play_table_result:
+                if i[3] == "LB" or i[3] == "DB":
+                    defense_count += 1
+            if defense_count == 8:
+                gameid = play_table_result[0][0]
+                playid = play_table_result[0][1]
+                playerid = len(play_table_result)-1
+                play_table_result.append(tuple((gameid, playid, playerid, "DE")))
+                play_table_result.append(tuple((gameid, playid, playerid + 1, "DT")))
+                play_table_result.append(tuple((gameid, playid, playerid + 2, "DE")))
+                play_table_result.append(tuple((gameid, playid, playerid + 3, "RT")))
+                play_table_result.append(tuple((gameid, playid, playerid + 4, "RG")))
+                play_table_result.append(tuple((gameid, playid, playerid + 5, "LG")))
+                play_table_result.append(tuple((gameid, playid, playerid + 6, "LT")))
+            else:
+                gameid = play_table_result[0][0]
+                playid = play_table_result[0][1]
+                playerid = len(play_table_result) - 1
+                play_table_result.append(tuple((gameid, playid, playerid, "DE")))
+                play_table_result.append(tuple((gameid, playid, playerid + 1, "DT")))
+                play_table_result.append(tuple((gameid, playid, playerid + 2, "DT")))
+                play_table_result.append(tuple((gameid, playid, playerid + 3, "DE")))
+                play_table_result.append(tuple((gameid, playid, playerid + 4, "RT")))
+                play_table_result.append(tuple((gameid, playid, playerid + 5, "RG")))
+                play_table_result.append(tuple((gameid, playid, playerid + 6, "LG")))
+                play_table_result.append(tuple((gameid, playid, playerid + 7, "LT")))
 
-            #TODO add logic for Dline adding and offensive line
             def insert_execute_values_iterator(
                     connection,
                     roster: Iterator[Dict[str, Any]],
@@ -224,21 +251,26 @@ class Window(QWidget):
             insert_execute_values_iterator(conn, roster=play_table_result)
 
             try:
+                self.recently_viewed_model.clear()
                 self.recently_viewed_model.setHorizontalHeaderLabels(roster_labels)
                 for n, key in enumerate(play_table_result):
                     self.recently_viewed_model.insertRow(n)
                     for column_number, data in enumerate(recent_roster_keys):
                         if data == "first_name" or data == "last_name":
                             item = QStandardItem(str(" "))
+                            item.setTextAlignment(Qt.AlignCenter)
                             self.recently_viewed_model.setItem(n, column_number, item)
                         elif data == "playerid":
                             item = QStandardItem(str(key[2]))
+                            item.setTextAlignment(Qt.AlignCenter)
                             self.recently_viewed_model.setItem(n, column_number, item)
                         elif data == "jersey" or data == "weight" or data == "year" or data == "height":
                             item = QStandardItem(str(0))
+                            item.setTextAlignment(Qt.AlignCenter)
                             self.recently_viewed_model.setItem(n, column_number, item)
                         elif data == "position":
                             item = QStandardItem(str(key[3]))
+                            item.setTextAlignment(Qt.AlignCenter)
                             self.recently_viewed_model.setItem(n, column_number, item)
                         else:
                             break
@@ -261,12 +293,15 @@ class Window(QWidget):
                             continue
                         elif data == "Number" or data == "Height" or data == "Weight" or data == "Year":
                             item = QStandardItem(str(0))
+                            item.setTextAlignment(Qt.AlignCenter)
                             self.recently_viewed_model.setItem(n, column_number, item)
                         elif data == "Position":
                             item = QStandardItem(str(key[3]))
+                            item.setTextAlignment(Qt.AlignCenter)
                             self.recently_viewed_model.setItem(n, column_number, item)
                         else:
                             item = QStandardItem(str(key[column_number]))
+                            item.setTextAlignment(Qt.AlignCenter)
                             self.recently_viewed_model.setItem(n, column_number, item)
             except:
                 pass
@@ -284,6 +319,7 @@ class Window(QWidget):
                     self.home_model.insertRow(n)
                     for column_number, data in enumerate(roster_keys):
                         item = QStandardItem(str(key.__getattribute__(data)))
+                        item.setTextAlignment(Qt.AlignCenter)
                         self.home_model.setItem(n, column_number, item)
             except:
                 pass
@@ -297,6 +333,7 @@ class Window(QWidget):
                     self.away_model.insertRow(n)
                     for column_number, data in enumerate(roster_keys):
                         items = QStandardItem(str(key.__getattribute__(data)))
+                        items.setTextAlignment(Qt.AlignCenter)
                         self.away_model.setItem(n, column_number, items)
             except:
                 pass
@@ -360,6 +397,13 @@ class Window(QWidget):
             QComboBox {
                 background-color: white;
             }
+            QTabWidget::pane { 
+                border: none;
+                margin: -9px, -9px, -9px, -9px;
+            }
+            QLineEdit {
+                background-color: white;
+            }
             '''
         else:
             self.style = '''
@@ -370,6 +414,10 @@ class Window(QWidget):
         
             QWidget {
                 background - color: white;
+            }
+            QLayout {
+                margin: 0px;
+                spacing: 0px;
             }
             '''
         if result[0] is not None:
@@ -555,6 +603,7 @@ class roster_recent(QTableView):
                             self.id_row = index.row()
                         else:
                             self.item = QStandardItem(str(table_items[column_number].text()))
+                            self.item.setTextAlignment(Qt.AlignCenter)
                             self.model().setItem(index.row(), column_number, self.item)
             else:
                 if index.isValid():
@@ -564,6 +613,7 @@ class roster_recent(QTableView):
                             self.id_row = index.row()
                         else:
                             self.item = QStandardItem(str(table_items[column_number - 1].text()))
+                            self.item.setTextAlignment(Qt.AlignCenter)
                             self.model().setItem(index.row(), column_number, self.item)
 
         event.accept()
@@ -581,6 +631,7 @@ class roster_recent(QTableView):
                     play_table_result = cur.fetchall()
                     for column_number in range(0, 7):
                         self.item = QStandardItem(str(play_table_result[0][column_number]))
+                        self.item.setTextAlignment(Qt.AlignCenter)
                         self.model().setItem(self.id_row, column_number, self.item)
 
 
@@ -600,6 +651,39 @@ class home_table(QTableView):
     def dragMoveEvent(self, e):
         e.accept()
 
+
+class away_table(QTableView):
+    def __init__(self):
+        super(away_table, self).__init__()
+        self.setDragEnabled(True)
+        self.setSelectionBehavior(QAbstractItemView.SelectRows)
+
+    def dropEvent(self, e):
+        position = e.pos()
+        QStandardItem.move(position)
+        e.setDropAction(Qt.MoveAction)
+        e.accept()
+
+    def dragMoveEvent(self, e):
+        e.accept()
+
+class SortFilterProxyModel(QSortFilterProxyModel):
+    def __init__(self, *args, **kwargs):
+        QSortFilterProxyModel.__init__(self, *args, **kwargs)
+        self.filters = {}
+
+    def setFilterByColumn(self, regex, column):
+        self.filters[column] = regex
+        self.invalidateFilter()
+
+    def filterAcceptsRow(self, source_row, source_parent):
+        for key, regex in self.filters.items():
+            ix = self.sourceModel().index(source_row, key, source_parent)
+            if ix.isValid():
+                text = self.sourceModel().data(ix).toString()
+                if not text.contains(regex):
+                    return False
+        return True
 
 def end_page():
     app = QApplication(sys.argv)

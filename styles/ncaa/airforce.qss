@@ -39,7 +39,7 @@ QComboBox::down-arrow {
 
 QTableView {
     alternate-background-color: #8A8D8F;
-    selection-background-color: #003087; /*primary*/
+    selection-background-color: #003087;
 }
 
 QTableCornerButton {
@@ -48,7 +48,8 @@ QTableCornerButton {
 
 QHeaderView::section {
     background-color: #003087; /*primary*/
-    border: 0.5px solid white;
+    border: none;
+    color: white;
 }
 
 QComboBox QAbstractItemView {
@@ -64,4 +65,56 @@ QComboBox QAbstractItemView {
     max-width: 150px;
     min-width: 100px;
     min-height: 30px;
+}
+
+QScrollBar:vertical {
+    border: 0px solid #999999;
+    background:white;
+    width:10px;
+    margin: 0px 0px 0px 0px;
+}
+
+QScrollBar::handle:vertical {
+    min-height: 0px;
+    border: 0px solid red;
+    border-radius: 4px;
+    background-color: #003087;
+}
+
+QScrollBar::add-line:vertical {
+    height: 0px;
+    subcontrol-position: bottom;
+    subcontrol-origin: margin;
+}
+
+QScrollBar::sub-line:vertical {
+    height: 0px;
+    subcontrol-position: top;
+    subcontrol-origin: margin;
+}
+
+QScrollBar:horizontal {
+    border: 0px solid #999999;
+    background:white;
+    height: 10px;
+    margin: 0px 0px 0px 0px;
+}
+
+QScrollBar::handle:horizontal {
+    min-height: 0px;
+    border: 0px solid red;
+    border-radius: 4px;
+    background-color: #003087;
+}
+
+QScrollBar::add-line:horizontal {
+    height: 0px;
+    subcontrol-position: right;
+    subcontrol-origin: margin;
+}
+
+QScrollBar::sub-line:horizontal {
+    height: 0px;
+    subcontrol-position: left;
+    subcontrol-origin: margin;
 }
