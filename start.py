@@ -84,8 +84,8 @@ class Window(QWidget):
         self.league_pic.style().polish(self.league_pic)
         self.setGeometry(0, 0, 1920, 1080)
         self.setWindowTitle("Audible Analytics")
-        self.font = QFont("proxima", 18)
         self.table_font = QFont("proxima", 12)
+        self.font = QFont("proxima", 18)
         self.offense.setStyleSheet('QLineEdit {background-color:white}')
 
         self.ui()
@@ -117,8 +117,6 @@ class Window(QWidget):
 
         # top Right
         # league question
-        self.league.setFont(self.font)
-        self.leaque_label.setFont(self.font)
         top_right_layout.addRow(self.leaque_label, self.league)
         self.league.addItems(["NCAA", "NFL"])
         self.league.currentIndexChanged.connect(self.league_change)
@@ -126,34 +124,22 @@ class Window(QWidget):
         # year question
         self.year.addItems(["2021", "2020", "2019", "2018", "2017", "2016", "2015",
                             "2014", "2013", "2012", "2011", "2010", "2009"])
-        self.year.setFont(self.font)
-        self.year_label.setFont(self.font)
         top_right_layout.addRow(self.year_label, self.year)
 
         self.offense.addItems(getTeam())
-        self.offense.setFont(self.font)
-        self.offense_label.setFont(self.font)
         self.offense.currentIndexChanged.connect(self.start)
         self.offense.currentIndexChanged.connect(self.set_light_dark_mode)
         top_right_layout.addRow(self.offense_label, self.offense)
 
         self.regular_post.addItems(["regular", "postseason"])
-        self.regular_post.setFont(self.font)
-        self.regular_post_label.setFont(self.font)
         top_right_layout.addRow(self.regular_post_label, self.regular_post)
 
         self.opponent.addItems(getOpponent(self.year.currentText(), self.regular_post.currentText(), self.offense.currentText()))
-        self.opponent.setFont(self.font)
-        self.opponent_label.setFont(self.font)
         top_right_layout.addRow(self.opponent_label, self.opponent)
 
         self.hashmark_number.addItems(["Hashmark", "Numbers"])
-        self.hashmark_number.setFont(self.font)
-        self.hashmark_number_label.setFont(self.font)
         top_right_layout.addRow(self.hashmark_number_label, self.hashmark_number)
 
-        self.offense_left_or_right.setFont(self.font)
-        self.offense_left_or_right_label.setFont(self.font)
         self.offense_left_or_right.addItems(["Offense Left", "Offense Right"])
         top_right_layout.addRow(self.offense_left_or_right_label, self.offense_left_or_right)
         top_right_layout.setAlignment(Qt.AlignCenter)
@@ -296,17 +282,21 @@ class Window(QWidget):
         else:
             self.gameid_value = self.api_table.item(self.current_row, 0).text()
             self.playid_value = self.api_table.item(self.current_row, 1).text()
-            self.yard_value = self.api_table.item(self.current_row, 7).text()
+            self.yard_value = self.api_table.item(self.current_row, 9).text()
             self.play_text = self.api_table.item(self.current_row, 11).text()
             self.ok_btn.setVisible(True)
 
     def submit_pushed(self):
         url = QFileDialog.getOpenFileName(self, "Open a file", "", "All Files(*);;")
-        all.opencv(url[0], hash_or_num=self.hashmark_number.currentText(), gameid_number=self.gameid_value, playid_number=self.playid_value,
-                   offense_l_or_r=self.offense_left_or_right.currentText(), yard_line=int(self.yard_value), offense=self.offense.currentText(),
-                   defense=self.opponent.currentText(), league=self.league.currentText(), year=self.year.currentText(),
-                   week=self.week, regular_post=self.regular_post.currentText(), play_text=self.play_text)
-        end_page()
+        try:
+            all.opencv(url[0], hash_or_num=self.hashmark_number.currentText(), gameid_number=self.gameid_value, playid_number=self.playid_value,
+                       offense_l_or_r=self.offense_left_or_right.currentText(), yard_line=int(self.yard_value), offense=self.offense.currentText(),
+                       defense=self.opponent.currentText(), league=self.league.currentText(), year=self.year.currentText(),
+                       week=self.week[0], regular_post=self.regular_post.currentText(), play_text=self.play_text)
+            end_page()
+        except:
+            pass
+
 
     def update_opponent(self, ix):
         if self.league.currentText() == 'NFL' and ix == 0:
@@ -430,12 +420,28 @@ class Window(QWidget):
             }
             QComboBox {
                 background-color: white;
+                font-family: Proxima;
+                font-size: 18px;
+            }
+            QLabel {
+                color: white;
+                font-family: Proxima;
+                font-size: 18px;
             }
             '''
         else:
             self.style = '''
             QWidget {
                 background - color: white;
+            }
+            QLabel {
+                font-family: Proxima;
+                font-size: 18px;
+            }
+            QComboBox {
+                background-color: white;
+                font-family: Proxima;
+                font-size: 18px;
             }
             '''
         if self.offense.currentText() is not None:

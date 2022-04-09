@@ -1,6 +1,8 @@
 import tkinter
 from tkinter import *
-from tkinter import simpledialog
+from tkinter import simpledialog, ttk
+from tkinter.messagebox import askyesno
+
 import cv2
 import numpy as np
 from psycopg2 import sql
@@ -8,6 +10,7 @@ from requests_toolbelt.multipart.encoder import MultipartEncoder
 import io
 from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime, timezone
+from start import *
 from end import *
 import psycopg2.extras
 from dotenv import load_dotenv
@@ -27,6 +30,7 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
 
     # initialize OpenCV's special multi-object tracker
     trackers = cv2.MultiTracker_create()
+    srcpointTracker = cv2.MultiTracker_create()
     field_point_tracker = cv2.MultiTracker_create()
     cap = cv2.VideoCapture(file)
 
@@ -73,42 +77,50 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
 
     pt3 = []
     if league == "NFL":
-        if hash_or_num == "Hashmark" and offense_l_or_r == "Offense Left":
-            source_points = [(310, 800), (310, 400), (390, 400), (390, 800)]
-        elif hash_or_num == "Hashmark" and offense_l_or_r == "Offense Right":
-            source_points = [(161,), (310, 400), (390, 400), (390, 800)]
-        elif hash_or_num == "Numbers":
-            source_points = [(160, 800), (158, 400), (540, 400), (540, 600)]
-        elif "inside":
-            source_points = [(276, 700), (276, 680), (447, 680), (447, 700)]
-    else:
-        if hash_or_num == "Hashmark":
-            source_points = [(269, 600), (270, 204), (435, 203), (434, 601)]
-        elif hash_or_num == "Numbers":
-            source_points = [(94, 791), (94, 392), (623, 392), (623, 592)]
-        elif hash_or_num == "hashmarkRt":
-            # right hash
-            source_points = [(355, 300), (350, 200), (445, 200), (445, 300)]
-        elif hash_or_num == "hashmarkLt":
-            # left hash
-            source_points = [(275, 300), (275, 200), (370, 200), (370, 300)]
-
-    field_points = []
-    speed_pts2 = []
-    if league == "NFL":
         if yard_line >= 70:
+            if hash_or_num == "Hashmark" and offense_l_or_r == "Offense Left":
+                source_points = [(310, 800), (310, 400), (390, 400), (390, 800)]
+            elif hash_or_num == "Hashmark" and offense_l_or_r == "Offense Right":
+                source_points = [(161,), (310, 400), (390, 400), (390, 800)]
+            elif hash_or_num == "Numbers":
+                source_points = [(160, 800), (158, 400), (540, 400), (540, 600)]
+            elif "inside":
+                source_points = [(276, 700), (276, 680), (447, 680), (447, 700)]
             points_image = cv2.imread('images/nfl_g_40.png')
             field = cv2.imread('images/nfl_g_40.png')
         elif 70 > yard_line > 50:
+            if hash_or_num == "Hashmark" and offense_l_or_r == "Offense Left":
+                source_points = [(310, 800), (310, 400), (390, 400), (390, 800)]
+            elif hash_or_num == "Hashmark" and offense_l_or_r == "Offense Right":
+                source_points = [(161,), (310, 400), (390, 400), (390, 800)]
+            elif hash_or_num == "Numbers":
+                source_points = [(160, 800), (158, 400), (540, 400), (540, 600)]
+            elif "inside":
+                source_points = [(276, 700), (276, 680), (447, 680), (447, 700)]
             points_image = cv2.imread('images/nfl_20_30.png')
             field = cv2.imread('images/nfl_20_30.png')
         elif 50 > yard_line > 30:
+            if hash_or_num == "Hashmark" and offense_l_or_r == "Offense Left":
+                source_points = [(310, 800), (310, 400), (390, 400), (390, 800)]
+            elif hash_or_num == "Hashmark" and offense_l_or_r == "Offense Right":
+                source_points = [(161,), (310, 400), (390, 400), (390, 800)]
+            elif hash_or_num == "Numbers":
+                source_points = [(160, 800), (158, 400), (540, 400), (540, 600)]
+            elif "inside":
+                source_points = [(276, 700), (276, 680), (447, 680), (447, 700)]
             points_image = cv2.imread('images/nfl_40_10.png')
             field = cv2.imread('images/nfl_40_10.png')
         else:
+            if hash_or_num == "Hashmark" and offense_l_or_r == "Offense Left":
+                source_points = [(310, 800), (310, 400), (390, 400), (390, 800)]
+            elif hash_or_num == "Hashmark" and offense_l_or_r == "Offense Right":
+                source_points = [(161,), (310, 400), (390, 400), (390, 800)]
+            elif hash_or_num == "Numbers":
+                source_points = [(160, 800), (158, 400), (540, 400), (540, 600)]
+            elif "inside":
+                source_points = [(276, 700), (276, 680), (447, 680), (447, 700)]
             points_image = cv2.imread('images/nfl_40_g.png')
             field = cv2.imread('images/nfl_40_g.png')
-
         cur.execute("select rgb1 from nfl_team_colors where team_name = '" + offense + "'")
         home = cur.fetchone()
         home = eval(home[0])[::-1]
@@ -118,24 +130,43 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
             away = eval(away[0])[::-1]
     else:
         if 0 < yard_line < 20:
+            if hash_or_num == "Hashmark":
+                source_points = [(269, 600), (270, 204), (435, 203), (434, 601)]
+            elif hash_or_num == "Numbers":
+                source_points = [(160, 658), (160, 330), (545, 330), (545, 495)]
             points_image = cv2.imread('images/ncaa_g_50.png')
             field = cv2.imread('images/ncaa_g_50.png')
         elif 20 < yard_line < 40:
+            if hash_or_num == "Hashmark":
+                source_points = [(269, 600), (270, 204), (435, 203), (434, 601)]
+            elif hash_or_num == "Numbers":
+                source_points = [(160, 658),(160, 330), (545, 330), (545, 495)]
             points_image = cv2.imread('images/ncaa_10_40.png')
             field = cv2.imread('images/ncaa_10_40.png')
         elif 40 < yard_line < 50:
+            if hash_or_num == "Hashmark":
+                source_points = [(269, 600), (270, 204), (435, 203), (434, 601)]
+            elif hash_or_num == "Numbers":
+                source_points = [(160, 658), (160, 330), (545, 330), (545, 495)]
             points_image = cv2.imread('images/ncaa_30_20.png')
             field = cv2.imread('images/ncaa_30_20.png')
         elif 50 < yard_line < 60:
+            if hash_or_num == "Hashmark":
+                source_points = [(269, 600), (270, 204), (435, 203), (434, 601)]
+            elif hash_or_num == "Numbers":
+                source_points = [(160, 658), (160, 330), (545, 330), (545, 495)]
             points_image = cv2.imread('images/ncaa_40_10.png')
             field = cv2.imread('images/ncaa_40_10.png')
         elif 60 < yard_line < 80:
+            if hash_or_num == "Hashmark":
+                source_points = [(269, 600), (270, 204), (435, 203), (434, 601)]
+            elif hash_or_num == "Numbers":
+                source_points = [(160, 658), (160, 330), (545, 330), (545, 495)]
             points_image = cv2.imread('images/ncaa_50_g.png')
             field = cv2.imread('images/ncaa_50_g.png')
         elif 80 < yard_line < 100:
             points_image = cv2.imread('images/ncaa_30_g.png')
             field = cv2.imread('images/ncaa_30_g.png')
-
         cur.execute("select rgb1 from college_team_colors where team_name = '" + offense + "'")
         home = cur.fetchone()
         home = eval(home[0])[::-1]
@@ -144,6 +175,8 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
         if away is not None:
             away = eval(away[0])[::-1]
 
+    field_points = []
+    speed_pts2 = []
     screenshot = 0
     null_variable = None
     result = []
@@ -154,19 +187,17 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
     def mouse_func(event, x1, y1, flags, param):
         if event == cv2.EVENT_RBUTTONDBLCLK:
             ix, iy = x1, y1
-            dst_list.append((ix, iy))
+            print(ix, iy)
         elif event == cv2.EVENT_RBUTTONDOWN:
             ix, iy = x1, y1
             print(ix, iy)
-            dst_list.append((ix, iy))
         elif event == cv2.EVENT_LBUTTONDBLCLK:
             ix, iy = x1, y1
             print(ix, iy)
-            dst_list.append((ix, iy))
         elif event == cv2.EVENT_LBUTTONDOWN:
             ix, iy = x1, y1
             print(ix, iy)
-            dst_list.append((ix, iy))
+
 
     while cap.isOpened():
         key = cv2.waitKey(50) & 0xFF
@@ -181,6 +212,7 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
         frame_cap = cv2.resize(frame_cap, (1280, 720))
 
         (success, boxes) = trackers.update(frame_cap)
+        (srcwins, src_pts) = srcpointTracker.update(points_image)
         (dstwins, dst_pts) = field_point_tracker.update(frame_cap)
 
         if len(boxes) == 0:
@@ -230,38 +262,41 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
 
             for xydata in detect:
                 for second in detections:
-                    if xydata['x'] - 5 <= second['x'] <= xydata['x'] + 5 or xydata['x'] == second['x']:
-                        if xydata['y'] - 5 <= second['y'] <= xydata['y'] + 5 or xydata['y'] == second['y']:
-                            del second
-
+                    if xydata['class'] != second['class']:
+                        if xydata['x'] - 5 <= second['x'] <= xydata['x'] + 5 or xydata['x'] == second['x']:
+                            if xydata['y'] - 5 <= second['y'] <= xydata['y'] + 5 or xydata['y'] == second['y']:
+                                second['remove'] = 'yes'
+                            second['remove'] = 'no'
+                        second['remove'] = 'no'
 
             for box in detections:
-                color = "#4892EA"
-                w = box['width']
-                h = box['height']
-                player_class = box['class']
-                x1 = box['x'] - box['width'] / 2
-                y1 = box['y'] - box['height'] / 2
-                json_prediction.append(player_class)
-                tracker = OPENCV_OBJECT_TRACKERS[tracker_name]()
-                trackers.add(tracker, frame_cap, (x1, y1, w, h))
-            #     draw.rectangle([
-            #         x1, y1, x2, y2
-            #     ], outline=color, width=5)
-            #
-            #     if True:
-            #         text = box['class']
-            #         text_size = font.getsize(text)
-            #
-            #         # set button size + 10px margins
-            #         button_size = (text_size[0] + 20, text_size[1] + 20)
-            #         button_img = Image.new('RGBA', button_size, color)
-            #         # put text on button with 10px margins
-            #         button_draw = ImageDraw.Draw(button_img)
-            #         button_draw.text((10, 10), text, font=font, fill=(255, 255, 255, 255))
-            #
-            #         # put button on source image in position (0, 0)
-            #         image.paste(button_img, (int(x1), int(y1)))
+                if box['remove'] != 'yes':
+                    color = "#4892EA"
+                    w = box['width']
+                    h = box['height']
+                    player_class = box['class']
+                    x1 = box['x'] - box['width'] / 2
+                    y1 = box['y'] - box['height'] / 2
+                    json_prediction.append(player_class)
+                    tracker = OPENCV_OBJECT_TRACKERS[tracker_name]()
+                    trackers.add(tracker, frame_cap, (x1, y1, w, h))
+                #     draw.rectangle([
+                #         x1, y1, x2, y2
+                #     ], outline=color, width=5)
+                #
+                #     if True:
+                #         text = box['class']
+                #         text_size = font.getsize(text)
+                #
+                #         # set button size + 10px margins
+                #         button_size = (text_size[0] + 20, text_size[1] + 20)
+                #         button_img = Image.new('RGBA', button_size, color)
+                #         # put text on button with 10px margins
+                #         button_draw = ImageDraw.Draw(button_img)
+                #         button_draw.text((10, 10), text, font=font, fill=(255, 255, 255, 255))
+                #
+                #         # put button on source image in position (0, 0)
+                #         image.paste(button_img, (int(x1), int(y1)))
             screenshot = cap.get(cv2.CAP_PROP_POS_FRAMES)
 
         # loop over the bounding boxes and draw them on the frame
@@ -269,6 +304,11 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
             (d, e) = [f for f in dstbox]
             cv2.circle(frame_cap, (int(e[0]), int(e[1])), 5, (255, 255, 0), -1)
             field_points.append((int(e[0]), int(e[1])))
+
+        for srcbox in enumerate(src_pts):
+            (a, b) = [c for c in srcbox]
+            cv2.circle(points_image, (int(b[0]), int(b[1])), 5, (255, 255, 0), -1)
+            points_image.append((int(b[0]), int(b[1])))
 
         if exists:
             for face_no, box in enumerate(boxes):
@@ -338,6 +378,8 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
 
                                     biglist.append(tup)
                                 else:
+                                    cv2.rectangle(field, ((int(abs(x1))), int(abs(y1))),
+                                                  (int(abs(x1)) + 1, int(abs(y1)) + 1), (0,0,0), 2)
                                     tup = (gameid_number, str(playid_number), int(box_id), (int(abs(x1))), (int(abs(y1))),
                                            cap.get(cv2.CAP_PROP_POS_FRAMES), null_variable,
                                            null_variable, gameid_number)
@@ -385,13 +427,23 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
 
         elif key == ord("p"):
             i = 1
-            cv2.imwrite(frame_cap, "boxes.jpg")
-            for points in source_points:
-                cv2.circle(points_image, points, 5, (20, 131, 60), -1)
-                cv2.putText(points_image, str(i), (points[0] + 5, points[1] + 5), cv2.FONT_HERSHEY_TRIPLEX,
-                            .7, (20, 131, 60), 1, cv2.LINE_AA)
-                cv2.imshow("points", points_image)
-                i += 1
+            cv2.imwrite("boxes.jpg", frame_cap)
+
+            if 80 < yard_line < 100:
+                srcpointTracker = cv2.MultiTracker_create()
+
+                srcbox = cv2.selectROIs("srcFrame", points_image, fromCenter=False, showCrosshair=True)
+                srcbox = tuple(map(tuple, srcbox))
+                for srcbb in srcbox:
+                    tracker = OPENCV_OBJECT_TRACKERS[tracker_name]()
+                    srcpointTracker.add(tracker, points_image, srcbb)
+            else:
+                for points in source_points:
+                    cv2.circle(points_image, points, 5, (20, 131, 60), -1)
+                    cv2.putText(points_image, str(i), (points[0] + 5, points[1] + 5), cv2.FONT_HERSHEY_TRIPLEX,
+                                .7, (20, 131, 60), 1, cv2.LINE_AA)
+                    cv2.imshow("points", points_image)
+                    i += 1
 
             field_point_tracker = cv2.MultiTracker_create()
 
@@ -488,6 +540,7 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
                                     "update main_table set color = 'offense' where playid = '" + playid_number + "' and playerid = %s"),
                                             (playerid,))
 
+
             cur.close()
             conn.close()
             cap.release()
@@ -495,3 +548,4 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
 
     cap.release()
     cv2.destroyAllWindows()
+    main()
