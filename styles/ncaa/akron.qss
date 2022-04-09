@@ -42,7 +42,6 @@ QTableCornerButton {
 
 QHeaderView::section {
     background-color: #041E42; /*primary*/
-    border: 0.5px solid white;
     color: white;
 }
 
@@ -52,9 +51,9 @@ QComboBox QAbstractItemView {
 
 #endPush {
     color: white;
-    background-color: #003087; /*primary*/
+    background-color: #041E42; /*primary*/
     border :3px outset;
-    border-color: #828A8F;
+    border-color: #A89968;
     border-radius: 5px;
     max-width: 150px;
     min-width: 100px;
@@ -72,7 +71,7 @@ QScrollBar::handle:vertical {
     min-height: 0px;
     border: 0px solid red;
     border-radius: 4px;
-    background-color: #003087;
+    background-color: #041E42;
 }
 
 QScrollBar::add-line:vertical {
@@ -98,7 +97,8 @@ QScrollBar::handle:horizontal {
     min-height: 0px;
     border: 0px solid red;
     border-radius: 4px;
-    background-color: #003087;
+    background-color: #041E42
+    ;
 }
 
 QScrollBar::add-line:horizontal {
