@@ -87,9 +87,7 @@ class Window(QWidget):
         self.fieldpic.setPixmap(QPixmap('dottedfield.jpg'))
         field_layout.addWidget(self.fieldpic)
 
-        self.route_layout = QGridLayout()
-        self.route_layout.setSpacing(0)
-        self.route_layout.setContentsMargins(0, 0, 0, 0)
+        route_layout = thegrid()
         self.viewer.setPhoto(QPixmap("boxes.jpg"))
         move_image_layout.addWidget(self.viewer)
         self.image_layout.setSpacing(0)
@@ -107,7 +105,7 @@ class Window(QWidget):
         self.breakdown_tab.layout = QVBoxLayout()
         self.field_tab.layout.addWidget(self.fieldpic)
         self.field_tab.setLayout(self.field_tab.layout)
-        self.breakdown_tab.layout.addLayout(self.route_layout)
+        self.breakdown_tab.layout.addLayout(route_layout)
         self.breakdown_tab.setLayout(self.breakdown_tab.layout)
 
 
@@ -482,7 +480,7 @@ class Window(QWidget):
                 data_logo = urllib.request.urlopen(url[0][0]).read()
                 image = QtGui.QImage()
                 image.loadFromData(data_logo)
-                self.image1 = image.scaled(50, 50, Qt.KeepAspectRatio)
+                image1 = image.scaled(50, 50, Qt.KeepAspectRatio)
                 #self.home_logo.setPixmap(QPixmap(self.image1))
                 # self.home_logo.setObjectName("home_logo")
                 # self.home_logo.mousePressEvent = self.getHome
@@ -490,13 +488,13 @@ class Window(QWidget):
                 data_logo_2 = urllib.request.urlopen(url[1][0]).read()
                 image_away = QtGui.QImage()
                 image_away.loadFromData(data_logo_2)
-                self.image_away1 = image_away.scaled(50,50, Qt.KeepAspectRatio)
+                image_away1 = image_away.scaled(50,50, Qt.KeepAspectRatio)
                 #self.away_logo.setPixmap(QPixmap(self.image_away1))
                 # self.away_logo.setObjectName("away_logo")
                 # self.away_logo.mousePressEvent = self.getAway
                 self.tabs.setIconSize(QtCore.QSize(60, 60))
-                self.tabs.setTabIcon(0, QIcon(QPixmap(self.image1).transformed(QtGui.QTransform().rotate(-90))))
-                self.tabs.setTabIcon(1, QIcon(QPixmap(self.image_away1).transformed(QtGui.QTransform().rotate(-90))))
+                self.tabs.setTabIcon(0, QIcon(QPixmap(image1).transformed(QtGui.QTransform().rotate(-90))))
+                self.tabs.setTabIcon(1, QIcon(QPixmap(image_away1).transformed(QtGui.QTransform().rotate(-90))))
                 self.tabs.setTabPosition(QtWidgets.QTabWidget.East)
                 # self.tabs.setTabVisible(0,False)
                 # self.tabs.setTabVisible(1,False)
@@ -511,108 +509,6 @@ class Window(QWidget):
                 except:
                     pass
 
-    def populateGridLayout(self):
-        cur.execute(
-            "select playid from main_table where playid = (select playid from recently_viewed order by date_added desc limit 1);")
-        result_main = cur.fetchone()
-
-        cur.execute("select distinct(playerid), position from roster where playid = '" + result_main[
-            0] + "' order by playerid;")
-        result_distinct = cur.fetchall()
-        # The vars function will return all of the items of the window handler as a dict.
-        count = 0
-        for x in range(8):
-            for y in range(3):
-                try:
-                    offense = ["SKILL", "QB", "RB", "WR", "RT", "LG", "C", "LT", "RT", "TE", "X", "Y", "Z", "H", "F", "None"]
-                    z = result_distinct[0 + count]
-                    if z[1] in offense:
-                        image_vert_layout = QVBoxLayout()
-                        image_vert_layout.setContentsMargins(0,20,0,20)
-                        self.image_hori_layout = QHBoxLayout()
-                        horizontal_layout = QHBoxLayout()
-                        pictureform = QFormLayout()
-
-                        player = QComboBox()
-                        player.setObjectName("endCombo")
-                        player.addItems(["slant", "post", "wheel", "dig", "drag", "out", "in", "whip", "jerk", "bubble",
-                                         "swing", "comeback", "curl", "hitch", "fade", "check release", "seam", "corner"])
-                        route_pic = QLabel()
-                        route_pic.setPixmap(QPixmap(self.image1))
-                        horizontal_layout.addWidget(player)
-
-
-                        last_label = QLabel()
-                        first_label = QLabel()
-                        pictureform.addRow(last_label, first_label)
-                        playerid_label = QLabel(str(z[0]))
-                        alignment = QLabel()
-                        pictureform.addRow(playerid_label, alignment)
-                        formation_label = QLabel("Form:")
-                        self.formation = QLineEdit()
-                        self.formation.setObjectName("endquestions")
-                        pictureform.addRow(formation_label, self.formation)
-                        play_label = QLabel("Play:")
-                        self.play = QLineEdit()
-                        self.play.setObjectName("endquestions")
-                        pictureform.addRow(play_label, self.play)
-                        grade_label = QLabel("Grade")
-                        grade = QComboBox()
-                        grade.addItems(["10","9","8","7","6","5","4","3","2","1"])
-                        grade.setObjectName("endCombo")
-                        pictureform.addRow(grade_label, grade)
-
-                        image_vert_layout.addLayout(self.image_hori_layout)
-                        self.image_hori_layout.addWidget(route_pic)
-                        self.image_hori_layout.addLayout(pictureform)
-                        image_vert_layout.addLayout(horizontal_layout)
-                        self.route_layout.addLayout(image_vert_layout, x, y)
-                        count += 1
-                    else:
-                        image_vert_layout = QVBoxLayout()
-                        image_vert_layout.setContentsMargins(0,20,0,20)
-
-                        self.image_hori_layout = QHBoxLayout()
-                        horizontal_layout = QHBoxLayout()
-                        pictureform = QFormLayout()
-                        player = QComboBox()
-                        player.setObjectName("endCombo")
-                        player.addItems(["scif", "blitz", "fire", "deep third", "flat", "deep half", "deep quarter",
-                                         "spot"])
-                        route_pic = QLabel()
-                        route_pic.setPixmap(QPixmap(self.image_away1))
-                        horizontal_layout.addWidget(player)
-
-                        last_label = QLabel()
-                        first_label = QLabel()
-                        pictureform.addRow(last_label, first_label)
-                        playerid_label = QLabel(str(z[0]))
-                        alignment = QLabel()
-                        pictureform.addRow(playerid_label, alignment)
-                        formation_label = QLabel("Form:")
-                        self.formation = QLineEdit()
-                        self.formation.setObjectName("endquestions")
-                        pictureform.addRow(formation_label, self.formation)
-                        play_label = QLabel("Play:")
-                        self.play = QLineEdit()
-                        self.play.setObjectName("endquestions")
-                        pictureform.addRow(play_label, self.play)
-                        grade_label = QLabel("Grade")
-                        grade = QComboBox()
-                        grade.addItems(["10", "9", "8", "7", "6", "5", "4", "3", "2", "1"])
-                        grade.setObjectName("endCombo")
-                        pictureform.addRow(grade_label, grade)
-
-                        image_vert_layout.addLayout(self.image_hori_layout)
-                        self.image_hori_layout.addWidget(route_pic)
-                        self.image_hori_layout.addLayout(pictureform)
-                        image_vert_layout.addLayout(horizontal_layout)
-                        self.route_layout.addLayout(image_vert_layout, x, y)
-                        count += 1
-                except:
-                    continue
-
-
     # def getHome(self, event):
     #     x = event.pos().x()
     #     y = event.pos().y()
@@ -624,6 +520,145 @@ class Window(QWidget):
     #     y = event.pos().y()
     #     print("away")
     #     self.tabs.setCurrentIndex(1)
+class thegrid(QGridLayout):
+    def __init__(self, parent=None):
+        QGridLayout.__init__(self, parent)
+        cur.execute(
+            "select playid from main_table where playid = (select playid from recently_viewed order by date_added desc limit 1);")
+        result_main = cur.fetchone()
+
+        cur.execute("select distinct(playerid), position from roster where playid = '" + result_main[
+            0] + "' order by playerid;")
+        result_distinct = cur.fetchall()
+        # The vars function will return all of the items of the window handler as a dict.
+        count = 0
+        data = (result[0], result[1])
+        cur.mogrify("select logo from college_team_colors where team_name IN %s;", (data,))
+        cur.execute("select logo from college_team_colors where team_name IN %s;",
+                    (data,))
+        url = cur.fetchall()
+        data_logo = urllib.request.urlopen(url[0][0]).read()
+        image = QtGui.QImage()
+        image.loadFromData(data_logo)
+        image1 = image.scaled(50, 50, Qt.KeepAspectRatio)
+
+        data_logo_2 = urllib.request.urlopen(url[1][0]).read()
+        image_away = QtGui.QImage()
+        image_away.loadFromData(data_logo_2)
+        image_away1 = image_away.scaled(50, 50, Qt.KeepAspectRatio)
+
+        self.labels = []
+
+        for x in range(8):
+            for y in range(3):
+                try:
+                    offense = ["SKILL", "QB", "RB", "WR", "RT", "LG", "C", "LT", "RT", "TE", "X", "Y", "Z", "H", "F",
+                               "None"]
+                    z = result_distinct[0 + count]
+                    if z[1] in offense:
+                        image_vert_layout = QVBoxLayout()
+                        image_vert_layout.setContentsMargins(0,20,0,20)
+                        self.image_hori_layout = QHBoxLayout()
+                        horizontal_layout = QHBoxLayout()
+                        self.pictureform = QFormLayout()
+
+                        player = QComboBox()
+                        player.setObjectName("endCombo")
+                        player.addItems(["slant", "post", "wheel", "dig", "drag", "out", "in", "whip", "jerk", "bubble",
+                                         "swing", "comeback", "curl", "hitch", "fade", "check release", "seam",
+                                         "corner"])
+                        route_pic = QLabel()
+                        route_pic.setPixmap(QPixmap(image1))
+                        horizontal_layout.addWidget(player)
+
+
+                        self.last_label = QLabel("Last Name, ")
+                        self.first_label = QLabel()
+                        self.pictureform.addRow(self.last_label, self.first_label)
+                        self.playerid_label = QLabel(str(z[0]))
+                        self.alignment = QLabel()
+                        self.pictureform.addRow(self.playerid_label, self.alignment)
+                        formation_label = QLabel("Form:")
+                        self.formation = QLineEdit()
+                        self.formation.setObjectName("endquestions")
+                        self.pictureform.addRow(formation_label, self.formation)
+                        play_label = QLabel("Play:")
+                        self.play = QLineEdit()
+                        self.play.setObjectName("endquestions")
+                        self.pictureform.addRow(play_label, self.play)
+                        grade_label = QLabel("Grade")
+                        grade = QComboBox()
+                        grade.addItems(["10","9","8","7","6","5","4","3","2","1"])
+                        grade.setObjectName("endCombo")
+                        self.pictureform.addRow(grade_label, grade)
+
+                        image_vert_layout.addLayout(self.image_hori_layout)
+                        self.image_hori_layout.addWidget(route_pic)
+                        self.image_hori_layout.addLayout(self.pictureform)
+                        image_vert_layout.addLayout(horizontal_layout)
+                        self.addLayout(image_vert_layout, x, y)
+                        count += 1
+                    else:
+                        image_vert_layout = QVBoxLayout()
+                        image_vert_layout.setContentsMargins(0,20,0,20)
+
+                        self.image_hori_layout = QHBoxLayout()
+                        horizontal_layout = QHBoxLayout()
+                        self.pictureform = QFormLayout()
+                        player = QComboBox()
+                        player.setObjectName("endCombo")
+                        player.addItems(["scif", "blitz", "fire", "deep third", "flat", "deep half", "deep quarter",
+                                         "spot"])
+                        route_pic = QLabel()
+                        route_pic.setPixmap(QPixmap(image_away1))
+                        horizontal_layout.addWidget(player)
+                        self.last_label = QLabel("Last Name, ")
+                        self.first_label = QLabel("First Name, num")
+                        self.pictureform.addRow(self.last_label, self.first_label)
+                        self.playerid_label = QLabel(str(z[0]))
+                        self.alignment = QLabel("Pos")
+                        self.pictureform.addRow(self.playerid_label, self.alignment)
+                        formation_label = QLabel("Form:")
+                        self.formation = QLineEdit()
+                        self.formation.setObjectName("endquestions")
+                        self.pictureform.addRow(formation_label, self.formation)
+                        play_label = QLabel("Play:")
+                        self.play = QLineEdit()
+                        self.play.setObjectName("endquestions")
+                        self.pictureform.addRow(play_label, self.play)
+                        grade_label = QLabel("Grade")
+                        grade = QComboBox()
+                        grade.addItems(["10", "9", "8", "7", "6", "5", "4", "3", "2", "1"])
+                        grade.setObjectName("endCombo")
+                        self.pictureform.addRow(grade_label, grade)
+
+                        image_vert_layout.addLayout(self.image_hori_layout)
+                        self.image_hori_layout.addWidget(route_pic)
+                        self.image_hori_layout.addLayout(self.pictureform)
+                        image_vert_layout.addLayout(horizontal_layout)
+                        self.addLayout(image_vert_layout, x, y)
+                        count += 1
+                except:
+                    continue
+
+    def update_players(self, id, items):
+        items[0].text()
+        for i_widget in range(self.count()):
+            if i_widget == int(id):
+                grid = self.itemAt(int(id))
+                grid = self.findChildren(QFormLayout)[int(id)]
+                for i in range(0, 4):
+                    widget = grid.itemAt(i).widget()
+                    if widget.text() == "Last Name, ":
+                        QLabel.setText(widget, "Scott")
+                    elif widget.text() == "First Name, num":
+                        widget.setText(str(items[1].text()) + " " + str(items[2].text()))
+                    elif widget.text() == "Pos":
+                        widget.setText(str(items[3].text()))
+                    else:
+                        pass
+        self.update()
+
 
 class PhotoViewer(QGraphicsView):
     photoClicked = pyqtSignal(QPoint)
@@ -750,6 +785,7 @@ class roster_recent(QTableView):
                             self.item = QStandardItem(str(table_items[column_number].text()))
                             self.item.setTextAlignment(Qt.AlignCenter)
                             self.model().setItem(index.row(), column_number, self.item)
+                        thegrid().update_players(self.id, table_items)
             else:
                 if index.isValid():
                     for column_number, data in enumerate(recent_roster_keys):
@@ -760,6 +796,7 @@ class roster_recent(QTableView):
                             self.item = QStandardItem(str(table_items[column_number - 1].text()))
                             self.item.setTextAlignment(Qt.AlignCenter)
                             self.model().setItem(index.row(), column_number, self.item)
+                        thegrid().update_players(self.id, table_items)
 
         event.accept()
 
@@ -771,7 +808,7 @@ class roster_recent(QTableView):
                         "select playid from main_table where playid = (select playid from recently_viewed order by date_added desc limit 1);")
                     result = cur.fetchone()
                     cur.execute(
-                        "select playerid, last_name, first_name, number, position, height, weight, year from roster where playid = '" +
+                        "select playerid, last_name, first_name, jersey, position, height, weight, year from roster where playid = '" +
                         result[0] + "' and playerid = %s;", (i,))
                     play_table_result = cur.fetchall()
                     for column_number in range(0, 7):
@@ -835,7 +872,6 @@ def end_page():
     QFontDatabase().addApplicationFont("fonts/proxima.ttf")
     window = Window()
     window.set_light_dark_mode()
-    window.populateGridLayout()
     window.update_play_table()
     window.update_roster_table()
     sys.exit(app.exec_())
