@@ -4,11 +4,12 @@ import urllib
 import cv2
 from PyQt5 import QtGui, QtWidgets, QtCore
 from PyQt5.QtCore import Qt, QSortFilterProxyModel, QDataStream, QIODevice, QVariant, QRectF, \
-    pyqtSignal, QPoint, QEventLoop, QTimer, QThread
+    pyqtSignal, QPoint, QEventLoop, QTimer, QThread, QEvent
 from PyQt5.QtGui import QFont, QPixmap, QIcon, QFontDatabase, QStandardItemModel, QStandardItem, QBrush, QColor
 from PyQt5.QtWidgets import QWidget, QLabel, QVBoxLayout, QHBoxLayout, QApplication, QTableWidgetItem, \
     QTabWidget, QLineEdit, QTableView, QAbstractItemView, QDesktopWidget, QPushButton, QGraphicsView, QFrame, \
-    QGraphicsScene, QGraphicsPixmapItem, QGridLayout, QComboBox, QLayout, QScrollArea, QFormLayout, QGroupBox
+    QGraphicsScene, QGraphicsPixmapItem, QGridLayout, QComboBox, QLayout, QScrollArea, QFormLayout, QGroupBox, \
+    QInputDialog
 from psycopg2 import connect, sql
 import psycopg2.extras
 from typing import Iterator, Dict, Any
@@ -532,8 +533,8 @@ class LabelClass(QLabel):
         self.name_label_class = QtWidgets.QLabel(title)
 
 class EditClass(QLineEdit):
-    def __init__(self, ):
-        super().__init__()
+    def __init__(self, *args):
+        super().__init__(*args)
         self.formation_class = QLineEdit()
         self.play_class = QLineEdit()
 
@@ -541,9 +542,12 @@ class thegrid(QGridLayout):
     def __init__(self, parent=None):
         QGridLayout.__init__(self, parent)
         self.timer = QTimer()
+        self.timer.form = QTimer()
         self.timer.timeout.connect(self.update_players)
-        self.timer.timeout.connect(self.update_form_front)
+        self.timer.form.timeout.connect(self.update_form_front)
         self.timer.start(100)
+        self.timer.form.start(1000)
+
 
         cur.execute(
             "select playid from main_table where playid = (select playid from recently_viewed order by date_added desc limit 1);")
@@ -667,8 +671,13 @@ class thegrid(QGridLayout):
                 except:
                     continue
 
+
     def startTimer(self, interval: int, timerType: Qt.TimerType = ...) -> int:
         self.timer.start()
+
+    def stopTimer(self, interval: int, timerType: Qt.TimerType = ...) -> int:
+        self.timer.form.stop()
+
 
     def update_players(self):
         for i_widget in range(self.count()):
@@ -679,15 +688,21 @@ class thegrid(QGridLayout):
                     self.name_label.setText(tableitems[0][0].text() + ", " + tableitems[0][1].text() + " #" + tableitems[0][2].text() + " " + tableitems[0][3].text())
 
     def update_form_front(self):
-        a = 0
         try:
-            for i in range(0,50):
-                self.formation = self.edits[i][0]
-                self.play = self.edits[i][1]
-                self.side = self.edits[i][2]
-
+            for a in range(0, 50):
+                self.formation = self.edits[a][0]
+                self.formation.formation_class.clear()
+                self.formation.setText(self.formation.text())
+                for i in range(0,22):
+                    if a == i:
+                        pass
+                    else:
+                        self.front = self.edits[i][0]
+                        self.front.setText(self.formation.text())
+                return
+            return
         except:
-            pass
+                pass
 
 
 class PhotoViewer(QGraphicsView):
