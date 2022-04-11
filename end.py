@@ -1,17 +1,19 @@
+import time
 import urllib
 
 import cv2
 from PyQt5 import QtGui, QtWidgets, QtCore
 from PyQt5.QtCore import Qt, QSortFilterProxyModel, QDataStream, QIODevice, QVariant, QRectF, \
-    pyqtSignal, QPoint
+    pyqtSignal, QPoint, QEventLoop, QTimer, QThread
 from PyQt5.QtGui import QFont, QPixmap, QIcon, QFontDatabase, QStandardItemModel, QStandardItem, QBrush, QColor
 from PyQt5.QtWidgets import QWidget, QLabel, QVBoxLayout, QHBoxLayout, QApplication, QTableWidgetItem, \
     QTabWidget, QLineEdit, QTableView, QAbstractItemView, QDesktopWidget, QPushButton, QGraphicsView, QFrame, \
-    QGraphicsScene, QGraphicsPixmapItem, QGridLayout, QComboBox, QLayout, QScrollArea, QFormLayout
+    QGraphicsScene, QGraphicsPixmapItem, QGridLayout, QComboBox, QLayout, QScrollArea, QFormLayout, QGroupBox
 from psycopg2 import connect, sql
 import psycopg2.extras
 from typing import Iterator, Dict, Any
 from qtwidgets import AnimatedToggle
+import threading
 from Roster import *
 from dotenv import load_dotenv
 
@@ -31,6 +33,8 @@ team_roster = ["Last Name", "First Name", "Number", "Position", "Height", "Weigh
 
 cur.execute("select offense,defense,year,league from recently_viewed order by date_added desc limit  1;")
 result = cur.fetchone()
+tableitems = []
+
 
 class Window(QWidget):
     def __init__(self):
@@ -74,38 +78,38 @@ class Window(QWidget):
 
     def ui(self):
         # layout section
-        main_layout = QHBoxLayout()
-        field_layout = QVBoxLayout()
+        self.main_layout = QHBoxLayout()
+        self.field_layout = QVBoxLayout()
         self.image_layout = QVBoxLayout()
         self.logo_layout = QVBoxLayout()
-        move_image_layout = QHBoxLayout()
-        roster_layout = QHBoxLayout()
-        game_roster_layout = QVBoxLayout()
-        api_roster_layout = QVBoxLayout()
-        button_layout = QHBoxLayout()
+        self.move_image_layout = QHBoxLayout()
+        self.roster_layout = QHBoxLayout()
+        self.game_roster_layout = QVBoxLayout()
+        self.api_roster_layout = QVBoxLayout()
+        self.button_layout = QHBoxLayout()
 
         self.fieldpic.setPixmap(QPixmap('dottedfield.jpg'))
-        field_layout.addWidget(self.fieldpic)
+        self.field_layout.addWidget(self.fieldpic)
 
-        route_layout = thegrid()
+        self.route_layout = thegrid()
         self.viewer.setPhoto(QPixmap("boxes.jpg"))
-        move_image_layout.addWidget(self.viewer)
+        self.move_image_layout.addWidget(self.viewer)
         self.image_layout.setSpacing(0)
         self.image_layout.setContentsMargins(0,0,0,0)
-        self.image_layout.addLayout(move_image_layout)
+        self.image_layout.addLayout(self.move_image_layout)
 
-        scrollbar = QScrollArea(widgetResizable=True)
-        scrollbar.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        self.scrollbar = QScrollArea(widgetResizable=True)
+        self.scrollbar.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.toptabs.addTab(self.field_tab, "Field")
-        self.toptabs.addTab(scrollbar, "Breakdown")
+        self.toptabs.addTab(self.scrollbar, "Breakdown")
 
-        main_layout.addWidget(self.toptabs)
-        scrollbar.setWidget(self.breakdown_tab)
+        self.main_layout.addWidget(self.toptabs)
+        self.scrollbar.setWidget(self.breakdown_tab)
         self.field_tab.layout = QVBoxLayout()
         self.breakdown_tab.layout = QVBoxLayout()
         self.field_tab.layout.addWidget(self.fieldpic)
         self.field_tab.setLayout(self.field_tab.layout)
-        self.breakdown_tab.layout.addLayout(route_layout)
+        self.breakdown_tab.layout.addLayout(self.route_layout)
         self.breakdown_tab.setLayout(self.breakdown_tab.layout)
 
 
@@ -126,12 +130,12 @@ class Window(QWidget):
         # self.logo_layout.addWidget(self.slider, alignment=Qt.AlignHCenter)
         # self.logo_layout.addWidget(self.home_logo)
         # self.logo_layout.addWidget(self.away_logo)
-        move_image_layout.addLayout(self.logo_layout)
+        self.move_image_layout.addLayout(self.logo_layout)
 
         self.image_layout.addWidget(self.play_pic)
-        self.image_layout.addLayout(roster_layout)
-        roster_layout.addLayout(game_roster_layout)
-        roster_layout.addLayout(api_roster_layout)
+        self.image_layout.addLayout(self.roster_layout)
+        self.roster_layout.addLayout(self.game_roster_layout)
+        self.roster_layout.addLayout(self.api_roster_layout)
 
 
         self.recently_viewed_table.setModel(self.recently_viewed_model)
@@ -139,10 +143,10 @@ class Window(QWidget):
         self.recently_viewed_table.horizontalHeader().setFont(self.table_font)
         self.recently_viewed_table.verticalHeader().setVisible(False)
         self.recently_viewed_table.setAlternatingRowColors(True)
-        game_roster_layout.addWidget(self.recently_viewed_table)
-        game_roster_layout.addLayout(button_layout)
-        button_layout.addWidget(self.submit_button)
-        button_layout.addWidget(self.refresh_button)
+        self.game_roster_layout.addWidget(self.recently_viewed_table)
+        self.game_roster_layout.addLayout(self.button_layout)
+        self.button_layout.addWidget(self.submit_button)
+        self.button_layout.addWidget(self.refresh_button)
         self.submit_button.clicked.connect(self.submit_pushed)
         self.submit_button.setFont(self.font)
         self.refresh_button.setFont(self.font)
@@ -190,13 +194,13 @@ class Window(QWidget):
         self.tab2.layout.addWidget(self.away_roster_table)
         self.tab2.layout.addWidget(self.away_search_field)
         self.tab2.setLayout(self.tab2.layout)
-        api_roster_layout.addWidget(self.tabs)
+        self.api_roster_layout.addWidget(self.tabs)
 
 
-        main_layout.addLayout(self.image_layout)
+        self.main_layout.addLayout(self.image_layout)
 
 
-        self.setLayout(main_layout)
+        self.setLayout(self.main_layout)
         self.show()
 
     def update_play_table(self):
@@ -520,9 +524,27 @@ class Window(QWidget):
     #     y = event.pos().y()
     #     print("away")
     #     self.tabs.setCurrentIndex(1)
+
+
+class LabelClass(QLabel):
+    def __init__(self, title):
+        super().__init__(title)
+        self.name_label_class = QtWidgets.QLabel(title)
+
+class EditClass(QLineEdit):
+    def __init__(self, ):
+        super().__init__()
+        self.formation_class = QLineEdit()
+        self.play_class = QLineEdit()
+
 class thegrid(QGridLayout):
     def __init__(self, parent=None):
         QGridLayout.__init__(self, parent)
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.update_players)
+        self.timer.timeout.connect(self.update_form_front)
+        self.timer.start(100)
+
         cur.execute(
             "select playid from main_table where playid = (select playid from recently_viewed order by date_added desc limit 1);")
         result_main = cur.fetchone()
@@ -548,6 +570,7 @@ class thegrid(QGridLayout):
         image_away1 = image_away.scaled(50, 50, Qt.KeepAspectRatio)
 
         self.labels = []
+        self.edits = []
 
         for x in range(8):
             for y in range(3):
@@ -571,19 +594,20 @@ class thegrid(QGridLayout):
                         route_pic.setPixmap(QPixmap(image1))
                         horizontal_layout.addWidget(player)
 
-
-                        self.last_label = QLabel("Last Name, ")
-                        self.first_label = QLabel()
-                        self.pictureform.addRow(self.last_label, self.first_label)
-                        self.playerid_label = QLabel(str(z[0]))
-                        self.alignment = QLabel()
-                        self.pictureform.addRow(self.playerid_label, self.alignment)
-                        formation_label = QLabel("Form:")
-                        self.formation = QLineEdit()
+                        self.name_label = LabelClass("Last " + str(z[0]) + ", First #0 WR")
+                        self.pictureform.addRow(self.name_label)
+                        self.name_label.setAlignment(Qt.AlignHCenter)
+                        self.playerid_label = QLabel("Player Id:")
+                        self.playerid = QLabel(str(z[0]))
+                        self.labels.append(self.name_label)
+                        self.pictureform.addRow(self.playerid_label, self.playerid)
+                        formation_label = QLabel("Formation:")
+                        self.formation = EditClass()
                         self.formation.setObjectName("endquestions")
                         self.pictureform.addRow(formation_label, self.formation)
                         play_label = QLabel("Play:")
-                        self.play = QLineEdit()
+                        self.play = EditClass()
+                        self.edits.append(tuple((self.formation, self.play, "offense")))
                         self.play.setObjectName("endquestions")
                         self.pictureform.addRow(play_label, self.play)
                         grade_label = QLabel("Grade")
@@ -612,18 +636,20 @@ class thegrid(QGridLayout):
                         route_pic = QLabel()
                         route_pic.setPixmap(QPixmap(image_away1))
                         horizontal_layout.addWidget(player)
-                        self.last_label = QLabel("Last Name, ")
-                        self.first_label = QLabel("First Name, num")
-                        self.pictureform.addRow(self.last_label, self.first_label)
-                        self.playerid_label = QLabel(str(z[0]))
-                        self.alignment = QLabel("Pos")
-                        self.pictureform.addRow(self.playerid_label, self.alignment)
-                        formation_label = QLabel("Form:")
-                        self.formation = QLineEdit()
+                        self.name_label = LabelClass("Last " + str(z[0]) +", First #0 LB")
+                        self.pictureform.addRow(self.name_label)
+                        self.name_label.setAlignment(Qt.AlignLeft)
+                        self.playerid_label = QLabel("Player Id:")
+                        self.playerid = QLabel(str(z[0]))
+                        self.labels.append(self.name_label)
+                        self.pictureform.addRow(self.playerid_label, self.playerid)
+                        formation_label = QLabel("Front:")
+                        self.formation = EditClass()
                         self.formation.setObjectName("endquestions")
                         self.pictureform.addRow(formation_label, self.formation)
                         play_label = QLabel("Play:")
-                        self.play = QLineEdit()
+                        self.play = EditClass()
+                        self.edits.append(tuple((self.formation, self.play, "defense")))
                         self.play.setObjectName("endquestions")
                         self.pictureform.addRow(play_label, self.play)
                         grade_label = QLabel("Grade")
@@ -641,23 +667,27 @@ class thegrid(QGridLayout):
                 except:
                     continue
 
-    def update_players(self, id, items):
-        items[0].text()
+    def startTimer(self, interval: int, timerType: Qt.TimerType = ...) -> int:
+        self.timer.start()
+
+    def update_players(self):
         for i_widget in range(self.count()):
-            if i_widget == int(id):
-                grid = self.itemAt(int(id))
-                grid = self.findChildren(QFormLayout)[int(id)]
-                for i in range(0, 4):
-                    widget = grid.itemAt(i).widget()
-                    if widget.text() == "Last Name, ":
-                        QLabel.setText(widget, "Scott")
-                    elif widget.text() == "First Name, num":
-                        widget.setText(str(items[1].text()) + " " + str(items[2].text()))
-                    elif widget.text() == "Pos":
-                        widget.setText(str(items[3].text()))
-                    else:
-                        pass
-        self.update()
+            if len(tableitems) > 0:
+                if i_widget == int(tableitems[0][7]):
+                    self.name_label = self.labels[i_widget]
+                    self.name_label.name_label_class.clear()
+                    self.name_label.setText(tableitems[0][0].text() + ", " + tableitems[0][1].text() + " #" + tableitems[0][2].text() + " " + tableitems[0][3].text())
+
+    def update_form_front(self):
+        a = 0
+        try:
+            for i in range(0,50):
+                self.formation = self.edits[i][0]
+                self.play = self.edits[i][1]
+                self.side = self.edits[i][2]
+
+        except:
+            pass
 
 
 class PhotoViewer(QGraphicsView):
@@ -736,7 +766,6 @@ class PhotoViewer(QGraphicsView):
 
 
 class roster_recent(QTableView):
-
     def __init__(self):
         super().__init__()
         self.setDragEnabled(True)
@@ -749,6 +778,7 @@ class roster_recent(QTableView):
 
     # Override this method to get the correct row index for insertion
     def dropEvent(self, event):
+        tableitems.clear()
         # Default dropEvent method fires dropMimeData with appropriate parameters (we're interested in the row index).
         super().dropEvent(event)
         # Now we know where to insert selected row(s)
@@ -785,7 +815,8 @@ class roster_recent(QTableView):
                             self.item = QStandardItem(str(table_items[column_number].text()))
                             self.item.setTextAlignment(Qt.AlignCenter)
                             self.model().setItem(index.row(), column_number, self.item)
-                        thegrid().update_players(self.id, table_items)
+                        table_items.append(self.id)
+                        self.set_items(table_items)
             else:
                 if index.isValid():
                     for column_number, data in enumerate(recent_roster_keys):
@@ -796,8 +827,8 @@ class roster_recent(QTableView):
                             self.item = QStandardItem(str(table_items[column_number - 1].text()))
                             self.item.setTextAlignment(Qt.AlignCenter)
                             self.model().setItem(index.row(), column_number, self.item)
-                        thegrid().update_players(self.id, table_items)
-
+                        table_items.append(self.id)
+                    tableitems.append(table_items)
         event.accept()
 
     def keyPressEvent(self, event):
