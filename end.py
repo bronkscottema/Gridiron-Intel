@@ -587,19 +587,18 @@ class thegrid(QGridLayout):
                                "None"]
                     z = result_distinct[0 + count]
                     if z[1] in offense:
+                        oline = ["RT", "LG", "C", "LT", "RT", "TE"]
                         image_vert_layout = QVBoxLayout()
                         image_vert_layout.setContentsMargins(0,20,0,20)
                         self.image_hori_layout = QHBoxLayout()
-                        horizontal_layout = QHBoxLayout()
                         self.pictureform = QFormLayout()
 
                         #left vertical
                         route_pic = QLabel()
                         route_pic.setPixmap(QPixmap(image1))
                         self.path_pic = QLabel()
-                        self.path_pic.setPixmap(QPixmap('images/paths/slant.png').scaled(40,40))
-                        # horizontal_layout.addWidget(player)
-                        # horizontal_layout.addWidget(self.path_pic)
+                        self.path_pic.setPixmap(QPixmap('images/paths/slant.png'))
+
 
                         self.name_label = LabelClass("Last " + str(z[0]) + ", First #0 " + z[1])
                         self.pictureform.addRow(self.name_label)
@@ -619,9 +618,12 @@ class thegrid(QGridLayout):
                         self.pictureform.addRow(play_label, self.play)
                         player = QComboBox()
                         player.setObjectName("endCombo")
-                        player.addItems(["slant", "post", "wheel", "dig", "drag", "out", "in", "whip", "jerk", "bubble",
+                        if z[1] in oline:
+                            player.addItems(["slide left", "slide right", "man", "block", "pull", "block right", "block right"])
+                        else:
+                            player.addItems(["slant", "post", "wheel", "dig", "drag", "out", "in", "whip", "jerk", "bubble",
                                          "swing", "comeback", "curl", "hitch", "fade", "check release", "seam",
-                                         "corner"])
+                                         "corner", "block"])
                         grade_label = QLabel("Grade")
                         grade = QComboBox()
                         path_label = QLabel("Path:")
@@ -643,21 +645,20 @@ class thegrid(QGridLayout):
                         count += 1
                     else:
                         image_vert_layout = QVBoxLayout()
-                        image_vert_layout.setContentsMargins(0,20,0,20)
-
+                        image_vert_layout.setContentsMargins(0, 20, 0, 20)
                         self.image_hori_layout = QHBoxLayout()
-                        horizontal_layout = QHBoxLayout()
                         self.pictureform = QFormLayout()
-                        player = QComboBox()
-                        player.setObjectName("endCombo")
-                        player.addItems(["scif", "blitz", "fire", "deep third", "flat", "deep half", "deep quarter",
-                                         "spot"])
+
+                        # left vertical
                         route_pic = QLabel()
                         route_pic.setPixmap(QPixmap(image_away1))
-                        horizontal_layout.addWidget(player)
-                        self.name_label = LabelClass("Last " + str(z[0]) +", First #0 " + z[1])
+                        self.path_pic = QLabel()
+                        self.path_pic.setPixmap(QPixmap('images/paths/spot.png.png'))
+
+
+                        self.name_label = LabelClass("Last " + str(z[0]) + ", First #0 " + z[1])
                         self.pictureform.addRow(self.name_label)
-                        self.name_label.setAlignment(Qt.AlignLeft)
+                        self.name_label.setAlignment(Qt.AlignHCenter)
                         self.playerid_label = QLabel("Player Id:")
                         self.playerid = QLabel(str(z[0]))
                         self.labels.append(self.name_label)
@@ -673,15 +674,26 @@ class thegrid(QGridLayout):
                         self.pictureform.addRow(play_label, self.defplay)
                         grade_label = QLabel("Grade")
                         grade = QComboBox()
+                        player = QComboBox()
+                        player.setObjectName("endCombo")
+                        player.addItems(["1/4 seam flat", "1/4 hook", "1/4 mid hole", "1/2 hole", "1/2 curl", "1/2 flat", "1/3 deep",
+                                         "1/3 hook", "1/3 flat", "blitz", "stunt left", "stunt right", "twist"])
+                        path_label = QLabel("Path:")
+                        self.pictureform.addRow(path_label, player)
                         grade.addItems(["10", "9", "8", "7", "6", "5", "4", "3", "2", "1"])
                         grade.setObjectName("endCombo")
                         self.pictureform.addRow(grade_label, grade)
 
-                        image_vert_layout.addLayout(self.image_hori_layout)
-                        self.image_hori_layout.addWidget(route_pic)
+                        # main
+                        self.image_hori_layout.addLayout(image_vert_layout)
                         self.image_hori_layout.addLayout(self.pictureform)
-                        image_vert_layout.addLayout(horizontal_layout)
-                        self.addLayout(image_vert_layout, x, y)
+
+                        # left Vert
+                        image_vert_layout.addWidget(route_pic)
+                        image_vert_layout.addWidget(self.path_pic)
+                        # rightform
+
+                        self.addLayout(self.image_hori_layout, x, y)
                         count += 1
                 except:
                     continue
