@@ -37,6 +37,7 @@ result = cur.fetchone()
 tableitems = []
 
 
+
 class Window(QWidget):
     def __init__(self):
         super().__init__()
@@ -542,11 +543,14 @@ class thegrid(QGridLayout):
     def __init__(self, parent=None):
         QGridLayout.__init__(self, parent)
         self.timer = QTimer()
+        self.timer.front = QTimer()
         self.timer.form = QTimer()
         self.timer.timeout.connect(self.update_players)
-        self.timer.form.timeout.connect(self.update_form_front)
+        self.timer.form.timeout.connect(self.update_form)
+        self.timer.front.timeout.connect(self.update_front)
         self.timer.start(100)
-        self.timer.form.start(1000)
+        self.timer.front.start(10)
+        self.timer.form.start(10)
 
 
         cur.execute(
@@ -589,16 +593,15 @@ class thegrid(QGridLayout):
                         horizontal_layout = QHBoxLayout()
                         self.pictureform = QFormLayout()
 
-                        player = QComboBox()
-                        player.setObjectName("endCombo")
-                        player.addItems(["slant", "post", "wheel", "dig", "drag", "out", "in", "whip", "jerk", "bubble",
-                                         "swing", "comeback", "curl", "hitch", "fade", "check release", "seam",
-                                         "corner"])
+                        #left vertical
                         route_pic = QLabel()
                         route_pic.setPixmap(QPixmap(image1))
-                        horizontal_layout.addWidget(player)
+                        self.path_pic = QLabel()
+                        self.path_pic.setPixmap(QPixmap('images/paths/slant.png').scaled(40,40))
+                        # horizontal_layout.addWidget(player)
+                        # horizontal_layout.addWidget(self.path_pic)
 
-                        self.name_label = LabelClass("Last " + str(z[0]) + ", First #0 WR")
+                        self.name_label = LabelClass("Last " + str(z[0]) + ", First #0 " + z[1])
                         self.pictureform.addRow(self.name_label)
                         self.name_label.setAlignment(Qt.AlignHCenter)
                         self.playerid_label = QLabel("Player Id:")
@@ -614,17 +617,29 @@ class thegrid(QGridLayout):
                         self.edits.append(tuple((self.formation, self.play, "offense")))
                         self.play.setObjectName("endquestions")
                         self.pictureform.addRow(play_label, self.play)
+                        player = QComboBox()
+                        player.setObjectName("endCombo")
+                        player.addItems(["slant", "post", "wheel", "dig", "drag", "out", "in", "whip", "jerk", "bubble",
+                                         "swing", "comeback", "curl", "hitch", "fade", "check release", "seam",
+                                         "corner"])
                         grade_label = QLabel("Grade")
                         grade = QComboBox()
+                        path_label = QLabel("Path:")
+                        self.pictureform.addRow(path_label, player)
                         grade.addItems(["10","9","8","7","6","5","4","3","2","1"])
                         grade.setObjectName("endCombo")
                         self.pictureform.addRow(grade_label, grade)
 
-                        image_vert_layout.addLayout(self.image_hori_layout)
-                        self.image_hori_layout.addWidget(route_pic)
+                        #main
+                        self.image_hori_layout.addLayout(image_vert_layout)
                         self.image_hori_layout.addLayout(self.pictureform)
-                        image_vert_layout.addLayout(horizontal_layout)
-                        self.addLayout(image_vert_layout, x, y)
+
+                        #left Vert
+                        image_vert_layout.addWidget(route_pic)
+                        image_vert_layout.addWidget(self.path_pic)
+                        #rightform
+
+                        self.addLayout(self.image_hori_layout, x, y)
                         count += 1
                     else:
                         image_vert_layout = QVBoxLayout()
@@ -640,7 +655,7 @@ class thegrid(QGridLayout):
                         route_pic = QLabel()
                         route_pic.setPixmap(QPixmap(image_away1))
                         horizontal_layout.addWidget(player)
-                        self.name_label = LabelClass("Last " + str(z[0]) +", First #0 LB")
+                        self.name_label = LabelClass("Last " + str(z[0]) +", First #0 " + z[1])
                         self.pictureform.addRow(self.name_label)
                         self.name_label.setAlignment(Qt.AlignLeft)
                         self.playerid_label = QLabel("Player Id:")
@@ -648,14 +663,14 @@ class thegrid(QGridLayout):
                         self.labels.append(self.name_label)
                         self.pictureform.addRow(self.playerid_label, self.playerid)
                         formation_label = QLabel("Front:")
-                        self.formation = EditClass()
-                        self.formation.setObjectName("endquestions")
-                        self.pictureform.addRow(formation_label, self.formation)
+                        self.front = EditClass()
+                        self.front.setObjectName("endquestions")
+                        self.pictureform.addRow(formation_label, self.front)
                         play_label = QLabel("Play:")
-                        self.play = EditClass()
-                        self.edits.append(tuple((self.formation, self.play, "defense")))
-                        self.play.setObjectName("endquestions")
-                        self.pictureform.addRow(play_label, self.play)
+                        self.defplay = EditClass()
+                        self.edits.append(tuple((self.front, self.defplay, "defense")))
+                        self.defplay.setObjectName("endquestions")
+                        self.pictureform.addRow(play_label, self.defplay)
                         grade_label = QLabel("Grade")
                         grade = QComboBox()
                         grade.addItems(["10", "9", "8", "7", "6", "5", "4", "3", "2", "1"])
@@ -687,22 +702,50 @@ class thegrid(QGridLayout):
                     self.name_label.name_label_class.clear()
                     self.name_label.setText(tableitems[0][0].text() + ", " + tableitems[0][1].text() + " #" + tableitems[0][2].text() + " " + tableitems[0][3].text())
 
-    def update_form_front(self):
+    def update_front(self):
         try:
-            for a in range(0, 50):
-                self.formation = self.edits[a][0]
-                self.formation.formation_class.clear()
-                self.formation.setText(self.formation.text())
-                for i in range(0,22):
-                    if a == i:
-                        pass
-                    else:
-                        self.front = self.edits[i][0]
-                        self.front.setText(self.formation.text())
+            for a in range(0, 100):
+                self.front = self.edits[a][0]
+                self.defplay = self.edits[a][1]
+                for i in range(0, 100):
+                    if self.edits[a][2] == "defense":
+                        if self.edits[i][2] == "offense":
+                           pass
+                        else:
+                            self.frontdef = self.edits[i][0]
+                            self.frontdef.setText(self.front.text())
+                            self.defplays = self.edits[i][1]
+                            self.defplays.setText(self.defplay.text())
                 return
             return
         except:
                 pass
+
+    def update_form(self):
+        try:
+            for a in range(0, 100):
+                self.form = self.edits[a][0]
+                self.play = self.edits[a][1]
+                if len(self.form.text()) > 0 or len(self.play.text()) > 0:
+                    for i in range(0, 100):
+                        if self.edits[a][2] == self.edits[i][2]:
+                            self.formation = self.edits[i][0]
+                            self.formation.setText(self.form.text())
+                            self.plays = self.edits[i][1]
+                            self.plays.setText(self.play.text())
+                        else:
+                            pass
+                    return
+            return
+        except:
+                pass
+
+    def keyPressedEvent(self, event):
+        if event.key() == QtCore.Qt.Key_Backspace:
+            self.formation.clear()
+            self.play.clear()
+            self.front.clear()
+            self.defplay.clear()
 
 
 class PhotoViewer(QGraphicsView):
