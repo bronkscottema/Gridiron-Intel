@@ -1,20 +1,15 @@
-import time
 import urllib
-
-import cv2
 from PyQt5 import QtGui, QtWidgets, QtCore
 from PyQt5.QtCore import Qt, QSortFilterProxyModel, QDataStream, QIODevice, QVariant, QRectF, \
-    pyqtSignal, QPoint, QEventLoop, QTimer, QThread, QEvent
+    pyqtSignal, QPoint, QTimer
 from PyQt5.QtGui import QFont, QPixmap, QIcon, QFontDatabase, QStandardItemModel, QStandardItem, QBrush, QColor
 from PyQt5.QtWidgets import QWidget, QLabel, QVBoxLayout, QHBoxLayout, QApplication, QTableWidgetItem, \
     QTabWidget, QLineEdit, QTableView, QAbstractItemView, QDesktopWidget, QPushButton, QGraphicsView, QFrame, \
-    QGraphicsScene, QGraphicsPixmapItem, QGridLayout, QComboBox, QLayout, QScrollArea, QFormLayout, QGroupBox, \
-    QInputDialog
-from psycopg2 import connect, sql
+    QGraphicsScene, QGraphicsPixmapItem, QGridLayout, QComboBox, QScrollArea, QFormLayout
+from psycopg2 import connect
 import psycopg2.extras
 from typing import Iterator, Dict, Any
 from qtwidgets import AnimatedToggle
-import threading
 from Roster import *
 from dotenv import load_dotenv
 
@@ -35,7 +30,6 @@ team_roster = ["Last Name", "First Name", "Number", "Position", "Height", "Weigh
 cur.execute("select offense,defense,year,league from recently_viewed order by date_added desc limit  1;")
 result = cur.fetchone()
 tableitems = []
-
 
 
 class Window(QWidget):
@@ -75,11 +69,6 @@ class Window(QWidget):
         self.play_pic = QLabel(self)
         self.home_logo = QLabel(self)
         self.away_logo = QLabel(self)
-
-        self.ui()
-
-    def ui(self):
-        # layout section
         self.main_layout = QHBoxLayout()
         self.field_layout = QVBoxLayout()
         self.image_layout = QVBoxLayout()
@@ -89,18 +78,25 @@ class Window(QWidget):
         self.game_roster_layout = QVBoxLayout()
         self.api_roster_layout = QVBoxLayout()
         self.button_layout = QHBoxLayout()
+        self.route_layout = thegrid()
+        self.scrollbar = QScrollArea(widgetResizable=True)
+        self.toggle_2 = AnimatedToggle(
+            checked_color="#4400B0EE",
+            pulse_checked_color="#4400B0EE"
+        )
+        self.ui()
 
+    def ui(self):
+        # layout section
         self.fieldpic.setPixmap(QPixmap('dottedfield.jpg'))
         self.field_layout.addWidget(self.fieldpic)
 
-        self.route_layout = thegrid()
         self.viewer.setPhoto(QPixmap("boxes.jpg"))
         self.move_image_layout.addWidget(self.viewer)
         self.image_layout.setSpacing(0)
-        self.image_layout.setContentsMargins(0,0,0,0)
+        self.image_layout.setContentsMargins(0, 0, 0, 0)
         self.image_layout.addLayout(self.move_image_layout)
 
-        self.scrollbar = QScrollArea(widgetResizable=True)
         self.scrollbar.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.toptabs.addTab(self.field_tab, "Field")
         self.toptabs.addTab(self.scrollbar, "Breakdown")
@@ -114,31 +110,16 @@ class Window(QWidget):
         self.breakdown_tab.layout.addLayout(self.route_layout)
         self.breakdown_tab.setLayout(self.breakdown_tab.layout)
 
-
-
-        self.toggle_2 = AnimatedToggle(
-            checked_color="#4400B0EE",
-            pulse_checked_color="#4400B0EE"
-        )
-        # self.slider = QSlider(self)
-        # self.slider.setOrientation(Qt.Vertical)
-        # self.slider.setSliderPosition(50)
-
-        # self.slider.valueChanged.connect(self.setLabelValue)
         self.toggle_2.setStyleSheet("min-width: 75px; max-width: 75px;")
         self.toggle_2.setObjectName("toggle")
         self.toggle_2.clicked.connect(self.set_light_dark_mode)
         self.logo_layout.addWidget(self.toggle_2, alignment=Qt.AlignTop)
-        # self.logo_layout.addWidget(self.slider, alignment=Qt.AlignHCenter)
-        # self.logo_layout.addWidget(self.home_logo)
-        # self.logo_layout.addWidget(self.away_logo)
         self.move_image_layout.addLayout(self.logo_layout)
 
         self.image_layout.addWidget(self.play_pic)
         self.image_layout.addLayout(self.roster_layout)
         self.roster_layout.addLayout(self.game_roster_layout)
         self.roster_layout.addLayout(self.api_roster_layout)
-
 
         self.recently_viewed_table.setModel(self.recently_viewed_model)
         self.recently_viewed_table.horizontalHeader().setDefaultAlignment(Qt.AlignCenter)
@@ -154,9 +135,7 @@ class Window(QWidget):
         self.refresh_button.setFont(self.font)
         self.refresh_button.clicked.connect(self.refresh_pushed)
 
-
         # api roster data
-
 
         self.tabs.addTab(self.tab1, "")
         self.tabs.addTab(self.tab2, "")
@@ -198,9 +177,7 @@ class Window(QWidget):
         self.tab2.setLayout(self.tab2.layout)
         self.api_roster_layout.addWidget(self.tabs)
 
-
         self.main_layout.addLayout(self.image_layout)
-
 
         self.setLayout(self.main_layout)
         self.show()
@@ -217,7 +194,8 @@ class Window(QWidget):
         if len(roster_exist) == 0:
             cur.execute(
                 "select gameid, playid, playerid, position from main_table where playid = '" + result_main[0] + "' "
-                "and frame = (select min(frame) from main_table where playid = '" + result_main[0] + "');")
+                "and frame = (select min(frame) from main_table where playid = '" +
+                result_main[0] + "');")
             play_table_result = cur.fetchall()
 
             defense_count = 0
@@ -227,7 +205,7 @@ class Window(QWidget):
             if defense_count == 8:
                 gameid = play_table_result[0][0]
                 playid = play_table_result[0][1]
-                playerid = len(play_table_result)-1
+                playerid = len(play_table_result) - 1
                 play_table_result.append(tuple((gameid, playid, playerid, "DE")))
                 play_table_result.append(tuple((gameid, playid, playerid + 1, "DT")))
                 play_table_result.append(tuple((gameid, playid, playerid + 2, "DE")))
@@ -487,51 +465,37 @@ class Window(QWidget):
                 image = QtGui.QImage()
                 image.loadFromData(data_logo)
                 image1 = image.scaled(50, 50, Qt.KeepAspectRatio)
-                #self.home_logo.setPixmap(QPixmap(self.image1))
-                # self.home_logo.setObjectName("home_logo")
-                # self.home_logo.mousePressEvent = self.getHome
 
                 data_logo_2 = urllib.request.urlopen(url[1][0]).read()
                 image_away = QtGui.QImage()
                 image_away.loadFromData(data_logo_2)
-                image_away1 = image_away.scaled(50,50, Qt.KeepAspectRatio)
-                #self.away_logo.setPixmap(QPixmap(self.image_away1))
-                # self.away_logo.setObjectName("away_logo")
-                # self.away_logo.mousePressEvent = self.getAway
+                image_away1 = image_away.scaled(50, 50, Qt.KeepAspectRatio)
+
                 self.tabs.setIconSize(QtCore.QSize(60, 60))
                 self.tabs.setTabIcon(0, QIcon(QPixmap(image1).transformed(QtGui.QTransform().rotate(-90))))
                 self.tabs.setTabIcon(1, QIcon(QPixmap(image_away1).transformed(QtGui.QTransform().rotate(-90))))
                 self.tabs.setTabPosition(QtWidgets.QTabWidget.East)
-                # self.tabs.setTabVisible(0,False)
-                # self.tabs.setTabVisible(1,False)
 
-                team_name = result[0]
-                team_name = team_name.replace(" ", "").lower()
+                offense_name = result[0]
+                offense_name = offense_name.replace(" ", "").lower()
+                defense_name = result[1]
+                defense_name = defense_name.replace(" ", "").lower()
                 # set stylesheet here
-                teamFile = "styles/ncaa/" + team_name + ".qss"
+                offteamFile = "styles/ncaa/" + offense_name + ".qss"
+                defteamFile = "styles/ncaa/" + defense_name + ".qss"
                 try:
-                    with open(teamFile, "r") as self.fh:
+                    with open(offteamFile, "r") as self.fh:
                         self.setStyleSheet(self.fh.read() + self.style)
                 except:
                     pass
-
-    # def getHome(self, event):
-    #     x = event.pos().x()
-    #     y = event.pos().y()
-    #     print("home")
-    #     self.tabs.setCurrentIndex(0)
-    #
-    # def getAway(self, event):
-    #     x = event.pos().x()
-    #     y = event.pos().y()
-    #     print("away")
-    #     self.tabs.setCurrentIndex(1)
 
 
 class LabelClass(QLabel):
     def __init__(self, title):
         super().__init__(title)
         self.name_label_class = QtWidgets.QLabel(title)
+        self.path_class = QLabel()
+
 
 class EditClass(QLineEdit):
     def __init__(self, *args):
@@ -539,9 +503,12 @@ class EditClass(QLineEdit):
         self.formation_class = QLineEdit()
         self.play_class = QLineEdit()
 
+
 class thegrid(QGridLayout):
     def __init__(self, parent=None):
         QGridLayout.__init__(self, parent)
+        self.offense_container = QWidget()
+        self.defense_container = QWidget()
         self.timer = QTimer()
         self.timer.front = QTimer()
         self.timer.form = QTimer()
@@ -551,7 +518,9 @@ class thegrid(QGridLayout):
         self.timer.start(100)
         self.timer.front.start(10)
         self.timer.form.start(10)
-
+        # self.timer.path = QTimer()
+        # self.timer.timeout.connect(self.update_path)
+        # self.timer.start(1000)
 
         cur.execute(
             "select playid from main_table where playid = (select playid from recently_viewed order by date_added desc limit 1);")
@@ -563,9 +532,7 @@ class thegrid(QGridLayout):
         # The vars function will return all of the items of the window handler as a dict.
         count = 0
         data = (result[0], result[1])
-        cur.mogrify("select logo from college_team_colors where team_name IN %s;", (data,))
-        cur.execute("select logo from college_team_colors where team_name IN %s;",
-                    (data,))
+        cur.execute("select logo from college_team_colors where team_name IN %s;", (data,))
         url = cur.fetchall()
         data_logo = urllib.request.urlopen(url[0][0]).read()
         image = QtGui.QImage()
@@ -587,74 +554,83 @@ class thegrid(QGridLayout):
                                "None"]
                     z = result_distinct[0 + count]
                     if z[1] in offense:
+                        self.offframe = QFrame()
+                        self.offframe.setObjectName(result[0].replace(" ", ""))
                         oline = ["RT", "LG", "C", "LT", "RT", "TE"]
                         image_vert_layout = QVBoxLayout()
-                        image_vert_layout.setContentsMargins(0,20,0,20)
+                        image_vert_layout.setContentsMargins(0, 20, 0, 20)
                         self.image_hori_layout = QHBoxLayout()
-                        self.pictureform = QFormLayout()
+                        self.pictureform = QFormLayout(self.offframe)
 
-                        #left vertical
+                        # left vertical
                         route_pic = QLabel()
                         route_pic.setPixmap(QPixmap(image1))
                         self.path_pic = QLabel()
                         self.path_pic.setPixmap(QPixmap('images/paths/slant.png'))
 
-
                         self.name_label = LabelClass("Last " + str(z[0]) + ", First #0 " + z[1])
+                        self.name_label.setObjectName("offname")
                         self.pictureform.addRow(self.name_label)
                         self.name_label.setAlignment(Qt.AlignHCenter)
                         self.playerid_label = QLabel("Player Id:")
+                        self.playerid_label.setObjectName("offquestions")
                         self.playerid = QLabel(str(z[0]))
+                        self.playerid.setObjectName("offquestions")
                         self.labels.append(self.name_label)
                         self.pictureform.addRow(self.playerid_label, self.playerid)
                         formation_label = QLabel("Formation:")
+                        formation_label.setObjectName("offquestions")
                         self.formation = EditClass()
-                        self.formation.setObjectName("endquestions")
+                        self.formation.setObjectName("offquestions")
                         self.pictureform.addRow(formation_label, self.formation)
                         play_label = QLabel("Play:")
+                        play_label.setObjectName("offquestions")
                         self.play = EditClass()
-                        self.edits.append(tuple((self.formation, self.play, "offense")))
-                        self.play.setObjectName("endquestions")
+                        self.play.setObjectName("offquestions")
                         self.pictureform.addRow(play_label, self.play)
                         player = QComboBox()
-                        player.setObjectName("endCombo")
+                        player.setObjectName("offCombo")
                         if z[1] in oline:
-                            player.addItems(["slide left", "slide right", "man", "block", "pull", "block right", "block right"])
+                            player.addItems(
+                                ["slide left", "slide right", "man", "block", "pull", "block right", "block right"])
                         else:
-                            player.addItems(["slant", "post", "wheel", "dig", "drag", "out", "in", "whip", "jerk", "bubble",
-                                         "swing", "comeback", "curl", "hitch", "fade", "check release", "seam",
-                                         "corner", "block"])
+                            player.addItems(
+                                ["slant", "post", "wheel", "dig", "drag", "out", "in", "whip", "jerk", "bubble",
+                                 "swing", "comeback", "curl", "hitch", "fade", "check release", "seam",
+                                 "corner", "block"])
                         grade_label = QLabel("Grade")
+                        grade_label.setObjectName("offquestions")
                         grade = QComboBox()
                         path_label = QLabel("Path:")
+                        path_label.setObjectName("offquestions")
                         self.pictureform.addRow(path_label, player)
-                        grade.addItems(["10","9","8","7","6","5","4","3","2","1"])
-                        grade.setObjectName("endCombo")
+                        grade.addItems(["10", "9", "8", "7", "6", "5", "4", "3", "2", "1"])
+                        grade.setObjectName("offCombo")
                         self.pictureform.addRow(grade_label, grade)
 
-                        #main
-                        self.image_hori_layout.addLayout(image_vert_layout)
-                        self.image_hori_layout.addLayout(self.pictureform)
+                        self.edits.append(tuple((self.formation, self.play, "offense", player)))
 
-                        #left Vert
+                        # main
+                        self.image_hori_layout.addLayout(image_vert_layout)
+                        self.image_hori_layout.addWidget(self.offframe)
+                        # left Vert
                         image_vert_layout.addWidget(route_pic)
                         image_vert_layout.addWidget(self.path_pic)
-                        #rightform
-
+                        # rightform
                         self.addLayout(self.image_hori_layout, x, y)
                         count += 1
                     else:
                         image_vert_layout = QVBoxLayout()
-                        image_vert_layout.setContentsMargins(0, 20, 0, 20)
+                        image_vert_layout.setContentsMargins(0, 15, 0, 15)
                         self.image_hori_layout = QHBoxLayout()
                         self.pictureform = QFormLayout()
-
+                        self.defframe = QFrame()
+                        self.defframe.setObjectName(result[0].replace(" ", ""))
                         # left vertical
                         route_pic = QLabel()
                         route_pic.setPixmap(QPixmap(image_away1))
-                        self.path_pic = QLabel()
-                        self.path_pic.setPixmap(QPixmap('images/paths/spot.png.png'))
-
+                        self.path_def_pic = QLabel()
+                        self.path_def_pic.setPixmap(QPixmap('images/paths/spot.png'))
 
                         self.name_label = LabelClass("Last " + str(z[0]) + ", First #0 " + z[1])
                         self.pictureform.addRow(self.name_label)
@@ -665,24 +641,27 @@ class thegrid(QGridLayout):
                         self.pictureform.addRow(self.playerid_label, self.playerid)
                         formation_label = QLabel("Front:")
                         self.front = EditClass()
-                        self.front.setObjectName("endquestions")
+                        self.front.setObjectName("questions")
                         self.pictureform.addRow(formation_label, self.front)
                         play_label = QLabel("Play:")
                         self.defplay = EditClass()
-                        self.edits.append(tuple((self.front, self.defplay, "defense")))
                         self.defplay.setObjectName("endquestions")
                         self.pictureform.addRow(play_label, self.defplay)
                         grade_label = QLabel("Grade")
                         grade = QComboBox()
                         player = QComboBox()
                         player.setObjectName("endCombo")
-                        player.addItems(["1/4 seam flat", "1/4 hook", "1/4 mid hole", "1/2 hole", "1/2 curl", "1/2 flat", "1/3 deep",
-                                         "1/3 hook", "1/3 flat", "blitz", "stunt left", "stunt right", "twist"])
+                        player.addItems(
+                            ["1/4 seam flat", "1/4 hook", "1/4 mid hole", "1/2 hole", "1/2 curl", "1/2 flat",
+                             "1/3 deep",
+                             "1/3 hook", "1/3 flat", "blitz", "stunt left", "stunt right", "twist"])
                         path_label = QLabel("Path:")
                         self.pictureform.addRow(path_label, player)
                         grade.addItems(["10", "9", "8", "7", "6", "5", "4", "3", "2", "1"])
                         grade.setObjectName("endCombo")
                         self.pictureform.addRow(grade_label, grade)
+
+                        self.edits.append(tuple((self.front, self.defplay, "defense", player)))
 
                         # main
                         self.image_hori_layout.addLayout(image_vert_layout)
@@ -690,14 +669,14 @@ class thegrid(QGridLayout):
 
                         # left Vert
                         image_vert_layout.addWidget(route_pic)
-                        image_vert_layout.addWidget(self.path_pic)
+                        image_vert_layout.addWidget(self.path_def_pic)
                         # rightform
 
                         self.addLayout(self.image_hori_layout, x, y)
                         count += 1
+
                 except:
                     continue
-
 
     def startTimer(self, interval: int, timerType: Qt.TimerType = ...) -> int:
         self.timer.start()
@@ -705,6 +684,17 @@ class thegrid(QGridLayout):
     def stopTimer(self, interval: int, timerType: Qt.TimerType = ...) -> int:
         self.timer.form.stop()
 
+    # def update_path(self):
+        # for i in range(self.count()):
+        #     if self.edits[i][2] == "defense":
+        #         if self.edits[i][3].currentText() == "1/4 seam flat":
+        #             self.path_def_pic.setPixmap(QPixmap('images/paths/deep.png'))
+        #
+        #     else:
+        #         if self.edits[i][3].currentText() == "slant":
+        #             self.path_pic.setPixmap(QPixmap('images/paths/slant.png'))
+        #         elif self.edits[i][3].currentText() == "wheel":
+        #             self.path_pic.setPixmap(QPixmap('images/paths/wheel.png.png'))
 
     def update_players(self):
         for i_widget in range(self.count()):
@@ -712,7 +702,9 @@ class thegrid(QGridLayout):
                 if i_widget == int(tableitems[0][7]):
                     self.name_label = self.labels[i_widget]
                     self.name_label.name_label_class.clear()
-                    self.name_label.setText(tableitems[0][0].text() + ", " + tableitems[0][1].text() + " #" + tableitems[0][2].text() + " " + tableitems[0][3].text())
+                    self.name_label.setText(
+                        tableitems[0][0].text() + ", " + tableitems[0][1].text() + " #" + tableitems[0][
+                            2].text() + " " + tableitems[0][3].text())
 
     def update_front(self):
         try:
@@ -722,7 +714,7 @@ class thegrid(QGridLayout):
                 for i in range(0, 100):
                     if self.edits[a][2] == "defense":
                         if self.edits[i][2] == "offense":
-                           pass
+                            pass
                         else:
                             self.frontdef = self.edits[i][0]
                             self.frontdef.setText(self.front.text())
@@ -731,7 +723,7 @@ class thegrid(QGridLayout):
                 return
             return
         except:
-                pass
+            pass
 
     def update_form(self):
         try:
@@ -750,7 +742,7 @@ class thegrid(QGridLayout):
                     return
             return
         except:
-                pass
+            pass
 
     def keyPressedEvent(self, event):
         if event.key() == QtCore.Qt.Key_Backspace:
@@ -782,7 +774,7 @@ class PhotoViewer(QGraphicsView):
     def hasPhoto(self):
         return not self._empty
 
-    def fitInView(self, scale=True):
+    def fitInView(self, scale=True, **kwargs):
         rect = QRectF(self._photo.pixmap().rect())
         if not rect.isNull():
             self.setSceneRect(rect)
@@ -950,6 +942,7 @@ class away_table(QTableView):
     def dragMoveEvent(self, e):
         e.accept()
 
+
 class SortFilterProxyModel(QSortFilterProxyModel):
     def __init__(self, *args, **kwargs):
         QSortFilterProxyModel.__init__(self, *args, **kwargs)
@@ -967,6 +960,7 @@ class SortFilterProxyModel(QSortFilterProxyModel):
                 if not text.contains(regex):
                     return False
         return True
+
 
 def end_page():
     app = QApplication(sys.argv)

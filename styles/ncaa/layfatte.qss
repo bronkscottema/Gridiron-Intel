@@ -115,3 +115,9 @@ QScrollBar::sub-line:horizontal {
     subcontrol-position: left;
     subcontrol-origin: margin;
 }
+
+#Layfatte {
+    background-color:  #CE181E;
+    color: white;
+
+}
