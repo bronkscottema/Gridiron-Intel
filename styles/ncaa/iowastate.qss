@@ -24,6 +24,49 @@ QComboBox {
     border-color: #C8102E; /*primary*/
 }
 
+#route {
+    max-width: 700px;
+    margin: 0px;
+    spacing: 0px;
+}
+#IowaStateoffCombo {
+    max-width: 75px;
+    min-width: 75px;
+    background-color: #C8102E;
+    color: white;
+}
+
+#IowaStateoffquestions {
+    max-width: 85px;
+    min-width: 85px;
+    background-color: #C8102E;
+    color: white;
+}
+
+#IowaStateoffname {
+    background-color: #C8102E;
+    color: white;
+}
+
+#IowaStatedefcombo {
+    max-width: 75px;
+    min-width: 75px;
+    background-color: #C8102E;
+    color: white;
+}
+
+#IowaStatedefquestions {
+    max-width: 85px;
+    min-width: 85px;
+    background-color: #C8102E;
+    color: white;
+}
+
+#IowaStatedefname {
+    background-color: #C8102E;
+    color: white;
+}
+
 QComboBox::drop-down {
     border: 0px; /* This seems to replace the whole arrow of the combo box */
 }
@@ -36,6 +79,10 @@ QComboBox::down-arrow {
     padding-right: 5px;
 }
 */
+#IowaStatetable {
+    alternate-background-color: #F1BE48;
+    selection-background-color: #C8102E; /*primary*/
+}
 
 QTableView {
     alternate-background-color: #F1BE48;
@@ -48,14 +95,15 @@ QTableCornerButton {
 
 QHeaderView::section {
     background-color: #C8102E; /*primary*/
-    border: 0.5px solid white;
 }
 
 QComboBox QAbstractItemView {
     selection-background-color: #C8102E;
-}#endPush {
+}
+
+#endPush {
     color: white;
-    background-color: #003087; /*primary*/
+    background-color: #C8102E; /*primary*/
     border :3px outset;
     border-color: #828A8F;
     border-radius: 5px;
@@ -75,7 +123,7 @@ QScrollBar::handle:vertical {
     min-height: 0px;
     border: 0px solid red;
     border-radius: 4px;
-    background-color: #003087;
+    background-color: #C8102E;
 }
 
 QScrollBar::add-line:vertical {
@@ -101,7 +149,7 @@ QScrollBar::handle:horizontal {
     min-height: 0px;
     border: 0px solid red;
     border-radius: 4px;
-    background-color: #003087;
+    background-color: #C8102E;
 }
 
 QScrollBar::add-line:horizontal {
@@ -114,4 +162,9 @@ QScrollBar::sub-line:horizontal {
     height: 0px;
     subcontrol-position: left;
     subcontrol-origin: margin;
+}
+
+#IowaState {
+    background-color: #C8102E;
+    color: white;
 }

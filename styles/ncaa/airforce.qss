@@ -23,6 +23,7 @@ QComboBox {
     border-radius: 5px;
     border-color: #003087; /*primary*/
 }
+
 #route {
     max-width: 700px;
     margin: 0px;
