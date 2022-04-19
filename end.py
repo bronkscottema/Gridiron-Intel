@@ -1,8 +1,10 @@
 import urllib
+
+import cv2
 from PyQt5 import QtGui, QtWidgets, QtCore
 from PyQt5.QtCore import Qt, QSortFilterProxyModel, QDataStream, QIODevice, QVariant, QRectF, \
     pyqtSignal, QPoint, QTimer
-from PyQt5.QtGui import QFont, QPixmap, QIcon, QFontDatabase, QStandardItemModel, QStandardItem, QBrush, QColor
+from PyQt5.QtGui import QFont, QPixmap, QIcon, QFontDatabase, QStandardItemModel, QStandardItem, QBrush, QColor, QImage
 from PyQt5.QtWidgets import QWidget, QLabel, QVBoxLayout, QHBoxLayout, QApplication, QTableWidgetItem, \
     QTabWidget, QLineEdit, QTableView, QAbstractItemView, QDesktopWidget, QPushButton, QGraphicsView, QFrame, \
     QGraphicsScene, QGraphicsPixmapItem, QGridLayout, QComboBox, QScrollArea, QFormLayout
@@ -519,9 +521,9 @@ class thegrid(QGridLayout):
         self.timer.start(100)
         self.timer.front.start(10)
         self.timer.form.start(10)
-        # self.timer.path = QTimer()
-        # self.timer.timeout.connect(self.update_path)
-        # self.timer.start(1000)
+        self.timer.path = QTimer()
+        self.timer.path.timeout.connect(self.update_path)
+        self.timer.path.start(1000)
 
         cur.execute(
             "select playid from main_table where playid = (select playid from recently_viewed order by date_added desc limit 1);")
@@ -565,7 +567,9 @@ class thegrid(QGridLayout):
                         # left vertical
                         route_pic = QLabel()
                         route_pic.setPixmap(QPixmap(image1))
-                        self.path_pic = QLabel()
+                        self.path_pic = LabelClass("")
+                        self.path_pic.style().unpolish(self.path_pic)
+                        self.path_pic.style().polish(self.path_pic)
                         self.path_pic.setPixmap(QPixmap('images/paths/slant.png'))
 
                         self.name_label = LabelClass("Last, First #0 " + z[1])
@@ -592,7 +596,7 @@ class thegrid(QGridLayout):
                         player.setObjectName(result[0].replace(" ", "") + "offCombo")
                         if z[1] in oline:
                             player.addItems(
-                                ["slide left", "slide right", "man", "block", "pull", "block right", "block right"])
+                                ["slide left", "slide right", "man", "block", "pull", "block left", "block right"])
                         else:
                             player.addItems(
                                 ["slant", "post", "wheel", "dig", "drag", "out", "in", "whip", "jerk", "bubble",
@@ -608,7 +612,7 @@ class thegrid(QGridLayout):
                         grade.setObjectName(result[0].replace(" ", "") + "offCombo")
                         self.pictureform.addRow(grade_label, grade)
 
-                        self.edits.append(tuple((self.formation, self.play, "offense", player)))
+                        self.edits.append(tuple((self.formation, self.play, "offense", player, self.path_pic)))
 
                         # main
                         self.image_hori_layout.addLayout(image_vert_layout)
@@ -631,6 +635,8 @@ class thegrid(QGridLayout):
                         route_pic = QLabel()
                         route_pic.setPixmap(QPixmap(image_away1))
                         self.path_def_pic = QLabel()
+                        self.path_def_pic.style().unpolish(self.path_def_pic)
+                        self.path_def_pic.style().polish(self.path_def_pic)
                         self.path_def_pic.setPixmap(QPixmap('images/paths/spot.png'))
 
                         self.name_label = LabelClass("Last, First #0 " + z[1])
@@ -668,7 +674,7 @@ class thegrid(QGridLayout):
                         grade.setObjectName(result[1].replace(" ", "") + "defcombo")
                         self.pictureform.addRow(grade_label, grade)
 
-                        self.edits.append(tuple((self.front, self.defplay, "defense", player)))
+                        self.edits.append(tuple((self.front, self.defplay, "defense", player, self.path_def_pic)))
 
                         # main
                         self.image_hori_layout.addLayout(image_vert_layout)
@@ -691,17 +697,77 @@ class thegrid(QGridLayout):
     def stopTimer(self, interval: int, timerType: Qt.TimerType = ...) -> int:
         self.timer.form.stop()
 
-    # def update_path(self):
-        # for i in range(self.count()):
-        #     if self.edits[i][2] == "defense":
-        #         if self.edits[i][3].currentText() == "1/4 seam flat":
-        #             self.path_def_pic.setPixmap(QPixmap('images/paths/deep.png'))
-        #
-        #     else:
-        #         if self.edits[i][3].currentText() == "slant":
-        #             self.path_pic.setPixmap(QPixmap('images/paths/slant.png'))
-        #         elif self.edits[i][3].currentText() == "wheel":
-        #             self.path_pic.setPixmap(QPixmap('images/paths/wheel.png.png'))
+    def update_path(self):
+        for i in range(self.count()):
+            if self.edits[i][2] == "defense":
+                spot = (["1/4 seam flat", "1/4 hook", "1/4 mid hole", "1/2 curl", "1/2 flat",  "1/3 hook", "1/3 flat"])
+                deep = (["1/4 deep", "1/3 deep"])
+                line = (["blitz", "stunt left", "stunt right", "twist"])
+                if self.edits[i][3].currentText() in spot:
+                    self.edits[i][4].setPixmap(QPixmap('images/paths/spot.png'))
+                elif self.edits[i][3].currentText() in deep:
+                    self.edits[i][4].setPixmap(QPixmap('images/paths/deep.png'))
+                elif self.edits[i][3].currentText() in line:
+                    if self.edits[i][3].currentText() == "blitz":
+                        self.edits[i][4].setPixmap(QPixmap('images/paths/blitz.png').transformed(QtGui.QTransform().rotate(45)))
+                    elif self.edits[i][3].currentText() == "slant right":
+                        self.edits[i][4].setPixmap(QPixmap('images/paths/blitz.png'))
+                    elif self.edits[i][3].currentText() == "slant left":
+                        img = cv2.imread('images/paths/blitz.png')
+                        img_flip_lr = cv2.flip(img, 1)
+                        height, width, channel = img_flip_lr.shape
+                        bytesPerLine = 3 * width
+                        qImg = QImage(img_flip_lr.data, width, height, bytesPerLine, QImage.Format_RGB888)
+                        self.edits[i][4].setPixmap(QPixmap(qImg))
+                    elif self.edits[i][3].currentText() == "twist":
+                        self.edits[i][4].setPixmap(QPixmap('images/paths/loop.png'))
+
+            else:
+                if self.edits[i][3].currentText() == "slant" or self.edits[i][3].currentText() == "post" or self.edits[i][3].currentText() == "corner":
+                    self.edits[i][4].setPixmap(QPixmap('images/paths/slant.png'))
+                elif self.edits[i][3].currentText() == "wheel":
+                    self.edits[i][4].setPixmap(QPixmap('images/paths/wheel.png'))
+                elif self.edits[i][3].currentText() == "dig" or self.edits[i][3].currentText() == "in" or self.edits[i][3].currentText() == "out":
+                    self.edits[i][4].setPixmap(QPixmap('images/paths/dig.png'))
+                elif self.edits[i][3].currentText() == "drag":
+                    self.edits[i][4].setPixmap(QPixmap('images/paths/dig.png'))
+                elif self.edits[i][3].currentText() == "whip":
+                    self.edits[i][4].setPixmap(QPixmap('images/paths/whip.png'))
+                elif self.edits[i][3].currentText() == "jerk":
+                    self.edits[i][4].setPixmap(QPixmap('images/paths/jerk.png'))
+                elif self.edits[i][3].currentText() == "bubble" or self.edits[i][3].currentText() == "swing":
+                    self.edits[i][4].setPixmap(QPixmap('images/paths/bubble.png'))
+                elif self.edits[i][3].currentText() == "comeback" or self.edits[i][3].currentText() == "curl" or self.edits[i][3].currentText() == "hitch":
+                    self.edits[i][4].setPixmap(QPixmap('images/paths/comeback.png'))
+                elif self.edits[i][3].currentText() == "check release":
+                    self.edits[i][4].setPixmap(QPixmap('images/paths/check.png'))
+                elif self.edits[i][3].currentText() == "slide left" or self.edits[i][3].currentText() == "slide right":
+                    if self.edits[i][3].currentText() == "slide right":
+                        img = cv2.imread('images/paths/slideleft.png')
+                        img_flip_lr = cv2.flip(img, 1)
+                        height, width, channel = img_flip_lr.shape
+                        bytesPerLine = 3 * width
+                        qImg = QImage(img_flip_lr.data, width, height, bytesPerLine, QImage.Format_RGB888)
+                        self.edits[i][4].setPixmap(QPixmap(qImg))
+                    else:
+                        self.edits[i][4].setPixmap(QPixmap('images/paths/slideleft.png'))
+                elif self.edits[i][3].currentText() == "man" or self.edits[i][3].currentText() == "block" or self.edits[i][3].currentText() == "block right" or self.edits[i][3].currentText() == "block left":
+                    if self.edits[i][3].currentText() == "block right":
+                        self.edits[i][4].setPixmap(QPixmap('images/paths/block.png'))
+                    elif self.edits[i][3].currentText() == "block left":
+                        self.edits[i][4].setPixmap(QPixmap('images/paths/block.png').transformed(QtGui.QTransform().rotate(-45)))
+                    elif self.edits[i][3].currentText() == "block" or self.edits[i][3].currentText() == "man":
+                        if self.edits[i][3].currentText() == "block":
+                            self.edits[i][4].setPixmap(QPixmap('images/paths/man.png').transformed(QtGui.QTransform().rotate(180)))
+                        else:
+                            self.edits[i][4].setPixmap(QPixmap('images/paths/man.png'))
+                elif self.edits[i][3].currentText() == "pull":
+                    self.edits[i][4].setPixmap(QPixmap('images/paths/pull.png'))
+                elif self.edit[i][3].currentText() == "fade":
+                    self.edits[i][4].setPixmap(QPixmap('images/paths/fade.png'))
+                elif self.edit[i][3].currentText() == "seam":
+                    self.edits[i][4].setPixmap(QPixmap('images/paths/seam.png'))
+
 
     def update_players(self):
         for i_widget in range(self.count()):
@@ -737,16 +803,15 @@ class thegrid(QGridLayout):
             for a in range(0, 100):
                 self.form = self.edits[a][0]
                 self.play = self.edits[a][1]
-                if len(self.form.text()) > 0 or len(self.play.text()) > 0:
-                    for i in range(0, 100):
-                        if self.edits[a][2] == self.edits[i][2]:
-                            self.formation = self.edits[i][0]
-                            self.formation.setText(self.form.text())
-                            self.plays = self.edits[i][1]
-                            self.plays.setText(self.play.text())
-                        else:
-                            pass
-                    return
+                for i in range(0, 100):
+                    if self.edits[a][2] == self.edits[i][2]:
+                        self.formation = self.edits[i][0]
+                        self.formation.setText(self.form.text())
+                        self.plays = self.edits[i][1]
+                        self.plays.setText(self.play.text())
+                    else:
+                        pass
+                return
             return
         except:
             pass
