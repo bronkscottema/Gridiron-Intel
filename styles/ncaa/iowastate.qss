@@ -30,15 +30,15 @@ QComboBox {
     spacing: 0px;
 }
 #IowaStateoffCombo {
-    max-width: 75px;
-    min-width: 75px;
+    max-width: 150px;
+    min-width: 150px;
     background-color: #C8102E;
     color: white;
 }
 
 #IowaStateoffquestions {
-    max-width: 85px;
-    min-width: 85px;
+    max-width: 160px;
+    min-width: 160px;
     background-color: #C8102E;
     color: white;
 }
@@ -49,20 +49,34 @@ QComboBox {
 }
 
 #IowaStatedefcombo {
+    max-width: 150px;
+    min-width: 150px;
+    background-color: #C8102E;
+    color: white;
+}
+
+#IowaStatedefquestions {
+    max-width: 160px;
+    min-width: 160px;
+    background-color: #C8102E;
+    color: white;
+}
+
+#IowaStatedefname {
+    background-color: #C8102E;
+    color: white;
+}
+
+#IowaStatedeflabel {
     max-width: 75px;
     min-width: 75px;
     background-color: #C8102E;
     color: white;
 }
 
-#IowaStatedefquestions {
-    max-width: 85px;
-    min-width: 85px;
-    background-color: #C8102E;
-    color: white;
-}
-
-#IowaStatedefname {
+#IowaStateofflabel {
+    max-width: 75px;
+    min-width: 75px;
     background-color: #C8102E;
     color: white;
 }

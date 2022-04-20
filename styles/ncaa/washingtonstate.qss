@@ -30,15 +30,15 @@ QComboBox {
     spacing: 0px;
 }
 #WashingtonStateoffCombo {
-    max-width: 75px;
-    min-width: 75px;
+    max-width: 150px;
+    min-width: 150px;
     background-color: #981E32;
     color: white;
 }
 
 #WashingtonStateoffquestions {
-    max-width: 85px;
-    min-width: 85px;
+    max-width: 160px;
+    min-width: 160px;
     background-color: #981E32;
     color: white;
 }
@@ -49,20 +49,34 @@ QComboBox {
 }
 
 #WashingtonStatedefcombo {
+    max-width: 150px;
+    min-width: 150px;
+    background-color: #981E32;
+    color: white;
+}
+
+#WashingtonStatedefquestions {
+    max-width: 160px;
+    min-width: 160px;
+    background-color: #981E32;
+    color: white;
+}
+
+#WashingtonStatedefname {
+    background-color: #981E32;
+    color: white;
+}
+
+#WashingtonStatedeflabel {
     max-width: 75px;
     min-width: 75px;
     background-color: #981E32;
     color: white;
 }
 
-#WashingtonStatedefquestions {
-    max-width: 85px;
-    min-width: 85px;
-    background-color: #981E32;
-    color: white;
-}
-
-#WashingtonStatedefname {
+#WashingtonStateofflabel {
+    max-width: 75px;
+    min-width: 75px;
     background-color: #981E32;
     color: white;
 }
