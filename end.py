@@ -13,6 +13,7 @@ import psycopg2.extras
 from typing import Iterator, Dict, Any
 from qtwidgets import AnimatedToggle
 from Roster import *
+import re
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -190,122 +191,38 @@ class Window(QWidget):
         cur.execute(
             "select playid from main_table where playid = (select playid from recently_viewed order by date_added desc limit 1);")
         result_main = cur.fetchone()
+        cur.execute("select * from roster where playid = '" + result_main[
+            0] + "' order by playerid;")
+        result_distinct = cur.fetchall()
 
-        cur.execute("select * from roster where playid = '" + result_main[0] + "';")
-        roster_exist = cur.fetchall()
 
-        if len(roster_exist) == 0:
-            cur.execute(
-                "select gameid, playid, playerid, position from main_table where playid = '" + result_main[0] + "' "
-                "and frame = (select min(frame) from main_table where playid = '" +
-                result_main[0] + "');")
-            play_table_result = cur.fetchall()
-
-            defense_count = 0
-            for i in play_table_result:
-                if i[3] == "LB" or i[3] == "DB":
-                    defense_count += 1
-            if defense_count == 8:
-                gameid = play_table_result[0][0]
-                playid = play_table_result[0][1]
-                playerid = len(play_table_result) - 1
-                play_table_result.append(tuple((gameid, playid, playerid, "DE")))
-                play_table_result.append(tuple((gameid, playid, playerid + 1, "DT")))
-                play_table_result.append(tuple((gameid, playid, playerid + 2, "DE")))
-                play_table_result.append(tuple((gameid, playid, playerid + 3, "RT")))
-                play_table_result.append(tuple((gameid, playid, playerid + 4, "RG")))
-                play_table_result.append(tuple((gameid, playid, playerid + 5, "LG")))
-                play_table_result.append(tuple((gameid, playid, playerid + 6, "LT")))
-            else:
-                gameid = play_table_result[0][0]
-                playid = play_table_result[0][1]
-                playerid = len(play_table_result) - 1
-                play_table_result.append(tuple((gameid, playid, playerid, "DE")))
-                play_table_result.append(tuple((gameid, playid, playerid + 1, "DT")))
-                play_table_result.append(tuple((gameid, playid, playerid + 2, "DT")))
-                play_table_result.append(tuple((gameid, playid, playerid + 3, "DE")))
-                play_table_result.append(tuple((gameid, playid, playerid + 4, "RT")))
-                play_table_result.append(tuple((gameid, playid, playerid + 5, "RG")))
-                play_table_result.append(tuple((gameid, playid, playerid + 6, "LG")))
-                play_table_result.append(tuple((gameid, playid, playerid + 7, "LT")))
-
-            def insert_execute_values_iterator(
-                    connection,
-                    roster: Iterator[Dict[str, Any]],
-            ) -> None:
-                with connection.cursor() as cursor:
-                    psycopg2.extras.execute_values(cursor, """
-                        INSERT INTO roster VALUES %s;
-                    """, ((
-                        str(person[0]),
-                        str(person[1]),
-                        person[2],
-                        " ",
-                        " ",
-                        0,
-                        person[3],
-                        0,
-                        0,
-                        0,
-                    ) for person in roster))
-
-            insert_execute_values_iterator(conn, roster=play_table_result)
-
-            try:
-                self.recently_viewed_model.clear()
-                self.recently_viewed_model.setHorizontalHeaderLabels(roster_labels)
-                for n, key in enumerate(play_table_result):
-                    self.recently_viewed_model.insertRow(n)
-                    for column_number, data in enumerate(recent_roster_keys):
-                        if data == "first_name" or data == "last_name":
-                            item = QStandardItem(str(" "))
-                            item.setTextAlignment(Qt.AlignCenter)
-                            self.recently_viewed_model.setItem(n, column_number, item)
-                        elif data == "playerid":
-                            item = QStandardItem(str(key[2]))
-                            item.setTextAlignment(Qt.AlignCenter)
-                            self.recently_viewed_model.setItem(n, column_number, item)
-                        elif data == "jersey" or data == "weight" or data == "year" or data == "height":
-                            item = QStandardItem(str(0))
-                            item.setTextAlignment(Qt.AlignCenter)
-                            self.recently_viewed_model.setItem(n, column_number, item)
-                        elif data == "position":
-                            item = QStandardItem(str(key[3]))
-                            item.setTextAlignment(Qt.AlignCenter)
-                            self.recently_viewed_model.setItem(n, column_number, item)
-                        else:
-                            break
-            except:
-                pass
-
-        else:
+        try:
             self.recently_viewed_model.clear()
-            cur.execute(
-                "select playerid, last_name, first_name, position, height, weight, year from roster where playid = '" +
-                result_main[0] + "' order by playerid;")
-            play_table_result = cur.fetchall()
+            self.recently_viewed_model.setHorizontalHeaderLabels(roster_labels)
+            for n, key in enumerate(result_distinct):
+                self.recently_viewed_model.insertRow(n)
+                for column_number, data in enumerate(recent_roster_keys):
+                    if data == "first_name" or data == "last_name":
+                        item = QStandardItem(str(" "))
+                        item.setTextAlignment(Qt.AlignCenter)
+                        self.recently_viewed_model.setItem(n, column_number, item)
+                    elif data == "playerid":
+                        item = QStandardItem(str(key[2]))
+                        item.setTextAlignment(Qt.AlignCenter)
+                        self.recently_viewed_model.setItem(n, column_number, item)
+                    elif data == "jersey" or data == "weight" or data == "year" or data == "height":
+                        item = QStandardItem(str(0))
+                        item.setTextAlignment(Qt.AlignCenter)
+                        self.recently_viewed_model.setItem(n, column_number, item)
+                    elif data == "position":
+                        item = QStandardItem(str(key[6]))
+                        item.setTextAlignment(Qt.AlignCenter)
+                        self.recently_viewed_model.setItem(n, column_number, item)
+                    else:
+                        break
+        except:
+            pass
 
-            try:
-                self.recently_viewed_model.setHorizontalHeaderLabels(roster_labels)
-                for n, key in enumerate(play_table_result):
-                    self.recently_viewed_model.insertRow(n)
-                    for column_number, data in enumerate(roster_labels):
-                        if data == "First Name" or data == "Last Name":
-                            continue
-                        elif data == "Number" or data == "Height" or data == "Weight" or data == "Year":
-                            item = QStandardItem(str(0))
-                            item.setTextAlignment(Qt.AlignCenter)
-                            self.recently_viewed_model.setItem(n, column_number, item)
-                        elif data == "Position":
-                            item = QStandardItem(str(key[3]))
-                            item.setTextAlignment(Qt.AlignCenter)
-                            self.recently_viewed_model.setItem(n, column_number, item)
-                        else:
-                            item = QStandardItem(str(key[column_number]))
-                            item.setTextAlignment(Qt.AlignCenter)
-                            self.recently_viewed_model.setItem(n, column_number, item)
-            except:
-                pass
 
     def update_roster_table(self):
         if result[3] == "NCAA":
@@ -496,7 +413,7 @@ class Window(QWidget):
 class LabelClass(QLabel):
     def __init__(self, title):
         super().__init__(title)
-        self.name_label_class = QtWidgets.QLabel(title)
+        self.name_label_class = QLabel(title)
         self.path_class = QLabel()
 
 
@@ -528,6 +445,81 @@ class thegrid(QGridLayout):
         cur.execute(
             "select playid from main_table where playid = (select playid from recently_viewed order by date_added desc limit 1);")
         result_main = cur.fetchone()
+
+        cur.execute("select * from roster where playid = '" + result_main[0] + "';")
+        roster_exist = cur.fetchall()
+
+        if len(roster_exist) == 0:
+            cur.execute(
+                "select gameid, playid, playerid, position from main_table where playid = '" + result_main[0] + "' "
+                                                                                                                "and frame = (select min(frame) from main_table where playid = '" +
+                result_main[0] + "') order by playerid;")
+            play_table_result = cur.fetchall()
+
+            defense_count = 0
+            for i in play_table_result:
+                if i[3] == "LB" or i[3] == "DB":
+                    defense_count += 1
+
+            playerid_list = []
+            if defense_count == 8:
+                gameid = play_table_result[0][0]
+                playid = play_table_result[0][1]
+                for i in play_table_result:
+                    playerid_list.append(i[2])
+
+                res = [ele for ele in range(max(playerid_list) + 1) if ele not in playerid_list]
+                player_position_list = ["DE", "DE", "DT", "RT", "RG", "LG", "LT"]
+                for p in res:
+                    for nextplayer in player_position_list:
+                        play_table_result.append(tuple((gameid, playid, p, nextplayer)))
+                        player_position_list.remove(nextplayer)
+                        break
+
+                remaining_player_count = len(play_table_result)
+                for remainingplayer in player_position_list:
+                    play_table_result.append(tuple((gameid, playid, remaining_player_count + 1, remainingplayer)))
+                    remaining_player_count += 1
+            else:
+                gameid = play_table_result[0][0]
+                playid = play_table_result[0][1]
+                for i in play_table_result:
+                    playerid_list.append(i[2])
+
+                res = [ele for ele in range(max(playerid_list) + 1) if ele not in playerid_list]
+                player_position_list = ["DE", "DE", "DT", "DT", "RT", "RG", "LG", "LT"]
+                for p in res:
+                    for nextplayer in player_position_list:
+                        play_table_result.append(tuple((gameid, playid, p, nextplayer)))
+                        player_position_list.remove(nextplayer)
+                        break
+
+                remaining_player_count = len(play_table_result)
+                for remainingplayer in player_position_list:
+                    play_table_result.append(tuple((gameid, playid, remaining_player_count, remainingplayer)))
+                    remaining_player_count += 1
+
+            def insert_execute_values_iterator(
+                    connection,
+                    roster: Iterator[Dict[str, Any]],
+            ) -> None:
+                with connection.cursor() as cursor:
+                    psycopg2.extras.execute_values(cursor, """
+                                INSERT INTO roster VALUES %s;
+                            """, ((
+                        str(person[0]),
+                        str(person[1]),
+                        person[2],
+                        " ",
+                        " ",
+                        0,
+                        person[3],
+                        0,
+                        0,
+                        0,
+                    ) for person in roster))
+
+            insert_execute_values_iterator(conn, roster=play_table_result)
 
         cur.execute("select distinct(playerid), position from roster where playid = '" + result_main[
             0] + "' order by playerid;")
@@ -572,7 +564,11 @@ class thegrid(QGridLayout):
                         self.path_pic.style().polish(self.path_pic)
                         self.path_pic.setPixmap(QPixmap('images/paths/slant.png'))
 
-                        self.name_label = LabelClass("Last, First #" + str(z[0]) + ", " + z[1])
+                        if z[1] is None:
+                            self.name_label = LabelClass("Last, First #" + str(z[0]) + ", " + "null")
+                        else:
+                            self.name_label = LabelClass("Last, First #" + str(z[0]) + ", " + z[1])
+
                         self.name_label.setObjectName(result[0].replace(" ", "") + "offname")
                         self.pictureform.addRow(self.name_label)
                         self.name_label.setAlignment(Qt.AlignHCenter)
@@ -580,7 +576,6 @@ class thegrid(QGridLayout):
                         self.playerid_label.setObjectName(result[0].replace(" ", "") + "offlabel")
                         self.playerid = QLabel(str(z[0]))
                         self.playerid.setObjectName(result[0].replace(" ", "") + "offquestions")
-                        self.labels.append(self.name_label)
                         self.pictureform.addRow(self.playerid_label, self.playerid)
                         formation_label = QLabel("Formation:")
                         formation_label.setObjectName(result[0].replace(" ", "") + "offlabel")
@@ -613,6 +608,7 @@ class thegrid(QGridLayout):
                         self.pictureform.addRow(grade_label, grade)
 
                         self.edits.append(tuple((self.formation, self.play, "offense", player, self.path_pic)))
+                        self.labels.append(self.name_label)
 
                         # main
                         self.image_hori_layout.addLayout(image_vert_layout)
@@ -638,8 +634,11 @@ class thegrid(QGridLayout):
                         self.path_def_pic.style().unpolish(self.path_def_pic)
                         self.path_def_pic.style().polish(self.path_def_pic)
                         self.path_def_pic.setPixmap(QPixmap('images/paths/spot.png'))
+                        if z[1] is None:
+                            self.name_label = LabelClass("Last, First #" + str(z[0]) + ", " + "null")
+                        else:
+                            self.name_label = LabelClass("Last, First #" + str(z[0]) + ", " + z[1])
 
-                        self.name_label = LabelClass("Last, First #" + str(z[0]) + ", " + z[1])
                         self.name_label.setObjectName(result[1].replace(" ", "") + "defname")
                         self.pictureform.addRow(self.name_label)
                         self.name_label.setAlignment(Qt.AlignHCenter)
@@ -675,6 +674,7 @@ class thegrid(QGridLayout):
                         self.pictureform.addRow(grade_label, grade)
 
                         self.edits.append(tuple((self.front, self.defplay, "defense", player, self.path_def_pic)))
+                        self.labels.append(self.name_label)
 
                         # main
                         self.image_hori_layout.addLayout(image_vert_layout)
@@ -770,14 +770,20 @@ class thegrid(QGridLayout):
 
 
     def update_players(self):
-        for i_widget in range(self.count()):
-            if len(tableitems) > 0:
-                if i_widget == int(tableitems[0][7]):
+        try:
+
+            for i_widget in range(self.count()):
+                numbers = re.findall('[0-9]+', self.labels[i_widget].text())
+                if int(numbers[0]) == int(tableitems[0][7]) == i_widget:
                     self.name_label = self.labels[i_widget]
                     self.name_label.name_label_class.clear()
                     self.name_label.setText(
                         tableitems[0][0].text() + ", " + tableitems[0][1].text() + " #" + tableitems[0][
                             2].text() + " " + tableitems[0][3].text())
+
+
+        except:
+            pass
 
     def update_front(self):
         try:
@@ -902,7 +908,7 @@ class PhotoViewer(QGraphicsView):
 class roster_recent(QTableView):
     def __init__(self):
         super().__init__()
-        self.setDragEnabled(True)
+        self.setDragEnabled(False)
         self.setAcceptDrops(True)
         self.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.setDragDropOverwriteMode(True)
@@ -1038,8 +1044,8 @@ def end_page():
     app = QApplication(sys.argv)
     QFontDatabase().addApplicationFont("fonts/proxima.ttf")
     window = Window()
-    window.set_light_dark_mode()
     window.update_play_table()
+    window.set_light_dark_mode()
     window.update_roster_table()
     sys.exit(app.exec_())
 
