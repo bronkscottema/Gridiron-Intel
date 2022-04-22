@@ -33,6 +33,8 @@ team_roster = ["Last Name", "First Name", "Number", "Position", "Height", "Weigh
 cur.execute("select offense,defense,year,league from recently_viewed order by date_added desc limit  1;")
 result = cur.fetchone()
 tableitems = []
+global_label_updates = []
+global_edit_updates = []
 
 
 class Window(QWidget):
@@ -436,8 +438,8 @@ class thegrid(QGridLayout):
         self.timer.form.timeout.connect(self.update_form)
         self.timer.front.timeout.connect(self.update_front)
         self.timer.start(100)
-        self.timer.front.start(10)
-        self.timer.form.start(10)
+        self.timer.front.start(100)
+        self.timer.form.start(100)
         self.timer.path = QTimer()
         self.timer.path.timeout.connect(self.update_path)
         self.timer.path.start(1000)
@@ -607,7 +609,7 @@ class thegrid(QGridLayout):
                         grade.setObjectName(result[0].replace(" ", "") + "offCombo")
                         self.pictureform.addRow(grade_label, grade)
 
-                        self.edits.append(tuple((self.formation, self.play, "offense", player, self.path_pic)))
+                        self.edits.append(tuple((self.formation, self.play, "offense", player, self.path_pic, grade)))
                         self.labels.append(self.name_label)
 
                         # main
@@ -673,7 +675,7 @@ class thegrid(QGridLayout):
                         grade.setObjectName(result[1].replace(" ", "") + "defcombo")
                         self.pictureform.addRow(grade_label, grade)
 
-                        self.edits.append(tuple((self.front, self.defplay, "defense", player, self.path_def_pic)))
+                        self.edits.append(tuple((self.front, self.defplay, "defense", player, self.path_def_pic, grade)))
                         self.labels.append(self.name_label)
 
                         # main
@@ -710,9 +712,9 @@ class thegrid(QGridLayout):
                 elif self.edits[i][3].currentText() in line:
                     if self.edits[i][3].currentText() == "blitz":
                         self.edits[i][4].setPixmap(QPixmap('images/paths/fire.png').transformed(QtGui.QTransform().rotate(45)))
-                    elif self.edits[i][3].currentText() == "slant right":
+                    elif self.edits[i][3].currentText() == "stunt right":
                         self.edits[i][4].setPixmap(QPixmap('images/paths/blitz.png'))
-                    elif self.edits[i][3].currentText() == "slant left":
+                    elif self.edits[i][3].currentText() == "stunt left":
                         img = cv2.imread('images/paths/blitz.png')
                         img_flip_lr = cv2.flip(img, 1)
                         height, width, channel = img_flip_lr.shape
@@ -755,7 +757,7 @@ class thegrid(QGridLayout):
                     if self.edits[i][3].currentText() == "block right":
                         self.edits[i][4].setPixmap(QPixmap('images/paths/block.png'))
                     elif self.edits[i][3].currentText() == "block left":
-                        self.edits[i][4].setPixmap(QPixmap('images/paths/block.png').transformed(QtGui.QTransform().rotate(-45)))
+                        self.edits[i][4].setPixmap(QPixmap('images/paths/block.png').transformed(QtGui.QTransform().rotate(-90)))
                     elif self.edits[i][3].currentText() == "block" or self.edits[i][3].currentText() == "man":
                         if self.edits[i][3].currentText() == "block":
                             self.edits[i][4].setPixmap(QPixmap('images/paths/man.png').transformed(QtGui.QTransform().rotate(180)))
@@ -763,15 +765,13 @@ class thegrid(QGridLayout):
                             self.edits[i][4].setPixmap(QPixmap('images/paths/man.png'))
                 elif self.edits[i][3].currentText() == "pull":
                     self.edits[i][4].setPixmap(QPixmap('images/paths/pull.png'))
-                elif self.edit[i][3].currentText() == "fade":
+                elif self.edits[i][3].currentText() == "fade":
                     self.edits[i][4].setPixmap(QPixmap('images/paths/fade.png'))
-                elif self.edit[i][3].currentText() == "seam":
+                elif self.edits[i][3].currentText() == "seam":
                     self.edits[i][4].setPixmap(QPixmap('images/paths/seam.png'))
-
 
     def update_players(self):
         try:
-
             for i_widget in range(self.count()):
                 numbers = re.findall('[0-9]+', self.labels[i_widget].text())
                 if int(numbers[0]) == int(tableitems[0][7]) == i_widget:
@@ -787,47 +787,48 @@ class thegrid(QGridLayout):
 
     def update_front(self):
         try:
-            for a in range(0, 100):
-                self.front = self.edits[a][0]
-                self.defplay = self.edits[a][1]
-                for i in range(0, 100):
-                    if self.edits[a][2] == "defense":
-                        if self.edits[i][2] == "offense":
-                            pass
+            for i in range(0, 22):
+                if len(self.edits[i][0].text()) > 0 or len(self.edits[i][1].text()) > 0:
+                    for a in range(0, 22):
+                        if self.edits[i][2] == "defense" and self.edits[a][2] == "defense":
+                            self.frontdefense = self.edits[a][0]
+                            self.frontdefense.setText(self.edits[i][0].text())
+                            self.defplays = self.edits[a][1]
+                            self.defplays.setText(self.edits[i][1].text())
                         else:
-                            self.frontdef = self.edits[i][0]
-                            self.frontdef.setText(self.front.text())
-                            self.defplays = self.edits[i][1]
-                            self.defplays.setText(self.defplay.text())
-                return
-            return
+                            pass
+                else:
+                    for a in range(0, 22):
+                        if self.edits[i][2] == "defense" and self.edits[a][2] == "defense":
+                            self.frontdefense = self.edits[a][0]
+                            self.frontdefense.clear()
+                            self.defplays = self.edits[a][1]
+                            self.defplays.clear()
         except:
             pass
 
     def update_form(self):
         try:
-            for a in range(0, 100):
-                self.form = self.edits[a][0]
-                self.play = self.edits[a][1]
-                for i in range(0, 100):
-                    if self.edits[a][2] == self.edits[i][2]:
-                        self.formation = self.edits[i][0]
-                        self.formation.setText(self.form.text())
-                        self.plays = self.edits[i][1]
-                        self.plays.setText(self.play.text())
-                    else:
-                        pass
-                return
-            return
+            for i in range(0,22):
+                if len(self.edits[i][0].text()) > 0 or len(self.edits[i][1].text()) > 0:
+                    for a in range(0,22):
+                        if self.edits[i][2] == "offense" and self.edits[a][2] == "offense":
+                            self.form = self.edits[a][0]
+                            self.form.setText(self.edits[i][0].text())
+                            self.plays = self.edits[a][1]
+                            self.plays.setText(self.edits[i][1].text())
+                        else:
+                            pass
+                else:
+                    for a in range(0,22):
+                        if self.edits[i][2] == "offense" and self.edits[a][2] == "offense":
+                            self.form = self.edits[a][0]
+                            self.form.clear()
+                            self.plays = self.edits[a][1]
+                            self.plays.clear()
         except:
             pass
 
-    def keyPressedEvent(self, event):
-        if event.key() == QtCore.Qt.Key_Backspace:
-            self.formation.clear()
-            self.play.clear()
-            self.front.clear()
-            self.defplay.clear()
 
 
 class PhotoViewer(QGraphicsView):
