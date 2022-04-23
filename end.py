@@ -8,7 +8,7 @@ from PyQt5.QtGui import QFont, QPixmap, QIcon, QFontDatabase, QStandardItemModel
 from PyQt5.QtWidgets import QWidget, QLabel, QVBoxLayout, QHBoxLayout, QApplication, QTableWidgetItem, \
     QTabWidget, QLineEdit, QTableView, QAbstractItemView, QDesktopWidget, QPushButton, QGraphicsView, QFrame, \
     QGraphicsScene, QGraphicsPixmapItem, QGridLayout, QComboBox, QScrollArea, QFormLayout
-from psycopg2 import connect
+from psycopg2 import connect, sql
 import psycopg2.extras
 from typing import Iterator, Dict, Any
 from qtwidgets import AnimatedToggle
@@ -33,8 +33,8 @@ team_roster = ["Last Name", "First Name", "Number", "Position", "Height", "Weigh
 cur.execute("select offense,defense,year,league from recently_viewed order by date_added desc limit  1;")
 result = cur.fetchone()
 tableitems = []
-global_label_updates = []
-global_edit_updates = []
+labels = []
+edits = []
 
 
 class Window(QWidget):
@@ -277,15 +277,23 @@ class Window(QWidget):
             "select playid from main_table where playid = (select playid from recently_viewed order by date_added desc limit 1);")
         result_main = cur.fetchone()
 
-        cur.execute("select min(playerid), max(playerid) from roster where playid = '" + result_main[0] + "';")
-        min_max_playerid = cur.fetchall()[0]
 
-        for i in range(min_max_playerid[0], min_max_playerid[1]):
-            for j in enumerate(output):
-                if i == j[0]:
-                    cur.execute("update roster set last_name = %s, first_name = %s, number = %s,"
-                                "position = %s, height = %s, weight = %s, year = %s where playerid = %s;"), \
-                    (j[1], j[2], j[3], j[4], j[5], j[6], j[8], j[0])
+        for i in output:
+            i.append(edits[int(i[0])][0].text())
+            i.append(edits[int(i[0])][1].text())
+            i.append(edits[int(i[0])][3].currentText())
+            i.append(edits[int(i[0])][5].currentText())
+
+
+        for j in output:
+            cur.execute(sql.SQL("update {} set last_name = %s, first_name = %s, jersey = %s,"
+                                "position = %s, height = %s, weight = %s, year = %s, formation_front = %s, play = %s, path = %s, grade = %s where playerid = %s and playid = %s;").format(
+                sql.Identifier('roster')),
+                        (str(j[1]), str(j[2]), int(j[3]), j[4], int(j[5]), int(j[6]), int(j[7]), str(j[8]), str(j[9]), str(j[10]),
+                         int(j[11]), int(j[0]), str(result_main[0])))
+
+
+
 
     def set_light_dark_mode(self):
         self.tabs.setCurrentIndex(0)
@@ -540,8 +548,7 @@ class thegrid(QGridLayout):
         image_away.loadFromData(data_logo_2)
         image_away1 = image_away.scaled(50, 50, Qt.KeepAspectRatio)
 
-        self.labels = []
-        self.edits = []
+       
 
         for x in range(12):
             for y in range(2):
@@ -609,8 +616,8 @@ class thegrid(QGridLayout):
                         grade.setObjectName(result[0].replace(" ", "") + "offCombo")
                         self.pictureform.addRow(grade_label, grade)
 
-                        self.edits.append(tuple((self.formation, self.play, "offense", player, self.path_pic, grade)))
-                        self.labels.append(self.name_label)
+                        edits.append(tuple((self.formation, self.play, "offense", player, self.path_pic, grade)))
+                        labels.append(self.name_label)
 
                         # main
                         self.image_hori_layout.addLayout(image_vert_layout)
@@ -675,8 +682,8 @@ class thegrid(QGridLayout):
                         grade.setObjectName(result[1].replace(" ", "") + "defcombo")
                         self.pictureform.addRow(grade_label, grade)
 
-                        self.edits.append(tuple((self.front, self.defplay, "defense", player, self.path_def_pic, grade)))
-                        self.labels.append(self.name_label)
+                        edits.append(tuple((self.front, self.defplay, "defense", player, self.path_def_pic, grade)))
+                        labels.append(self.name_label)
 
                         # main
                         self.image_hori_layout.addLayout(image_vert_layout)
@@ -701,81 +708,81 @@ class thegrid(QGridLayout):
 
     def update_path(self):
         for i in range(self.count()):
-            if self.edits[i][2] == "defense":
+            if edits[i][2] == "defense":
                 spot = (["1/4 seam flat", "1/4 hook", "1/4 mid hole", "1/2 curl", "1/2 flat",  "1/3 hook", "1/3 flat"])
                 deep = (["1/4 deep", "1/3 deep"])
                 line = (["blitz", "stunt left", "stunt right", "twist"])
-                if self.edits[i][3].currentText() in spot:
-                    self.edits[i][4].setPixmap(QPixmap('images/paths/spot.png'))
-                elif self.edits[i][3].currentText() in deep:
-                    self.edits[i][4].setPixmap(QPixmap('images/paths/deep.png'))
-                elif self.edits[i][3].currentText() in line:
-                    if self.edits[i][3].currentText() == "blitz":
-                        self.edits[i][4].setPixmap(QPixmap('images/paths/fire.png').transformed(QtGui.QTransform().rotate(45)))
-                    elif self.edits[i][3].currentText() == "stunt right":
-                        self.edits[i][4].setPixmap(QPixmap('images/paths/blitz.png'))
-                    elif self.edits[i][3].currentText() == "stunt left":
+                if edits[i][3].currentText() in spot:
+                    edits[i][4].setPixmap(QPixmap('images/paths/spot.png'))
+                elif edits[i][3].currentText() in deep:
+                    edits[i][4].setPixmap(QPixmap('images/paths/deep.png'))
+                elif edits[i][3].currentText() in line:
+                    if edits[i][3].currentText() == "blitz":
+                        edits[i][4].setPixmap(QPixmap('images/paths/fire.png').transformed(QtGui.QTransform().rotate(45)))
+                    elif edits[i][3].currentText() == "stunt right":
+                        edits[i][4].setPixmap(QPixmap('images/paths/blitz.png'))
+                    elif edits[i][3].currentText() == "stunt left":
                         img = cv2.imread('images/paths/blitz.png')
                         img_flip_lr = cv2.flip(img, 1)
                         height, width, channel = img_flip_lr.shape
                         bytesPerLine = 3 * width
                         qImg = QImage(img_flip_lr.data, width, height, bytesPerLine, QImage.Format_RGB888)
-                        self.edits[i][4].setPixmap(QPixmap(qImg))
-                    elif self.edits[i][3].currentText() == "twist":
-                        self.edits[i][4].setPixmap(QPixmap('images/paths/loop.png'))
+                        edits[i][4].setPixmap(QPixmap(qImg))
+                    elif edits[i][3].currentText() == "twist":
+                        edits[i][4].setPixmap(QPixmap('images/paths/loop.png'))
 
             else:
-                if self.edits[i][3].currentText() == "slant" or self.edits[i][3].currentText() == "post" or self.edits[i][3].currentText() == "corner":
-                    self.edits[i][4].setPixmap(QPixmap('images/paths/slant.png'))
-                elif self.edits[i][3].currentText() == "wheel":
-                    self.edits[i][4].setPixmap(QPixmap('images/paths/wheel.png'))
-                elif self.edits[i][3].currentText() == "dig" or self.edits[i][3].currentText() == "in" or self.edits[i][3].currentText() == "out":
-                    self.edits[i][4].setPixmap(QPixmap('images/paths/dig.png'))
-                elif self.edits[i][3].currentText() == "drag":
-                    self.edits[i][4].setPixmap(QPixmap('images/paths/dig.png'))
-                elif self.edits[i][3].currentText() == "whip":
-                    self.edits[i][4].setPixmap(QPixmap('images/paths/whip.png'))
-                elif self.edits[i][3].currentText() == "jerk":
-                    self.edits[i][4].setPixmap(QPixmap('images/paths/jerk.png'))
-                elif self.edits[i][3].currentText() == "bubble" or self.edits[i][3].currentText() == "swing":
-                    self.edits[i][4].setPixmap(QPixmap('images/paths/bubble.png'))
-                elif self.edits[i][3].currentText() == "comeback" or self.edits[i][3].currentText() == "curl" or self.edits[i][3].currentText() == "hitch":
-                    self.edits[i][4].setPixmap(QPixmap('images/paths/comeback.png'))
-                elif self.edits[i][3].currentText() == "check release":
-                    self.edits[i][4].setPixmap(QPixmap('images/paths/check.png'))
-                elif self.edits[i][3].currentText() == "slide left" or self.edits[i][3].currentText() == "slide right":
-                    if self.edits[i][3].currentText() == "slide right":
+                if edits[i][3].currentText() == "slant" or edits[i][3].currentText() == "post" or edits[i][3].currentText() == "corner":
+                    edits[i][4].setPixmap(QPixmap('images/paths/slant.png'))
+                elif edits[i][3].currentText() == "wheel":
+                    edits[i][4].setPixmap(QPixmap('images/paths/wheel.png'))
+                elif edits[i][3].currentText() == "dig" or edits[i][3].currentText() == "in" or edits[i][3].currentText() == "out":
+                    edits[i][4].setPixmap(QPixmap('images/paths/dig.png'))
+                elif edits[i][3].currentText() == "drag":
+                    edits[i][4].setPixmap(QPixmap('images/paths/dig.png'))
+                elif edits[i][3].currentText() == "whip":
+                    edits[i][4].setPixmap(QPixmap('images/paths/whip.png'))
+                elif edits[i][3].currentText() == "jerk":
+                    edits[i][4].setPixmap(QPixmap('images/paths/jerk.png'))
+                elif edits[i][3].currentText() == "bubble" or edits[i][3].currentText() == "swing":
+                    edits[i][4].setPixmap(QPixmap('images/paths/bubble.png'))
+                elif edits[i][3].currentText() == "comeback" or edits[i][3].currentText() == "curl" or edits[i][3].currentText() == "hitch":
+                    edits[i][4].setPixmap(QPixmap('images/paths/comeback.png'))
+                elif edits[i][3].currentText() == "check release":
+                    edits[i][4].setPixmap(QPixmap('images/paths/check.png'))
+                elif edits[i][3].currentText() == "slide left" or edits[i][3].currentText() == "slide right":
+                    if edits[i][3].currentText() == "slide right":
                         img = cv2.imread('images/paths/slideleft.png')
                         img_flip_lr = cv2.flip(img, 1)
                         height, width, channel = img_flip_lr.shape
                         bytesPerLine = 3 * width
                         qImg = QImage(img_flip_lr.data, width, height, bytesPerLine, QImage.Format_RGB888)
-                        self.edits[i][4].setPixmap(QPixmap(qImg))
+                        edits[i][4].setPixmap(QPixmap(qImg))
                     else:
-                        self.edits[i][4].setPixmap(QPixmap('images/paths/slideleft.png'))
-                elif self.edits[i][3].currentText() == "man" or self.edits[i][3].currentText() == "block" or self.edits[i][3].currentText() == "block right" or self.edits[i][3].currentText() == "block left":
-                    if self.edits[i][3].currentText() == "block right":
-                        self.edits[i][4].setPixmap(QPixmap('images/paths/block.png'))
-                    elif self.edits[i][3].currentText() == "block left":
-                        self.edits[i][4].setPixmap(QPixmap('images/paths/block.png').transformed(QtGui.QTransform().rotate(-90)))
-                    elif self.edits[i][3].currentText() == "block" or self.edits[i][3].currentText() == "man":
-                        if self.edits[i][3].currentText() == "block":
-                            self.edits[i][4].setPixmap(QPixmap('images/paths/man.png').transformed(QtGui.QTransform().rotate(180)))
+                        edits[i][4].setPixmap(QPixmap('images/paths/slideleft.png'))
+                elif edits[i][3].currentText() == "man" or edits[i][3].currentText() == "block" or edits[i][3].currentText() == "block right" or edits[i][3].currentText() == "block left":
+                    if edits[i][3].currentText() == "block right":
+                        edits[i][4].setPixmap(QPixmap('images/paths/block.png'))
+                    elif edits[i][3].currentText() == "block left":
+                        edits[i][4].setPixmap(QPixmap('images/paths/block.png').transformed(QtGui.QTransform().rotate(-90)))
+                    elif edits[i][3].currentText() == "block" or edits[i][3].currentText() == "man":
+                        if edits[i][3].currentText() == "block":
+                            edits[i][4].setPixmap(QPixmap('images/paths/man.png').transformed(QtGui.QTransform().rotate(180)))
                         else:
-                            self.edits[i][4].setPixmap(QPixmap('images/paths/man.png'))
-                elif self.edits[i][3].currentText() == "pull":
-                    self.edits[i][4].setPixmap(QPixmap('images/paths/pull.png'))
-                elif self.edits[i][3].currentText() == "fade":
-                    self.edits[i][4].setPixmap(QPixmap('images/paths/fade.png'))
-                elif self.edits[i][3].currentText() == "seam":
-                    self.edits[i][4].setPixmap(QPixmap('images/paths/seam.png'))
+                            edits[i][4].setPixmap(QPixmap('images/paths/man.png'))
+                elif edits[i][3].currentText() == "pull":
+                    edits[i][4].setPixmap(QPixmap('images/paths/pull.png'))
+                elif edits[i][3].currentText() == "fade":
+                    edits[i][4].setPixmap(QPixmap('images/paths/fade.png'))
+                elif edits[i][3].currentText() == "seam":
+                    edits[i][4].setPixmap(QPixmap('images/paths/seam.png'))
 
     def update_players(self):
         try:
             for i_widget in range(self.count()):
-                numbers = re.findall('[0-9]+', self.labels[i_widget].text())
+                numbers = re.findall('[0-9]+', labels[i_widget].text())
                 if int(numbers[0]) == int(tableitems[0][7]) == i_widget:
-                    self.name_label = self.labels[i_widget]
+                    self.name_label = labels[i_widget]
                     self.name_label.name_label_class.clear()
                     self.name_label.setText(
                         tableitems[0][0].text() + ", " + tableitems[0][1].text() + " #" + tableitems[0][
@@ -788,21 +795,21 @@ class thegrid(QGridLayout):
     def update_front(self):
         try:
             for i in range(0, 22):
-                if len(self.edits[i][0].text()) > 0 or len(self.edits[i][1].text()) > 0:
+                if len(edits[i][0].text()) > 0 or len(edits[i][1].text()) > 0:
                     for a in range(0, 22):
-                        if self.edits[i][2] == "defense" and self.edits[a][2] == "defense":
-                            self.frontdefense = self.edits[a][0]
-                            self.frontdefense.setText(self.edits[i][0].text())
-                            self.defplays = self.edits[a][1]
-                            self.defplays.setText(self.edits[i][1].text())
+                        if edits[i][2] == "defense" and edits[a][2] == "defense":
+                            self.frontdefense = edits[a][0]
+                            self.frontdefense.setText(edits[i][0].text())
+                            self.defplays = edits[a][1]
+                            self.defplays.setText(edits[i][1].text())
                         else:
                             pass
                 else:
                     for a in range(0, 22):
-                        if self.edits[i][2] == "defense" and self.edits[a][2] == "defense":
-                            self.frontdefense = self.edits[a][0]
+                        if edits[i][2] == "defense" and edits[a][2] == "defense":
+                            self.frontdefense = edits[a][0]
                             self.frontdefense.clear()
-                            self.defplays = self.edits[a][1]
+                            self.defplays = edits[a][1]
                             self.defplays.clear()
         except:
             pass
@@ -810,21 +817,21 @@ class thegrid(QGridLayout):
     def update_form(self):
         try:
             for i in range(0,22):
-                if len(self.edits[i][0].text()) > 0 or len(self.edits[i][1].text()) > 0:
+                if len(edits[i][0].text()) > 0 or len(edits[i][1].text()) > 0:
                     for a in range(0,22):
-                        if self.edits[i][2] == "offense" and self.edits[a][2] == "offense":
-                            self.form = self.edits[a][0]
-                            self.form.setText(self.edits[i][0].text())
-                            self.plays = self.edits[a][1]
-                            self.plays.setText(self.edits[i][1].text())
+                        if edits[i][2] == "offense" and edits[a][2] == "offense":
+                            self.form = edits[a][0]
+                            self.form.setText(edits[i][0].text())
+                            self.plays = edits[a][1]
+                            self.plays.setText(edits[i][1].text())
                         else:
                             pass
                 else:
                     for a in range(0,22):
-                        if self.edits[i][2] == "offense" and self.edits[a][2] == "offense":
-                            self.form = self.edits[a][0]
+                        if edits[i][2] == "offense" and edits[a][2] == "offense":
+                            self.form = edits[a][0]
                             self.form.clear()
-                            self.plays = self.edits[a][1]
+                            self.plays = edits[a][1]
                             self.plays.clear()
         except:
             pass
