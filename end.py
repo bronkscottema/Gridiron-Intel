@@ -553,7 +553,7 @@ class thegrid(QGridLayout):
         for x in range(12):
             for y in range(2):
                 try:
-                    offense = ["SKILL", "QB", "RB", "WR", "RT", "LG", "C", "LT", "RT", "TE", "X", "Y", "Z", "H", "F",
+                    offense = ["SKILL", "QB", "RB", "WR", "RG", "LG", "C", "LT", "RT", "TE", "X", "Y", "Z", "H", "F",
                                "None"]
                     z = result_distinct[0 + count]
                     if z[1] in offense:
@@ -782,6 +782,12 @@ class thegrid(QGridLayout):
             for i_widget in range(self.count()):
                 numbers = re.findall('[0-9]+', labels[i_widget].text())
                 if int(numbers[0]) == int(tableitems[0][7]) == i_widget:
+                    self.name_label = labels[i_widget]
+                    self.name_label.name_label_class.clear()
+                    self.name_label.setText(
+                        tableitems[0][0].text() + ", " + tableitems[0][1].text() + " #" + tableitems[0][
+                            2].text() + " " + tableitems[0][3].text())
+                elif i_widget == int(tableitems[0][7]) and labels[i_widget].text().find("Last") == -1:
                     self.name_label = labels[i_widget]
                     self.name_label.name_label_class.clear()
                     self.name_label.setText(
