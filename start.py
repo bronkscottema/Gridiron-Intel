@@ -5,9 +5,10 @@ from PyQt5.QtCore import QTimer, Qt
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QPixmap, QFontDatabase, QFont, QIcon
 import all
+import end
 from collegeFBTeams import *
 from collegeFBGames import *
-from end import end_page
+from end import *
 from getNFLGames import *
 from Roster import *
 from psycopg2 import connect
@@ -158,6 +159,8 @@ class Window(QWidget):
         self.api_table = QTableWidget(0,len(keys))
         self.header = self.api_table.horizontalHeader()
         self.api_table.horizontalHeader().setDefaultAlignment(Qt.AlignCenter)
+        self.api_table.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.api_table.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.api_table.horizontalHeader().setFont(self.table_font)
         self.api_table.setAlternatingRowColors(True)
         self.api_table.verticalHeader().setVisible(False)
@@ -293,10 +296,10 @@ class Window(QWidget):
                        offense_l_or_r=self.offense_left_or_right.currentText(), yard_line=int(self.yard_value), offense=self.offense.currentText(),
                        defense=self.opponent.currentText(), league=self.league.currentText(), year=self.year.currentText(),
                        week=self.week[0], regular_post=self.regular_post.currentText(), play_text=self.play_text)
-            end_page()
         except:
             pass
-
+        self.w = end.End()
+        self.w.show()
 
     def update_opponent(self, ix):
         if self.league.currentText() == 'NFL' and ix == 0:

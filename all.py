@@ -1,16 +1,12 @@
 import tkinter
 from tkinter import *
 from tkinter import simpledialog, ttk
-from tkinter.messagebox import askyesno
-
 import cv2
 import numpy as np
-from psycopg2 import sql
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 import io
 from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime, timezone
-from start import *
 from end import *
 import psycopg2.extras
 from dotenv import load_dotenv
@@ -22,6 +18,7 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
     global source_points
     total_players = 0
     tracker_name = 'csrt'
+    cv2.setUseOptimized(True)
 
     OPENCV_OBJECT_TRACKERS = {
         "csrt": cv2.TrackerCSRT_create,
@@ -521,10 +518,10 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
                     continue
             else:
                 # There was no center
-                USER_INP = simpledialog.askstring(title="Center Identification",
+                CENTER_INP = simpledialog.askstring(title="Center Identification",
                                                   prompt="Which Id number on the screen is the center?")
                 for x in off_vs_def:
-                    if x[4] == USER_INP:
+                    if x[4] == CENTER_INP:
                         cur.execute(sql.SQL(
                             "update main_table set position = 'C' where playid = '" + playid_number + "' and playerid = %s"),
                                     (int(USER_INP),))
@@ -540,6 +537,18 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
                                     "update main_table set color = 'offense' where playid = '" + playid_number + "' and playerid = %s"),
                                             (playerid,))
 
+                cur.execute("select distinct(playerid), position from main_table where playid = '" + playid_number + "';")
+                no_position = cur.fetchall()
+                if len(no_position) > 0:
+                    for p in no_position:
+                        if p[1] == None or p[1] == "":
+                            USER_INP = simpledialog.askstring(title="Player Identification",
+                                                              prompt="What Position is the Player Id?")
+                            cur.execute(sql.SQL("update {} set position = %s where playerid = %s and playid = %s;").format(
+                                sql.Identifier('main_table')),
+                                (USER_INP, int(p[0]), str(playid_number)))
+                else:
+                    print("all positions updated")
 
             cur.close()
             conn.close()
@@ -548,4 +557,3 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
 
     cap.release()
     cv2.destroyAllWindows()
-    main()

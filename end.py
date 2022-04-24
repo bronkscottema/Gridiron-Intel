@@ -30,16 +30,15 @@ roster_labels = ["Player Id", "Last Name", "First Name", "Number", "Position", "
 roster_keys = ["last_name", "first_name", "jersey", "position", "height", "weight", "year"]
 team_roster = ["Last Name", "First Name", "Number", "Position", "Height", "Weight", "Year"]
 
-cur.execute("select offense,defense,year,league from recently_viewed order by date_added desc limit  1;")
-result = cur.fetchone()
 tableitems = []
 labels = []
 edits = []
 
 
-class Window(QWidget):
+class End(QWidget):
     def __init__(self):
         super().__init__()
+
         self.viewer = PhotoViewer()
         self.image_layout = QVBoxLayout()
         self.away_model = QStandardItemModel(len(team_roster), 1)
@@ -84,14 +83,19 @@ class Window(QWidget):
         self.api_roster_layout = QVBoxLayout()
         self.button_layout = QHBoxLayout()
         self.route_layout = thegrid()
+        # self.update_play_table()
+        # self.update_roster_table()
         self.scrollbar = QScrollArea(widgetResizable=True)
         self.toggle_2 = AnimatedToggle(
             checked_color="#4400B0EE",
             pulse_checked_color="#4400B0EE"
         )
+        # self.set_light_dark_mode()
         self.ui()
 
     def ui(self):
+        cur.execute("select offense,defense,year,league from recently_viewed order by date_added desc limit  1;")
+        result = cur.fetchone()
         # layout section
         self.fieldpic.setPixmap(QPixmap('dottedfield.jpg'))
         self.field_layout.addWidget(self.fieldpic)
@@ -227,6 +231,8 @@ class Window(QWidget):
 
 
     def update_roster_table(self):
+        cur.execute("select offense,defense,year,league from recently_viewed order by date_added desc limit  1;")
+        result = cur.fetchone()
         if result[3] == "NCAA":
             self.home_model.clear()
 
@@ -296,6 +302,8 @@ class Window(QWidget):
 
 
     def set_light_dark_mode(self):
+        cur.execute("select offense,defense,year,league from recently_viewed order by date_added desc limit  1;")
+        result = cur.fetchone()
         self.tabs.setCurrentIndex(0)
         if self.toggle_2.checkState() == 2:
             self.style = '''
@@ -375,6 +383,7 @@ class Window(QWidget):
             }
             '''
         if result is not None:
+
             if result[3] == "NFL":
                 team_name = result[0]
                 team_name = team_name.replace(" ", "").lower()
@@ -436,6 +445,8 @@ class EditClass(QLineEdit):
 
 class thegrid(QGridLayout):
     def __init__(self, parent=None):
+        cur.execute("select offense,defense,year,league from recently_viewed order by date_added desc limit  1;")
+        result = cur.fetchone()
         QGridLayout.__init__(self, parent)
         self.offense_container = QWidget()
         self.defense_container = QWidget()
@@ -559,7 +570,7 @@ class thegrid(QGridLayout):
                     if z[1] in offense:
                         self.offframe = QFrame()
                         self.offframe.setObjectName(result[0].replace(" ", ""))
-                        oline = ["RT", "LG", "C", "LT", "RT", "TE"]
+                        oline = ["RT", "LG", "C", "LT", "RT", "RG", "TE"]
                         image_vert_layout = QVBoxLayout()
                         image_vert_layout.setContentsMargins(0, 15, 0, 15)
                         self.image_hori_layout = QHBoxLayout()
@@ -599,6 +610,12 @@ class thegrid(QGridLayout):
                         player = QComboBox()
                         player.setObjectName(result[0].replace(" ", "") + "offCombo")
                         if z[1] in oline:
+                            if z[1] == "TE":
+                                player.addItems(
+                                    ["slide left", "slide right", "man", "block", "pull", "block left", "block right",
+                                     "slant", "post", "wheel", "dig", "drag", "out", "in", "whip", "jerk", "bubble",
+                                     "swing", "comeback", "curl", "hitch", "fade", "check release", "seam",
+                                     "corner", "block"])
                             player.addItems(
                                 ["slide left", "slide right", "man", "block", "pull", "block left", "block right"])
                         else:
@@ -1057,7 +1074,7 @@ class SortFilterProxyModel(QSortFilterProxyModel):
 def end_page():
     app = QApplication(sys.argv)
     QFontDatabase().addApplicationFont("fonts/proxima.ttf")
-    window = Window()
+    window = End()
     window.update_play_table()
     window.set_light_dark_mode()
     window.update_roster_table()
