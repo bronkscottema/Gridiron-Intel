@@ -76,6 +76,7 @@ class End(QWidget):
         self.main_layout = QHBoxLayout()
         self.field_layout = QVBoxLayout()
         self.image_layout = QVBoxLayout()
+        self.play_layout = QHBoxLayout()
         self.logo_layout = QVBoxLayout()
         self.move_image_layout = QHBoxLayout()
         self.roster_layout = QHBoxLayout()
@@ -99,7 +100,27 @@ class End(QWidget):
         # layout section
         self.fieldpic.setPixmap(QPixmap('dottedfield.jpg'))
         self.field_layout.addWidget(self.fieldpic)
-
+        self.formation = QLineEdit()
+        self.formation_label = QLabel("Formation:")
+        self.play = QLineEdit()
+        self.play_label = QLabel("Offensive Play:")
+        self.front = QLineEdit()
+        self.front_label = QLabel("Defensive Front:")
+        self.defplay = QLineEdit()
+        self.defplay_label = QLabel("Defensive Play:")
+        self.hash = QLineEdit()
+        self.hash_label = QLabel("Hash:")
+        self.play_layout.addWidget(self.formation_label)
+        self.play_layout.addWidget(self.formation)
+        self.play_layout.addWidget(self.play_label)
+        self.play_layout.addWidget(self.play)
+        self.play_layout.addWidget(self.front_label)
+        self.play_layout.addWidget(self.front)
+        self.play_layout.addWidget(self.defplay_label)
+        self.play_layout.addWidget(self.defplay)
+        self.play_layout.addWidget(self.hash_label)
+        self.play_layout.addWidget(self.hash)
+        self.image_layout.addLayout(self.play_layout)
         self.viewer.setPhoto(QPixmap("boxes.jpg"))
         self.move_image_layout.addWidget(self.viewer)
         self.image_layout.setSpacing(0)
@@ -283,8 +304,6 @@ class End(QWidget):
             "select playid from main_table where playid = (select playid from recently_viewed order by date_added desc limit 1);")
         result_main = cur.fetchone()
 
-        #edits.append(tuple(("offense", player, self.path_pic, grade)))
-
         for i in output:
             i.append(edits[int(i[0])][1].currentText())
             i.append(edits[int(i[0])][3].currentText())
@@ -296,8 +315,11 @@ class End(QWidget):
                 sql.Identifier('roster')),
                         (str(j[1]), str(j[2]), int(j[3]), j[4], int(j[5]), int(j[6]), int(j[7]), str(j[8]), str(j[9]), int(j[0]), str(result_main[0])))
 
-
-
+        cur.execute(sql.SQL(
+            "INSERT INTO play_data (playid, formation, offensive_play, front, defensive_play, hash)"
+            "VALUES (%s, %s, %s, %s, %s, %s)"),
+            (result_main[0], self.formation.currentText(), self.play.currentText(), self.front.currentText(), self.defplay.currentText(), self.hash.currentText() ))
+        conn.close()
 
     def set_light_dark_mode(self):
         cur.execute("select offense,defense,year,league from recently_viewed order by date_added desc limit  1;")
