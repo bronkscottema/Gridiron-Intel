@@ -1,3 +1,9 @@
+#questions {
+    max-width: 350px;
+    min-width: 300px;
+    max-height: 120px;
+}
+
 #push {
     color: white;
     background-color: #041E42; /*primary*/
@@ -17,6 +23,74 @@ QComboBox {
     border-radius: 5px;
     border-color: #041E42; /*primary*/
 }
+
+#route {
+    max-width: 700px;
+    margin: 0px;
+    spacing: 0px;
+}
+#AkronoffCombo {
+    max-width: 150px;
+    min-width: 150px;
+    background-color: #041E42;
+    color: white;
+}
+
+#Akronoffquestions {
+    max-width: 160px;
+    min-width: 160px;
+    background-color: #041E42;
+    color: white;
+}
+
+#Akronoffname {
+    background-color: #041E42;
+    color: white;
+}
+
+#Akrondefcombo {
+    max-width: 150px;
+    min-width: 150px;
+    background-color: #041E42;
+    color: white;
+}
+
+#Akrondefquestions {
+    max-width: 160px;
+    min-width: 160px;
+    background-color: #041E42;
+    color: white;
+}
+
+#Akrondefname {
+    background-color: #041E42;
+    color: white;
+}
+
+#Akrondeflabel {
+    max-width: 75px;
+    min-width: 75px;
+    background-color: #041E42;
+    color: white;
+}
+
+#Akronofflabel {
+    max-width: 75px;
+    min-width: 75px;
+    background-color: #041E42;
+    color: white;
+}
+
+#Akrontable {
+    alternate-background-color: #5E6A71;
+    selection-background-color: #041E42; /*primary*/
+}
+
+#Akron {
+    background-color: #041E42;
+    color: white;
+}
+
 
 QComboBox::drop-down {
     border: 0px; /* This seems to replace the whole arrow of the combo box */

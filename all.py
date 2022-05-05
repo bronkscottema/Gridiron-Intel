@@ -21,7 +21,7 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
     cv2.setUseOptimized(True)
 
     OPENCV_OBJECT_TRACKERS = {
-        "csrt": cv2.TrackerCSRT_create,
+        "csrt": cv2.TrackerMIL_create(),
         "MOSSE": cv2.TrackerCSRT_create
     }
 
@@ -275,7 +275,7 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
                     x1 = box['x'] - box['width'] / 2
                     y1 = box['y'] - box['height'] / 2
                     json_prediction.append(player_class)
-                    tracker = OPENCV_OBJECT_TRACKERS[tracker_name]()
+                    tracker = cv2.TrackerMIL_create()
                     trackers.add(tracker, frame_cap, (x1, y1, w, h))
                 #     draw.rectangle([
                 #         x1, y1, x2, y2

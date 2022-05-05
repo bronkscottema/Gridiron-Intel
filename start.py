@@ -291,15 +291,13 @@ class Window(QWidget):
 
     def submit_pushed(self):
         url = QFileDialog.getOpenFileName(self, "Open a file", "", "All Files(*);;")
-        try:
-            all.opencv(url[0], hash_or_num=self.hashmark_number.currentText(), gameid_number=self.gameid_value, playid_number=self.playid_value,
-                       offense_l_or_r=self.offense_left_or_right.currentText(), yard_line=int(self.yard_value), offense=self.offense.currentText(),
-                       defense=self.opponent.currentText(), league=self.league.currentText(), year=self.year.currentText(),
-                       week=self.week[0], regular_post=self.regular_post.currentText(), play_text=self.play_text)
-        except:
-            pass
-        self.w = end.End()
-        self.w.show()
+
+        all.opencv(url[0], hash_or_num=self.hashmark_number.currentText(), gameid_number=self.gameid_value, playid_number=self.playid_value,
+                   offense_l_or_r=self.offense_left_or_right.currentText(), yard_line=int(self.yard_value), offense=self.offense.currentText(),
+                   defense=self.opponent.currentText(), league=self.league.currentText(), year=self.year.currentText(),
+                   week=self.week[0], regular_post=self.regular_post.currentText(), play_text=self.play_text)
+        # self.w = end.End()
+        # self.w.show()
 
     def update_opponent(self, ix):
         if self.league.currentText() == 'NFL' and ix == 0:

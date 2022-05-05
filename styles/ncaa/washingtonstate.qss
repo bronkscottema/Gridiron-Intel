@@ -86,6 +86,11 @@ QComboBox {
     selection-background-color: #981E32; /*primary*/
 }
 
+#WashingtonState {
+    background-color: #981E32;
+    color: white;
+}
+
 QComboBox::drop-down {
     border: 0px; /* This seems to replace the whole arrow of the combo box */
 }
@@ -110,7 +115,7 @@ QTableCornerButton {
 
 QHeaderView::section {
     background-color: #981E32; /*primary*/
-    border: 0.5px solid white;
+    border: none;
     color: white;
 }
 
@@ -179,9 +184,4 @@ QScrollBar::sub-line:horizontal {
     height: 0px;
     subcontrol-position: left;
     subcontrol-origin: margin;
-}
-
-#WashingtonState {
-    background-color: #981E32;
-    color: white;
 }

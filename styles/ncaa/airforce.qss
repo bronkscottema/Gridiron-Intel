@@ -29,24 +29,63 @@ QComboBox {
     margin: 0px;
     spacing: 0px;
 }
-#offCombo {
+#AirForceoffCombo {
+    max-width: 150px;
+    min-width: 150px;
+    background-color: #003087;
+    color: white;
+}
+
+#AirForceoffquestions {
+    max-width: 160px;
+    min-width: 160px;
+    background-color: #003087;
+    color: white;
+}
+
+#AirForceoffname {
+    background-color: #003087;
+    color: white;
+}
+
+#AirForcedefcombo {
+    max-width: 150px;
+    min-width: 150px;
+    background-color: #003087;
+    color: white;
+}
+
+#AirForcedefquestions {
+    max-width: 160px;
+    min-width: 160px;
+    background-color: #003087;
+    color: white;
+}
+
+#AirForcedefname {
+    background-color: #003087;
+    color: white;
+}
+
+#AirForcedeflabel {
     max-width: 75px;
     min-width: 75px;
     background-color: #003087;
     color: white;
 }
 
-#offquestions {
-    max-width: 85px;
-    min-width: 85px;
+#AirForceofflabel {
+    max-width: 75px;
+    min-width: 75px;
     background-color: #003087;
     color: white;
 }
 
-#offname {
-    background-color: #003087;
-    color: white;
+#AirForcetable {
+    alternate-background-color: #5E6A71;
+    selection-background-color: #003087; /*primary*/
 }
+
 
 QComboBox::drop-down, #endCombo::drop-down {
     border: 0px; /* This seems to replace the whole arrow of the combo box */

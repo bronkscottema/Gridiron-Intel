@@ -24,6 +24,74 @@ QComboBox {
     border-color: #CC0033; /*primary*/
 }
 
+#route {
+    max-width: 700px;
+    margin: 0px;
+    spacing: 0px;
+}
+#ArizonaoffCombo {
+    max-width: 150px;
+    min-width: 150px;
+    background-color: #CC0033;
+    color: white;
+}
+
+#Arizonaoffquestions {
+    max-width: 160px;
+    min-width: 160px;
+    background-color: #CC0033;
+    color: white;
+}
+
+#Arizonaoffname {
+    background-color: #CC0033;
+    color: white;
+}
+
+#Arizonadefcombo {
+    max-width: 150px;
+    min-width: 150px;
+    background-color: #CC0033;
+    color: white;
+}
+
+#Arizonadefquestions {
+    max-width: 160px;
+    min-width: 160px;
+    background-color: #CC0033;
+    color: white;
+}
+
+#Arizonadefname {
+    background-color: #CC0033;
+    color: white;
+}
+
+#Arizonadeflabel {
+    max-width: 75px;
+    min-width: 75px;
+    background-color: #CC0033;
+    color: white;
+}
+
+#Arizonaofflabel {
+    max-width: 75px;
+    min-width: 75px;
+    background-color: #CC0033;
+    color: white;
+}
+
+#Arizonatable {
+    alternate-background-color: #5E6A71;
+    selection-background-color: #CC0033; /*primary*/
+}
+
+#Arizona {
+    background-color: #CC0033;
+    color: white;
+}
+
+
 QComboBox::drop-down {
     border: 0px; /* This seems to replace the whole arrow of the combo box */
 }
