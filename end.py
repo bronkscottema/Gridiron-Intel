@@ -77,6 +77,10 @@ class End(QWidget):
         self.field_layout = QVBoxLayout()
         self.image_layout = QVBoxLayout()
         self.play_layout = QHBoxLayout()
+        self.formation_front = QFormLayout()
+        self.off_def_play = QFormLayout()
+        self.off_def_personnel = QFormLayout()
+        self.hash_layout = QFormLayout()
         self.logo_layout = QVBoxLayout()
         self.move_image_layout = QHBoxLayout()
         self.roster_layout = QHBoxLayout()
@@ -100,26 +104,41 @@ class End(QWidget):
         # layout section
         self.fieldpic.setPixmap(QPixmap('dottedfield.jpg'))
         self.field_layout.addWidget(self.fieldpic)
-        self.formation = QLineEdit()
+
+
         self.formation_label = QLabel("Formation:")
-        self.play = QLineEdit()
-        self.play_label = QLabel("Offensive Play:")
-        self.front = QLineEdit()
+        self.formation = QLineEdit()
         self.front_label = QLabel("Defensive Front:")
-        self.defplay = QLineEdit()
+        self.front = QLineEdit()
+        self.formation_front.addRow(self.formation_label, self.formation)
+        self.formation_front.addRow(self.front_label, self.front)
+
+        self.play_label = QLabel("Offensive Play:")
+        self.play = QLineEdit()
         self.defplay_label = QLabel("Defensive Play:")
+        self.defplay = QLineEdit()
+        self.off_def_play.addRow(self.play_label, self.play)
+        self.off_def_play.addRow(self.defplay_label, self.defplay)
+
+        self.personnel = QLineEdit()
+        self.personnel_label = QLabel("Offensive Personnel:")
+        self.personnel.setObjectName("short_edit")
+        self.def_personnel = QLineEdit()
+        self.def_personnel_label = QLabel("Defensive Personnel:")
+        self.def_personnel.setObjectName("short_edit")
+        self.off_def_personnel.addRow(self.personnel_label, self.personnel)
+        self.off_def_personnel.addRow(self.def_personnel_label, self.def_personnel)
+
         self.hash = QLineEdit()
         self.hash_label = QLabel("Hash:")
-        self.play_layout.addWidget(self.formation_label)
-        self.play_layout.addWidget(self.formation)
-        self.play_layout.addWidget(self.play_label)
-        self.play_layout.addWidget(self.play)
-        self.play_layout.addWidget(self.front_label)
-        self.play_layout.addWidget(self.front)
-        self.play_layout.addWidget(self.defplay_label)
-        self.play_layout.addWidget(self.defplay)
-        self.play_layout.addWidget(self.hash_label)
-        self.play_layout.addWidget(self.hash)
+        self.hash.setObjectName("short_edit")
+        self.hash_layout.addRow(self.hash_label, self.hash)
+
+        self.play_layout.addLayout(self.formation_front)
+        self.play_layout.addLayout(self.off_def_play)
+        self.play_layout.addLayout(self.off_def_personnel)
+        self.play_layout.addLayout(self.hash_layout)
+
         self.image_layout.addLayout(self.play_layout)
         self.viewer.setPhoto(QPixmap("boxes.jpg"))
         self.move_image_layout.addWidget(self.viewer)
@@ -316,9 +335,10 @@ class End(QWidget):
                         (str(j[1]), str(j[2]), int(j[3]), j[4], int(j[5]), int(j[6]), int(j[7]), str(j[8]), str(j[9]), int(j[0]), str(result_main[0])))
 
         cur.execute(sql.SQL(
-            "INSERT INTO play_data (playid, formation, offensive_play, front, defensive_play, hash)"
+            "INSERT INTO play_data (playid, formation, offensive_play, front, defensive_play, hash, personnel, def_personnel)"
             "VALUES (%s, %s, %s, %s, %s, %s)"),
-            (result_main[0], self.formation.currentText(), self.play.currentText(), self.front.currentText(), self.defplay.currentText(), self.hash.currentText() ))
+            (result_main[0], self.formation.currentText(), self.play.currentText(), self.front.currentText(),
+             self.defplay.currentText(), self.hash.currentText(), self.personnel.currentText(), self.def_personnel.currentText()))
         conn.close()
 
     def set_light_dark_mode(self):
@@ -373,6 +393,9 @@ class End(QWidget):
                 background-color: black;
                 color: white;
             }
+            #short_edit {
+                max-width:25px;
+            }
             '''
         else:
             self.style = '''
@@ -383,6 +406,7 @@ class End(QWidget):
             QLabel {
                 font-family: Proxima;
                 font-size: 16px;
+                padding: 5px;
             }
             QComboBox {
                 background-color: white;
@@ -393,6 +417,8 @@ class End(QWidget):
                 background-color: white;
                 font-family: Proxima;
                 font-size: 16px;
+                padding: 5px;
+
             }
             QWidget {
                 background-color: white;
@@ -400,6 +426,9 @@ class End(QWidget):
             QLayout {
                 margin: 0px;
                 spacing: 0px;
+            }
+            #short_edit {
+                max-width:25px;
             }
             '''
         if result is not None:
