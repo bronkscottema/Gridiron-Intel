@@ -24,6 +24,68 @@ QComboBox {
     border-color: #DC4405; /*primary*/
 }
 
+#route {
+    max-width: 700px;
+    margin: 0px;
+    spacing: 0px;
+}
+#OregonStateoffCombo {
+    max-width: 150px;
+    min-width: 150px;
+    background-color: #003087;
+    color: white;
+}
+
+#OregonStateoffquestions {
+    max-width: 160px;
+    min-width: 160px;
+    background-color: #003087;
+    color: white;
+}
+
+#OregonStateoffname {
+    background-color: #003087;
+    color: white;
+}
+
+#OregonStatedefcombo {
+    max-width: 150px;
+    min-width: 150px;
+    background-color: #003087;
+    color: white;
+}
+
+#OregonStatedefquestions {
+    max-width: 160px;
+    min-width: 160px;
+    background-color: #003087;
+    color: white;
+}
+
+#OregonStatedefname {
+    background-color: #003087;
+    color: white;
+}
+
+#OregonStatedeflabel {
+    max-width: 75px;
+    min-width: 75px;
+    background-color: #003087;
+    color: white;
+}
+
+#OregonStateofflabel {
+    max-width: 75px;
+    min-width: 75px;
+    background-color: #003087;
+    color: white;
+}
+
+#OregonStatetable {
+    alternate-background-color: #828A8F;
+    selection-background-color: #003087; /*primary*/
+}
+
 QComboBox::drop-down {
     border: 0px; /* This seems to replace the whole arrow of the combo box */
 }
@@ -54,7 +116,9 @@ QHeaderView::section {
 
 QComboBox QAbstractItemView {
     selection-background-color: #DC4405;
-}#endPush {
+}
+
+#endPush {
     color: white;
     background-color: #003087; /*primary*/
     border :3px outset;

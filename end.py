@@ -134,10 +134,10 @@ class End(QWidget):
         self.hash.setObjectName("short_edit")
         self.hash_layout.addRow(self.hash_label, self.hash)
 
+        self.play_layout.addLayout(self.hash_layout)
+        self.play_layout.addLayout(self.off_def_personnel)
         self.play_layout.addLayout(self.formation_front)
         self.play_layout.addLayout(self.off_def_play)
-        self.play_layout.addLayout(self.off_def_personnel)
-        self.play_layout.addLayout(self.hash_layout)
 
         self.image_layout.addLayout(self.play_layout)
         self.viewer.setPhoto(QPixmap("boxes.jpg"))
@@ -327,8 +327,9 @@ class End(QWidget):
             i.append(edits[int(i[0])][1].currentText())
             i.append(edits[int(i[0])][3].currentText())
 
+        newData = [tuple(s if s != "None" else 0 for s in tup) for tup in output]
 
-        for j in output:
+        for j in newData:
             cur.execute(sql.SQL("update {} set last_name = %s, first_name = %s, jersey = %s,"
                                 "position = %s, height = %s, weight = %s, year = %s, path = %s, grade = %s where playerid = %s and playid = %s;").format(
                 sql.Identifier('roster')),
@@ -336,9 +337,13 @@ class End(QWidget):
 
         cur.execute(sql.SQL(
             "INSERT INTO play_data (playid, formation, offensive_play, front, defensive_play, hash, personnel, def_personnel)"
-            "VALUES (%s, %s, %s, %s, %s, %s)"),
-            (result_main[0], self.formation.currentText(), self.play.currentText(), self.front.currentText(),
-             self.defplay.currentText(), self.hash.currentText(), self.personnel.currentText(), self.def_personnel.currentText()))
+            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"),
+            (result_main[0], self.formation.text(), self.play.text(), self.front.text(),
+             self.defplay.text(), self.hash.text(), self.personnel.text(), self.def_personnel.text()))
+
+        for p in newData:
+            cur.execute(sql.SQL("update main_table set position = %s where playerid = %s and playid = %s;"), (p[4], int(p[0]), str(result_main[0])))
+
         conn.close()
 
     def set_light_dark_mode(self):
@@ -540,7 +545,7 @@ class thegrid(QGridLayout):
                         player_position_list.remove(nextplayer)
                         break
 
-                remaining_player_count = len(play_table_result)
+                remaining_player_count = play_table_result[-1][2]
                 for remainingplayer in player_position_list:
                     play_table_result.append(tuple((gameid, playid, remaining_player_count + 1, remainingplayer)))
                     remaining_player_count += 1
@@ -558,7 +563,7 @@ class thegrid(QGridLayout):
                         player_position_list.remove(nextplayer)
                         break
 
-                remaining_player_count = len(play_table_result)
+                remaining_player_count = play_table_result[-1][2]
                 for remainingplayer in player_position_list:
                     play_table_result.append(tuple((gameid, playid, remaining_player_count, remainingplayer)))
                     remaining_player_count += 1

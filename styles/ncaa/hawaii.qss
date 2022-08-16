@@ -1,7 +1,3 @@
-QWidget {
-    background-color: white;
-}
-
 #questions {
     max-width: 350px;
     min-width: 300px;
@@ -10,9 +6,9 @@ QWidget {
 
 #push {
     color: white;
-    background-color: #8C1515; /*primary*/
+    background-color: #024731; /*primary*/
     border :3px outset;
-    border-color: #4D4F53;
+    border-color: #C8C8C8;
     border-radius: 5px;
     max-width: 260px;
     min-width: 200px;
@@ -25,7 +21,7 @@ QComboBox {
     border-style: outset;
     border-width: 2px;
     border-radius: 5px;
-    border-color: #8C1515; /*primary*/
+    border-color: #024731; /*primary*/
 }
 
 #route {
@@ -33,61 +29,61 @@ QComboBox {
     margin: 0px;
     spacing: 0px;
 }
-#StanfordoffCombo {
+#HawaiioffCombo {
     max-width: 150px;
     min-width: 150px;
-    background-color: #8C1515;
+    background-color: #024731;
     color: white;
 }
 
-#Stanfordoffquestions {
+#Hawaiioffquestions {
     max-width: 160px;
     min-width: 160px;
-    background-color: #8C1515;
+    background-color: #024731;
     color: white;
 }
 
-#Stanfordoffname {
-    background-color: #8C1515;
+#Hawaiioffname {
+    background-color: #024731;
     color: white;
 }
 
-#Stanforddefcombo {
+#Hawaiidefcombo {
     max-width: 150px;
     min-width: 150px;
-    background-color: #8C1515;
+    background-color: #024731;
     color: white;
 }
 
-#Stanforddefquestions {
+#Hawaiidefquestions {
     max-width: 160px;
     min-width: 160px;
-    background-color: #8C1515;
+    background-color: #024731;
     color: white;
 }
 
-#Stanforddefname {
-    background-color: #8C1515;
+#Hawaiidefname {
+    background-color: #024731;
     color: white;
 }
 
-#Stanforddeflabel {
+#Hawaiideflabel {
     max-width: 75px;
     min-width: 75px;
-    background-color: #8C1515;
+    background-color: #024731;
     color: white;
 }
 
-#Stanfordofflabel {
+#Hawaiiofflabel {
     max-width: 75px;
     min-width: 75px;
-    background-color: #8C1515;
+    background-color: #024731;
     color: white;
 }
 
-#Stanfordtable {
-    alternate-background-color: #4D4F53;
-    selection-background-color: #8C1515; /*primary*/
+#Hawaiitable {
+    alternate-background-color: #C8C8C8;
+    selection-background-color: #024731; /*primary*/
 }
 
 QComboBox::drop-down {
@@ -104,28 +100,29 @@ QComboBox::down-arrow {
 */
 
 QTableView {
-    alternate-background-color: #4D4F53;
-    selection-background-color: #8C1515; /*primary*/
+    alternate-background-color: #C8C8C8;
+    selection-background-color: #024731; /*primary*/
 }
 
 QTableCornerButton {
-    background-color: #8C1515; /*primary*/
+    background-color: #024731; /*primary*/
 }
 
 QHeaderView::section {
-    background-color: #8C1515; /*primary*/
+    background-color: #024731; /*primary*/
     border: 0.5px solid white;
+    color: white;
 }
 
 QComboBox QAbstractItemView {
-    selection-background-color: #8C1515;
+    selection-background-color: #024731;
 }
 
 #endPush {
     color: white;
-    background-color: #8C1515; /*primary*/
+    background-color: #024731; /*primary*/
     border :3px outset;
-    border-color: #4D4F53;
+    border-color: #C8C8C8;
     border-radius: 5px;
     max-width: 150px;
     min-width: 100px;
@@ -143,7 +140,7 @@ QScrollBar::handle:vertical {
     min-height: 0px;
     border: 0px solid red;
     border-radius: 4px;
-    background-color: #8C1515;
+    background-color: #024731;
 }
 
 QScrollBar::add-line:vertical {
@@ -169,7 +166,7 @@ QScrollBar::handle:horizontal {
     min-height: 0px;
     border: 0px solid red;
     border-radius: 4px;
-    background-color: #8C1515;
+    background-color: #024731;
 }
 
 QScrollBar::add-line:horizontal {

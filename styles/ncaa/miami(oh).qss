@@ -24,6 +24,68 @@ QComboBox {
     border-color: #B61E2E; /*primary*/
 }
 
+#route {
+    max-width: 700px;
+    margin: 0px;
+    spacing: 0px;
+}
+#MiamiOHoffCombo {
+    max-width: 150px;
+    min-width: 150px;
+    background-color: #B61E2E;
+    color: white;
+}
+
+#MiamiOHoffquestions {
+    max-width: 160px;
+    min-width: 160px;
+    background-color: #B61E2E;
+    color: white;
+}
+
+#MiamiOHoffname {
+    background-color: #B61E2E;
+    color: white;
+}
+
+#MiamiOHdefcombo {
+    max-width: 150px;
+    min-width: 150px;
+    background-color: #B61E2E;
+    color: white;
+}
+
+#MiamiOHdefquestions {
+    max-width: 160px;
+    min-width: 160px;
+    background-color: #B61E2E;
+    color: white;
+}
+
+#MiamiOHdefname {
+    background-color: #B61E2E;
+    color: white;
+}
+
+#MiamiOHdeflabel {
+    max-width: 75px;
+    min-width: 75px;
+    background-color: #B61E2E;
+    color: white;
+}
+
+#MiamiOHofflabel {
+    max-width: 75px;
+    min-width: 75px;
+    background-color: #B61E2E;
+    color: white;
+}
+
+#MiamiOHtable {
+    alternate-background-color: #828A8F;
+    selection-background-color: #B61E2E; /*primary*/
+}
+
 QComboBox::drop-down {
     border: 0px; /* This seems to replace the whole arrow of the combo box */
 }
@@ -54,9 +116,11 @@ QHeaderView::section {
 
 QComboBox QAbstractItemView {
     selection-background-color: #B61E2E;
-}#endPush {
+}
+
+#endPush {
     color: white;
-    background-color: #003087; /*primary*/
+    background-color: #B61E2E; /*primary*/
     border :3px outset;
     border-color: #828A8F;
     border-radius: 5px;
@@ -76,7 +140,7 @@ QScrollBar::handle:vertical {
     min-height: 0px;
     border: 0px solid red;
     border-radius: 4px;
-    background-color: #003087;
+    background-color: #B61E2E;
 }
 
 QScrollBar::add-line:vertical {
@@ -102,7 +166,7 @@ QScrollBar::handle:horizontal {
     min-height: 0px;
     border: 0px solid red;
     border-radius: 4px;
-    background-color: #003087;
+    background-color: #B61E2E;
 }
 
 QScrollBar::add-line:horizontal {

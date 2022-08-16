@@ -24,6 +24,68 @@ QComboBox {
     border-color: #BA0C2F; /*primary*/
 }
 
+#route {
+    max-width: 700px;
+    margin: 0px;
+    spacing: 0px;
+}
+#NorthIllinoisoffCombo {
+    max-width: 150px;
+    min-width: 150px;
+    background-color: #BA0C2F;
+    color: white;
+}
+
+#NorthIllinoisoffquestions {
+    max-width: 160px;
+    min-width: 160px;
+    background-color: #BA0C2F;
+    color: white;
+}
+
+#NorthIllinoisoffname {
+    background-color: #BA0C2F;
+    color: white;
+}
+
+#NorthIllinoisdefcombo {
+    max-width: 150px;
+    min-width: 150px;
+    background-color: #BA0C2F;
+    color: white;
+}
+
+#NorthIllinoisdefquestions {
+    max-width: 160px;
+    min-width: 160px;
+    background-color: #BA0C2F;
+    color: white;
+}
+
+#NorthIllinoisdefname {
+    background-color: #BA0C2F;
+    color: white;
+}
+
+#NorthIllinoisdeflabel {
+    max-width: 75px;
+    min-width: 75px;
+    background-color: #BA0C2F;
+    color: white;
+}
+
+#NorthIllinoisofflabel {
+    max-width: 75px;
+    min-width: 75px;
+    background-color: #BA0C2F;
+    color: white;
+}
+
+#NorthIllinoistable {
+    alternate-background-color: #8A8D8F;
+    selection-background-color: #BA0C2F; /*primary*/
+}
+
 QComboBox::drop-down {
     border: 0px; /* This seems to replace the whole arrow of the combo box */
 }
@@ -54,9 +116,11 @@ QHeaderView::section {
 
 QComboBox QAbstractItemView {
     selection-background-color: #BA0C2F;
-}#endPush {
+}
+
+#endPush {
     color: white;
-    background-color: #003087; /*primary*/
+    background-color: #BA0C2F; /*primary*/
     border :3px outset;
     border-color: #828A8F;
     border-radius: 5px;
@@ -76,7 +140,7 @@ QScrollBar::handle:vertical {
     min-height: 0px;
     border: 0px solid red;
     border-radius: 4px;
-    background-color: #003087;
+    background-color: #BA0C2F;
 }
 
 QScrollBar::add-line:vertical {
@@ -102,7 +166,7 @@ QScrollBar::handle:horizontal {
     min-height: 0px;
     border: 0px solid red;
     border-radius: 4px;
-    background-color: #003087;
+    background-color: #BA0C2F;
 }
 
 QScrollBar::add-line:horizontal {

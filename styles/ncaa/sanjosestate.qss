@@ -6,9 +6,9 @@
 
 #push {
     color: white;
-    background-color: #024731; /*primary*/
+    background-color: #0055A2; /*primary*/
     border :3px outset;
-    border-color: #C8C8C8;
+    border-color: #E5A823;
     border-radius: 5px;
     max-width: 260px;
     min-width: 200px;
@@ -21,10 +21,73 @@ QComboBox {
     border-style: outset;
     border-width: 2px;
     border-radius: 5px;
-    border-color: #024731; /*primary*/
+    border-color: #0055A2; /*primary*/
 }
 
-QComboBox::drop-down {
+#route {
+    max-width: 700px;
+    margin: 0px;
+    spacing: 0px;
+}
+#SanJoseStateoffCombo {
+    max-width: 150px;
+    min-width: 150px;
+    background-color: #0055A2;
+    color: white;
+}
+
+#SanJoseStateoffquestions {
+    max-width: 160px;
+    min-width: 160px;
+    background-color: #0055A2;
+    color: white;
+}
+
+#SanJoseStateoffname {
+    background-color: #0055A2;
+    color: white;
+}
+
+#SanJoseStatedefcombo {
+    max-width: 150px;
+    min-width: 150px;
+    background-color: #0055A2;
+    color: white;
+}
+
+#SanJoseStatedefquestions {
+    max-width: 160px;
+    min-width: 160px;
+    background-color: #0055A2;
+    color: white;
+}
+
+#SanJoseStatedefname {
+    background-color: #0055A2;
+    color: white;
+}
+
+#SanJoseStatedeflabel {
+    max-width: 75px;
+    min-width: 75px;
+    background-color: #0055A2;
+    color: white;
+}
+
+#SanJoseStateofflabel {
+    max-width: 75px;
+    min-width: 75px;
+    background-color: #0055A2;
+    color: white;
+}
+
+#SanJoseStatetable {
+    alternate-background-color: #E5A823;
+    selection-background-color: #0055A2; /*primary*/
+}
+
+
+QComboBox::drop-down, #endCombo::drop-down {
     border: 0px; /* This seems to replace the whole arrow of the combo box */
 }
 
@@ -38,27 +101,29 @@ QComboBox::down-arrow {
 */
 
 QTableView {
-    alternate-background-color: #C8C8C8;
-    selection-background-color: #024731; /*primary*/
+    alternate-background-color: #E5A823;
+    selection-background-color: #0055A2;
 }
 
 QTableCornerButton {
-    background-color: #024731; /*primary*/
+    background-color: #0055A2; /*primary*/
 }
 
 QHeaderView::section {
-    background-color: #024731; /*primary*/
-    border: 0.5px solid white;
+    background-color: #0055A2; /*primary*/
+    border: none;
     color: white;
 }
 
 QComboBox QAbstractItemView {
-    selection-background-color: #024731;
-}#endPush {
+    selection-background-color: #0055A2;
+}
+
+#endPush {
     color: white;
-    background-color: #003087; /*primary*/
+    background-color: #0055A2; /*primary*/
     border :3px outset;
-    border-color: #828A8F;
+    border-color: #E5A823;
     border-radius: 5px;
     max-width: 150px;
     min-width: 100px;
@@ -76,7 +141,7 @@ QScrollBar::handle:vertical {
     min-height: 0px;
     border: 0px solid red;
     border-radius: 4px;
-    background-color: #003087;
+    background-color: #0055A2;
 }
 
 QScrollBar::add-line:vertical {
@@ -102,7 +167,7 @@ QScrollBar::handle:horizontal {
     min-height: 0px;
     border: 0px solid red;
     border-radius: 4px;
-    background-color: #003087;
+    background-color: #0055A2;
 }
 
 QScrollBar::add-line:horizontal {
@@ -115,4 +180,9 @@ QScrollBar::sub-line:horizontal {
     height: 0px;
     subcontrol-position: left;
     subcontrol-origin: margin;
+}
+
+#SanJoseState {
+    background-color: #0055A2;
+    color: white;
 }

@@ -91,7 +91,6 @@ QComboBox {
     color: white;
 }
 
-
 QComboBox::drop-down {
     border: 0px; /* This seems to replace the whole arrow of the combo box */
 }

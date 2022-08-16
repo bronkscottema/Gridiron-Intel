@@ -8,7 +8,6 @@
     color: white;
     background-color: #660000; /*primary*/
     border :3px outset;
-    border-color: ;
     border-radius: 5px;
     max-width: 260px;
     min-width: 200px;
@@ -22,6 +21,68 @@ QComboBox {
     border-width: 2px;
     border-radius: 5px;
     border-color: #660000; /*primary*/
+}
+
+#route {
+    max-width: 700px;
+    margin: 0px;
+    spacing: 0px;
+}
+#MississippiStateoffCombo {
+    max-width: 150px;
+    min-width: 150px;
+    background-color: #660000;
+    color: white;
+}
+
+#MississippiStateoffquestions {
+    max-width: 160px;
+    min-width: 160px;
+    background-color: #660000;
+    color: white;
+}
+
+#MississippiStateoffname {
+    background-color: #660000;
+    color: white;
+}
+
+#MississippiStatedefcombo {
+    max-width: 150px;
+    min-width: 150px;
+    background-color: #660000;
+    color: white;
+}
+
+#MississippiStatedefquestions {
+    max-width: 160px;
+    min-width: 160px;
+    background-color: #660000;
+    color: white;
+}
+
+#MississippiStatedefname {
+    background-color: #660000;
+    color: white;
+}
+
+#MississippiStatedeflabel {
+    max-width: 75px;
+    min-width: 75px;
+    background-color: #660000;
+    color: white;
+}
+
+#MississippiStateofflabel {
+    max-width: 75px;
+    min-width: 75px;
+    background-color: #660000;
+    color: white;
+}
+
+#MississippiStatetable {
+    alternate-background-color: #828A8F;
+    selection-background-color: #660000; /*primary*/
 }
 
 QComboBox::drop-down {
@@ -54,9 +115,11 @@ QHeaderView::section {
 
 QComboBox QAbstractItemView {
     selection-background-color: #660000;
-}#endPush {
+}
+
+#endPush {
     color: white;
-    background-color: #003087; /*primary*/
+    background-color: #660000; /*primary*/
     border :3px outset;
     border-color: #828A8F;
     border-radius: 5px;
@@ -76,7 +139,7 @@ QScrollBar::handle:vertical {
     min-height: 0px;
     border: 0px solid red;
     border-radius: 4px;
-    background-color: #003087;
+    background-color: #660000;
 }
 
 QScrollBar::add-line:vertical {
@@ -102,7 +165,7 @@ QScrollBar::handle:horizontal {
     min-height: 0px;
     border: 0px solid red;
     border-radius: 4px;
-    background-color: #003087;
+    background-color: #660000;
 }
 
 QScrollBar::add-line:horizontal {

@@ -24,6 +24,68 @@ QComboBox {
     border-color: #006633; /*primary*/
 }
 
+#route {
+    max-width: 700px;
+    margin: 0px;
+    spacing: 0px;
+}
+#EasternMichiganoffCombo {
+    max-width: 150px;
+    min-width: 150px;
+    background-color: #003087;
+    color: white;
+}
+
+#EasternMichiganoffquestions {
+    max-width: 160px;
+    min-width: 160px;
+    background-color: #003087;
+    color: white;
+}
+
+#EasternMichiganoffname {
+    background-color: #003087;
+    color: white;
+}
+
+#EasternMichigandefcombo {
+    max-width: 150px;
+    min-width: 150px;
+    background-color: #003087;
+    color: white;
+}
+
+#EasternMichigandefquestions {
+    max-width: 160px;
+    min-width: 160px;
+    background-color: #003087;
+    color: white;
+}
+
+#EasternMichigandefname {
+    background-color: #003087;
+    color: white;
+}
+
+#EasternMichigandeflabel {
+    max-width: 75px;
+    min-width: 75px;
+    background-color: #003087;
+    color: white;
+}
+
+#EasternMichiganofflabel {
+    max-width: 75px;
+    min-width: 75px;
+    background-color: #003087;
+    color: white;
+}
+
+#EasternMichigantable {
+    alternate-background-color: #F0F0F0;
+    selection-background-color: #003087; /*primary*/
+}
+
 QComboBox::drop-down {
     border: 0px; /* This seems to replace the whole arrow of the combo box */
 }
@@ -54,11 +116,13 @@ QHeaderView::section {
 
 QComboBox QAbstractItemView {
     selection-background-color: #006633;
-}#endPush {
+}
+
+#endPush {
     color: white;
     background-color: #003087; /*primary*/
     border :3px outset;
-    border-color: #828A8F;
+    border-color: #F0F0F0;
     border-radius: 5px;
     max-width: 150px;
     min-width: 100px;

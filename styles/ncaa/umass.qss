@@ -24,6 +24,68 @@ QComboBox {
     border-color: #971B2F; /*primary*/
 }
 
+#route {
+    max-width: 700px;
+    margin: 0px;
+    spacing: 0px;
+}
+#UmassoffCombo {
+    max-width: 150px;
+    min-width: 150px;
+    background-color: #971B2F;
+    color: white;
+}
+
+#Umassoffquestions {
+    max-width: 160px;
+    min-width: 160px;
+    background-color: #971B2F;
+    color: white;
+}
+
+#Umassoffname {
+    background-color: #971B2F;
+    color: white;
+}
+
+#Umassdefcombo {
+    max-width: 150px;
+    min-width: 150px;
+    background-color: #971B2F;
+    color: white;
+}
+
+#Umassdefquestions {
+    max-width: 160px;
+    min-width: 160px;
+    background-color: #971B2F;
+    color: white;
+}
+
+#Umassdefname {
+    background-color: #971B2F;
+    color: white;
+}
+
+#Umassdeflabel {
+    max-width: 75px;
+    min-width: 75px;
+    background-color: #971B2F;
+    color: white;
+}
+
+#Umassofflabel {
+    max-width: 75px;
+    min-width: 75px;
+    background-color: #971B2F;
+    color: white;
+}
+
+#Umasstable {
+    alternate-background-color: #572932;
+    selection-background-color: #971B2F; /*primary*/
+}
+
 QComboBox::drop-down {
     border: 0px; /* This seems to replace the whole arrow of the combo box */
 }
@@ -54,11 +116,13 @@ QHeaderView::section {
 
 QComboBox QAbstractItemView {
     selection-background-color: #B1B3B3;
-}#endPush {
+}
+
+#endPush {
     color: white;
-    background-color: #003087; /*primary*/
+    background-color: #971B2F; /*primary*/
     border :3px outset;
-    border-color: #828A8F;
+    border-color: #572932;
     border-radius: 5px;
     max-width: 150px;
     min-width: 100px;
@@ -76,7 +140,7 @@ QScrollBar::handle:vertical {
     min-height: 0px;
     border: 0px solid red;
     border-radius: 4px;
-    background-color: #003087;
+    background-color: #971B2F;
 }
 
 QScrollBar::add-line:vertical {
@@ -102,7 +166,7 @@ QScrollBar::handle:horizontal {
     min-height: 0px;
     border: 0px solid red;
     border-radius: 4px;
-    background-color: #003087;
+    background-color: #971B2F;
 }
 
 QScrollBar::add-line:horizontal {
