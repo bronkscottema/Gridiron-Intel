@@ -24,6 +24,69 @@ QComboBox {
     border-color: #101820; /*primary*/
 }
 
+#route {
+    max-width: 700px;
+    margin: 0px;
+    spacing: 0px;
+}
+#NewOrleansSaintsoffCombo {
+    max-width: 150px;
+    min-width: 150px;
+    background-color: #101820;
+    color: white;
+}
+
+#NewOrleansSaintsoffquestions {
+    max-width: 160px;
+    min-width: 160px;
+    background-color: #101820;
+    color: white;
+}
+
+#NewOrleansSaintsoffname {
+    background-color: #101820;
+    color: white;
+}
+
+#NewOrleansSaintsdefcombo {
+    max-width: 150px;
+    min-width: 150px;
+    background-color: #101820;
+    color: white;
+}
+
+#NewOrleansSaintsdefquestions {
+    max-width: 160px;
+    min-width: 160px;
+    background-color: #101820;
+    color: white;
+}
+
+#NewOrleansSaintsdefname {
+    background-color: #101820;
+    color: white;
+}
+
+#NewOrleansSaintsdeflabel {
+    max-width: 75px;
+    min-width: 75px;
+    background-color: #101820;
+    color: white;
+}
+
+#NewOrleansSaintsofflabel {
+    max-width: 75px;
+    min-width: 75px;
+    background-color: #101820;
+    color: white;
+}
+
+#NewOrleansSaintstable {
+    alternate-background-color: #D3BC8D;
+    selection-background-color: #101820; /*primary*/
+}
+
+
 QComboBox::drop-down {
     border: 0px; /* This seems to replace the whole arrow of the combo box */
 }
@@ -54,11 +117,13 @@ QHeaderView::section {
 
 QComboBox QAbstractItemView {
     selection-background-color: #101820;
-}#endPush {
+}
+
+#endPush {
     color: white;
-    background-color: #003087; /*primary*/
+    background-color: #101820; /*primary*/
     border :3px outset;
-    border-color: #828A8F;
+    border-color: #D3BC8D;
     border-radius: 5px;
     max-width: 150px;
     min-width: 100px;
@@ -76,7 +141,7 @@ QScrollBar::handle:vertical {
     min-height: 0px;
     border: 0px solid red;
     border-radius: 4px;
-    background-color: #003087;
+    background-color: #101820;
 }
 
 QScrollBar::add-line:vertical {
@@ -102,7 +167,7 @@ QScrollBar::handle:horizontal {
     min-height: 0px;
     border: 0px solid red;
     border-radius: 4px;
-    background-color: #003087;
+    background-color: #101820;
 }
 
 QScrollBar::add-line:horizontal {
