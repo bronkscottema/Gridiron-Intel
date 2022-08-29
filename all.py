@@ -21,8 +21,7 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
     cv2.setUseOptimized(True)
 
     OPENCV_OBJECT_TRACKERS = {
-        "csrt": cv2.TrackerMIL_create,
-        "MOSSE": cv2.TrackerCSRT_create
+        "csrt": cv2.TrackerCSRT_create
     }
 
     # initialize OpenCV's special multi-object tracker
@@ -248,7 +247,7 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
                     x1 = box['x'] - box['width'] / 2
                     y1 = box['y'] - box['height'] / 2
                     json_prediction.append(player_class)
-                    tracker = cv2.TrackerMIL_create()
+                    tracker = cv2.TrackerCSRT_create()
                     trackers.add(tracker, frame_cap, (x1, y1, w, h))
                 #     draw.rectangle([
                 #         x1, y1, x2, y2
@@ -306,7 +305,7 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
                                     sql.SQL("INSERT INTO main_table VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"),
                                     (gameid_number, str(playid_number), int(box_id), (int(abs(x1))), (int(abs(y1))),
                                          cap.get(cv2.CAP_PROP_POS_FRAMES), null_variable,
-                                         str(json_prediction[face_no])))
+                                         str(face_no)))
                                 screenshot += 1
                                 break
                             speed_pts2.clear()
@@ -318,8 +317,8 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
                 (x, y, w, h) = [int(v) for v in box]
                 pt3.append(((x + int(w / 2), y + h), face_no))
                 cv2.rectangle(frame_cap, (x, y), (x + w, y + h), (0, 255, 0), 3)
-                cv2.putText(frame_cap, str(face_no), (x, y - 30), cv2.FONT_HERSHEY_TRIPLEX,
-                            .7, (0, 0, 0), 1, cv2.LINE_AA)
+                cv2.putText(frame_cap, str((json_prediction[face_no]) + " " + str(face_no)), (x, y - 30), cv2.FONT_HERSHEY_TRIPLEX,
+                            .7, (0, 255, 0), 1, cv2.LINE_AA)
 
                 if len(source_points) > 0:
                     if len(field_points) > 0:
@@ -516,7 +515,7 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
                     for p in no_position:
                         if p[1] == None or p[1] == "":
                             USER_INP = simpledialog.askstring(title="Player Identification",
-                                                              prompt="What Position is the Player Id?")
+                                                              prompt="What Position is the Player Id?" + str(p[1]))
                             cur.execute(sql.SQL("update {} set position = %s where playerid = %s and playid = %s;").format(
                                 sql.Identifier('main_table')),
                                 (USER_INP, int(p[0]), str(playid_number)))
