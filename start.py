@@ -455,8 +455,7 @@ class Window(QWidget):
                 team_name = self.offense.currentText()
                 team_name = team_name.replace(" ", "").lower()
                 # set stylesheet here and uncomment to deploy
-                teamFile = self.resource_path("styles/nfl/" + team_name + ".qss")
-                #teamFile = self.resource_path("styles/" + team_name + ".qss")
+                teamFile = self.resource_path("styles/" + team_name + ".qss")
                 try:
                     with open(teamFile, "r") as self.fh:
                         self.setStyleSheet(self.fh.read() + self.style)
@@ -466,8 +465,7 @@ class Window(QWidget):
                 team_name = self.offense.currentText()
                 team_name = team_name.replace(" ", "").lower()
                 # set stylesheet here and uncomment to deploy
-                teamFile = self.resource_path("styles/ncaa/" + team_name + ".qss")
-                #teamFile = self.resource_path("styles/" + team_name + ".qss")
+                teamFile = self.resource_path("styles/" + team_name + ".qss")
                 try:
                     with open(teamFile, "r") as self.fh:
                         self.setStyleSheet(self.fh.read() + self.style)

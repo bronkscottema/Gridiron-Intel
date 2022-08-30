@@ -447,7 +447,7 @@ class End(QWidget):
                 team_name = result[0]
                 team_name = team_name.replace(" ", "").lower()
                 # set stylesheet here
-                teamFile = "/styles/nfl/" + team_name + ".qss"
+                teamFile =resource_path("styles/" + team_name + ".qss")
                 #offteamFile = resource_path("styles/" + offense_name + ".qss")
                 #defteamFile = resource_path("styles/" + defense_name + ".qss")
 
@@ -482,10 +482,8 @@ class End(QWidget):
                 defense_name = result[1]
                 defense_name = defense_name.replace(" ", "").lower()
                 # set stylesheet here
-                offteamFile = "styles/ncaa/" + offense_name + ".qss"
-                defteamFile = "styles/ncaa/" + defense_name + ".qss"
-                # offteamFile = resource_path("styles/" + offense_name + ".qss")
-                # defteamFile = resource_path("styles/" + defense_name + ".qss")
+                offteamFile = resource_path("styles/" + offense_name + ".qss")
+                defteamFile = resource_path("styles/" + defense_name + ".qss")
                 try:
                     with open(offteamFile, "r") as self.of, open(defteamFile, "r") as self.df:
                         self.setStyleSheet(self.df.read() + self.of.read() + self.style)
