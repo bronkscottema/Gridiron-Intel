@@ -34,6 +34,11 @@ tableitems = []
 labels = []
 edits = []
 
+def resource_path(relative_path):
+    if hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.abspath("."), relative_path)
+
 
 class End(QWidget):
     def __init__(self):
@@ -62,7 +67,7 @@ class End(QWidget):
         self.recently_viewed_table = roster_recent()
         self.away_roster_table = away_table()
         self.home_roster_table = home_table()
-        self.setWindowIcon(QIcon('images/favicon.ico'))
+        self.setWindowIcon(QIcon(resource_path('images/favicon.ico')))
         screen = QDesktopWidget().screenGeometry()
         self.setGeometry(0, 0, screen.width(), screen.height())
         self.showMaximized()
@@ -102,7 +107,7 @@ class End(QWidget):
         cur.execute("select offense,defense,year,league from recently_viewed order by date_added desc limit  1;")
         result = cur.fetchone()
         # layout section
-        self.fieldpic.setPixmap(QPixmap('dottedfield.jpg'))
+        self.fieldpic.setPixmap(QPixmap(resource_path('dottedfield.jpg')))
         self.field_layout.addWidget(self.fieldpic)
 
 
@@ -140,7 +145,7 @@ class End(QWidget):
         self.play_layout.addLayout(self.off_def_play)
 
         self.image_layout.addLayout(self.play_layout)
-        self.viewer.setPhoto(QPixmap("boxes.jpg"))
+        self.viewer.setPhoto(QPixmap(resource_path("boxes.jpg")))
         self.move_image_layout.addWidget(self.viewer)
         self.image_layout.setSpacing(0)
         self.image_layout.setContentsMargins(0, 0, 0, 0)
@@ -320,7 +325,7 @@ class End(QWidget):
         print(output)
 
         cur.execute(
-            "select playid from main_table where playid = (select playid from recently_viewed order by date_added desc limit 1);")
+            "select playid from main_table where playid = (select playid from recently_viewed order by date_added desc limit 1) limit 1;")
         result_main = cur.fetchone()
 
         for i in output:
@@ -442,7 +447,10 @@ class End(QWidget):
                 team_name = result[0]
                 team_name = team_name.replace(" ", "").lower()
                 # set stylesheet here
-                teamFile = "styles/nfl/" + team_name + ".qss"
+                teamFile = "/styles/nfl/" + team_name + ".qss"
+                #offteamFile = resource_path("styles/" + offense_name + ".qss")
+                #defteamFile = resource_path("styles/" + defense_name + ".qss")
+
                 try:
                     with open(teamFile, "r") as self.fh:
                         self.setStyleSheet(self.fh.read() + self.style)
@@ -476,6 +484,8 @@ class End(QWidget):
                 # set stylesheet here
                 offteamFile = "styles/ncaa/" + offense_name + ".qss"
                 defteamFile = "styles/ncaa/" + defense_name + ".qss"
+                # offteamFile = resource_path("styles/" + offense_name + ".qss")
+                # defteamFile = resource_path("styles/" + defense_name + ".qss")
                 try:
                     with open(offteamFile, "r") as self.of, open(defteamFile, "r") as self.df:
                         self.setStyleSheet(self.df.read() + self.of.read() + self.style)
@@ -520,9 +530,7 @@ class thegrid(QGridLayout):
 
         if len(roster_exist) == 0:
             cur.execute(
-                "select gameid, playid, playerid, position from main_table where playid = '" + result_main[0] + "' "
-                                                                                                                "and frame = (select min(frame) from main_table where playid = '" +
-                result_main[0] + "') order by playerid;")
+                "select distinct playerid, position, gameid, playid from main_table where playid = '" + result_main[0] + "' order by playerid;")
             play_table_result = cur.fetchall()
 
             defense_count = 0
@@ -532,40 +540,40 @@ class thegrid(QGridLayout):
 
             playerid_list = []
             if defense_count == 8:
-                gameid = play_table_result[0][0]
-                playid = play_table_result[0][1]
+                gameid = play_table_result[0][2]
+                playid = play_table_result[0][3]
                 for i in play_table_result:
-                    playerid_list.append(i[2])
+                    playerid_list.append(i[0])
 
                 res = [ele for ele in range(max(playerid_list) + 1) if ele not in playerid_list]
                 player_position_list = ["DE", "DE", "DT", "RT", "RG", "LG", "LT"]
                 for p in res:
                     for nextplayer in player_position_list:
-                        play_table_result.append(tuple((gameid, playid, p, nextplayer)))
+                        play_table_result.append(tuple((p, nextplayer,gameid, playid )))
                         player_position_list.remove(nextplayer)
                         break
 
-                remaining_player_count = play_table_result[-1][2]
+                remaining_player_count = play_table_result[-1][0]
                 for remainingplayer in player_position_list:
-                    play_table_result.append(tuple((gameid, playid, remaining_player_count + 1, remainingplayer)))
+                    play_table_result.append(tuple((remaining_player_count + 1, remainingplayer, gameid, playid)))
                     remaining_player_count += 1
             else:
-                gameid = play_table_result[0][0]
-                playid = play_table_result[0][1]
+                gameid = play_table_result[0][2]
+                playid = play_table_result[0][3]
                 for i in play_table_result:
-                    playerid_list.append(i[2])
+                    playerid_list.append(i[0])
 
                 res = [ele for ele in range(max(playerid_list) + 1) if ele not in playerid_list]
                 player_position_list = ["DE", "DE", "DT", "DT", "RT", "RG", "LG", "LT"]
                 for p in res:
                     for nextplayer in player_position_list:
-                        play_table_result.append(tuple((gameid, playid, p, nextplayer)))
+                        play_table_result.append(tuple((p, nextplayer, gameid, playid)))
                         player_position_list.remove(nextplayer)
                         break
 
-                remaining_player_count = play_table_result[-1][2]
+                remaining_player_count = len(play_table_result)
                 for remainingplayer in player_position_list:
-                    play_table_result.append(tuple((gameid, playid, remaining_player_count, remainingplayer)))
+                    play_table_result.append(tuple((remaining_player_count, remainingplayer, gameid, playid)))
                     remaining_player_count += 1
 
             def insert_execute_values_iterator(
@@ -576,13 +584,13 @@ class thegrid(QGridLayout):
                     psycopg2.extras.execute_values(cursor, """
                                 INSERT INTO roster VALUES %s;
                             """, ((
-                        str(person[0]),
-                        str(person[1]),
-                        person[2],
+                        str(person[2]),
+                        str(person[3]),
+                        person[0],
                         " ",
                         " ",
                         0,
-                        person[3],
+                        person[1],
                         0,
                         0,
                         0,
@@ -630,7 +638,7 @@ class thegrid(QGridLayout):
                         self.path_pic = LabelClass("")
                         self.path_pic.style().unpolish(self.path_pic)
                         self.path_pic.style().polish(self.path_pic)
-                        self.path_pic.setPixmap(QPixmap('images/paths/slant.png'))
+                        self.path_pic.setPixmap(QPixmap(resource_path('/images/paths/slant.png')))
 
                         if z[1] is None:
                             self.name_label = LabelClass("Last, First #" + str(z[0]) + ", " + "null")
@@ -697,7 +705,7 @@ class thegrid(QGridLayout):
                         self.path_def_pic = QLabel()
                         self.path_def_pic.style().unpolish(self.path_def_pic)
                         self.path_def_pic.style().polish(self.path_def_pic)
-                        self.path_def_pic.setPixmap(QPixmap('images/paths/spot.png'))
+                        self.path_def_pic.setPixmap(QPixmap('/images/paths/spot.png'))
                         if z[1] is None:
                             self.name_label = LabelClass("Last, First #" + str(z[0]) + ", " + "null")
                         else:
@@ -758,31 +766,31 @@ class thegrid(QGridLayout):
                 deep = (["1/4 deep", "1/3 deep"])
                 line = (["blitz", "stunt left", "stunt right", "twist"])
                 if edits[i][1].currentText() in spot:
-                    edits[i][2].setPixmap(QPixmap('images/paths/spot.png'))
+                    edits[i][2].setPixmap(QPixmap('/images/paths/spot.png'))
                 elif edits[i][1].currentText() in deep:
-                    edits[i][2].setPixmap(QPixmap('images/paths/deep.png'))
+                    edits[i][2].setPixmap(QPixmap('/images/paths/deep.png'))
                 elif edits[i][1].currentText() in line:
                     if edits[i][1].currentText() == "blitz":
-                        edits[i][2].setPixmap(QPixmap('images/paths/fire.png').transformed(QtGui.QTransform().rotate(45)))
+                        edits[i][2].setPixmap(QPixmap('/images/paths/fire.png').transformed(QtGui.QTransform().rotate(45)))
                     elif edits[i][1].currentText() == "stunt right":
-                        edits[i][2].setPixmap(QPixmap('images/paths/blitz.png'))
+                        edits[i][2].setPixmap(QPixmap('/images/paths/blitz.png'))
                     elif edits[i][1].currentText() == "stunt left":
-                        img = cv2.imread('images/paths/blitz.png')
+                        img = cv2.imread('/images/paths/blitz.png')
                         img_flip_lr = cv2.flip(img, 1)
                         height, width, channel = img_flip_lr.shape
                         bytesPerLine = 3 * width
                         qImg = QImage(img_flip_lr.data, width, height, bytesPerLine, QImage.Format_RGB888)
                         edits[i][2].setPixmap(QPixmap(qImg))
                     elif edits[i][1].currentText() == "twist":
-                        edits[i][2].setPixmap(QPixmap('images/paths/loop.png'))
+                        edits[i][2].setPixmap(QPixmap('/images/paths/loop.png'))
 
             else:
                 if edits[i][1].currentText() == "slant" or edits[i][1].currentText() == "post" or edits[i][1].currentText() == "corner":
-                    edits[i][2].setPixmap(QPixmap('images/paths/slant.png'))
+                    edits[i][2].setPixmap(QPixmap('/images/paths/slant.png'))
                 elif edits[i][1].currentText() == "wheel":
-                    edits[i][2].setPixmap(QPixmap('images/paths/wheel.png'))
+                    edits[i][2].setPixmap(QPixmap('/images/paths/wheel.png'))
                 elif edits[i][1].currentText() == "dig" or edits[i][1].currentText() == "in" or edits[i][1].currentText() == "out":
-                    edits[i][2].setPixmap(QPixmap('images/paths/dig.png'))
+                    edits[i][2].setPixmap(QPixmap('//images/paths/dig.png'))
                 elif edits[i][1].currentText() == "drag":
                     edits[i][2].setPixmap(QPixmap('images/paths/dig.png'))
                 elif edits[i][1].currentText() == "whip":
@@ -1054,9 +1062,10 @@ class SortFilterProxyModel(QSortFilterProxyModel):
         return True
 
 
+
 def end_page():
     app = QApplication(sys.argv)
-    QFontDatabase().addApplicationFont("fonts/proxima.ttf")
+    QFontDatabase().addApplicationFont(resource_path('fonts/proxima.ttf'))
     window = End()
     window.update_play_table()
     window.set_light_dark_mode()

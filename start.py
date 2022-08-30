@@ -1,10 +1,9 @@
-import urllib
 from urllib.request import urlopen
-from PyQt5 import QtGui
-from PyQt5.QtCore import QTimer, Qt
 from PyQt5.QtWidgets import *
-from PyQt5.QtGui import QPixmap, QFontDatabase, QFont, QIcon
 import all
+import os
+import sys
+
 import end
 from collegeFBTeams import *
 from collegeFBGames import *
@@ -12,7 +11,7 @@ from end import *
 from getNFLGames import *
 from Roster import *
 from psycopg2 import connect
-from qtwidgets import Toggle, AnimatedToggle
+from qtwidgets import AnimatedToggle
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -29,10 +28,16 @@ keys = ["game_id", "id", "play_number", "offense", "defense", "period", "clock",
 nflheaders = ["Id", "Play Type", "Away Score", "Home Score", "Quarter", "Clock", "Down", "Distance", "Yard Line", "Play Text"]
 nflkeys = ["id", "type", "awayScore", "homeScore", "period", "clock", "start", "shortText"]
 
+
+def resource_path(relative_path):
+    if hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.abspath("."), relative_path)
+
 class Window(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowIcon(QIcon('images/favicon.ico'))
+        self.setWindowIcon(QIcon(self.resource_path('images/favicon.ico')))
         self.ok_btn = QPushButton("Submit")
 
         self.toggle_2 = AnimatedToggle(
@@ -107,7 +112,7 @@ class Window(QWidget):
         main_layout.addLayout(middle_layout)
 
         # top Left
-        self.league_pic.setPixmap(QPixmap('images/ncaa.png'))
+        self.league_pic.setPixmap(QPixmap(self.resource_path('images/ncaa.png')))
         self.league_pic.setMaximumSize(500, 500)
         top_left_layout.addWidget(self.league_pic)
         top_left_layout.setAlignment(Qt.AlignCenter)
@@ -296,8 +301,8 @@ class Window(QWidget):
                    offense_l_or_r=self.offense_left_or_right.currentText(), yard_line=int(self.yard_value), offense=self.offense.currentText(),
                    defense=self.opponent.currentText(), league=self.league.currentText(), year=self.year.currentText(),
                    week=self.week[0], regular_post=self.regular_post.currentText(), play_text=self.play_text)
-        # self.w = end.End()
-        # self.w.show()
+        self.w = end.End()
+        self.w.show()
 
     def update_opponent(self, ix):
         if self.league.currentText() == 'NFL' and ix == 0:
@@ -331,12 +336,12 @@ class Window(QWidget):
     def change_image(self):
         if self.value == 0:
             if self.league.currentText() == 'NFL':
-                pixmap = QPixmap('images/nfl.png')
+                pixmap = QPixmap(self.resource_path('images/nfl.png'))
                 pixmap = pixmap.scaled(500, 500)
                 self.league_pic.setPixmap(pixmap)
                 self.value = 1
             else:
-                pixmap = QPixmap('images/ncaa.png')
+                pixmap = QPixmap(self.resource_path('images/ncaa.png'))
                 pixmap = pixmap.scaled(500, 500)
                 self.league_pic.setPixmap(pixmap)
                 self.value = 1
@@ -392,7 +397,7 @@ class Window(QWidget):
                         self.league_pic.setPixmap(QPixmap(image))
                         self.value = 0
                     except:
-                        pixmap = QPixmap('images/fcs.png')
+                        pixmap = QPixmap(self.resource_path('images/fcs.png'))
                         self.league_pic.setPixmap(QPixmap(pixmap))
                         self.value = 0
                 self.value = 0
@@ -449,8 +454,9 @@ class Window(QWidget):
             if self.league.currentText() == "NFL":
                 team_name = self.offense.currentText()
                 team_name = team_name.replace(" ", "").lower()
-                # set stylesheet here
-                teamFile = "styles/nfl/" + team_name + ".qss"
+                # set stylesheet here and uncomment to deploy
+                teamFile = self.resource_path("styles/nfl/" + team_name + ".qss")
+                #teamFile = self.resource_path("styles/" + team_name + ".qss")
                 try:
                     with open(teamFile, "r") as self.fh:
                         self.setStyleSheet(self.fh.read() + self.style)
@@ -459,8 +465,9 @@ class Window(QWidget):
             else:
                 team_name = self.offense.currentText()
                 team_name = team_name.replace(" ", "").lower()
-                # set stylesheet here
-                teamFile = "styles/ncaa/" + team_name + ".qss"
+                # set stylesheet here and uncomment to deploy
+                teamFile = self.resource_path("styles/ncaa/" + team_name + ".qss")
+                #teamFile = self.resource_path("styles/" + team_name + ".qss")
                 try:
                     with open(teamFile, "r") as self.fh:
                         self.setStyleSheet(self.fh.read() + self.style)
@@ -468,9 +475,15 @@ class Window(QWidget):
                     pass
 
 
+    def resource_path(self, relative_path):
+        if hasattr(sys, '_MEIPASS'):
+            return os.path.join(sys._MEIPASS, relative_path)
+        return os.path.join(os.path.abspath("."), relative_path)
+
+
 def main():
     app = QApplication(sys.argv)
-    QFontDatabase().addApplicationFont("fonts/proxima.ttf")
+    QFontDatabase().addApplicationFont(resource_path('fonts/proxima.ttf'))
     window = Window()
     window.start()
     window.set_light_dark_mode()
