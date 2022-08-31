@@ -404,7 +404,7 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
 
         elif key == ord("p"):
             i = 1
-            cv2.imwrite("boxes.jpg", frame_cap)
+            cv2.imwrite(resource_path("images/boxes.jpg"), frame_cap)
 
             if 80 < yard_line < 100:
                 srcpointTracker = cv2.MultiTracker_create()
@@ -454,7 +454,7 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
                     ) for datainsert in insertList))
 
             insert_execute_values_iterator(conn, insertList=biglist)
-            cv2.imwrite("dottedfield.jpg", field)
+            cv2.imwrite(resource_path("images/dottedfield.jpg"), field)
             root = tkinter.Tk()
             root.withdraw()
 
@@ -525,7 +525,7 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
                 for p in no_position:
                     if p[1] == None or p[1] == "":
                         USER_INP = simpledialog.askstring(title="Player Identification",
-                                                          prompt="What Position is the Player Id?" + str(p[1]))
+                                                          prompt="What Position is the Player Id?" + str(p[0]))
                         cur.execute(sql.SQL("update {} set position = %s where playerid = %s and playid = %s;").format(
                             sql.Identifier('main_table')),
                             (USER_INP, int(p[0]), str(playid_number)))

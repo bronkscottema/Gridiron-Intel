@@ -3,7 +3,7 @@
 
 block_cipher = None
 added_files = [
-         ( 'C:/Users/bronkscottema/Desktop/Development/Audible_Analytics/images/*.png', 'images' ),
+         ( 'C:/Users/bronkscottema/Desktop/Development/Audible_Analytics/images/*', 'images' ),
          ( 'C:/Users/bronkscottema/Desktop/Development/Audible_Analytics/styles/*/*', 'styles' ),
          ( 'C:/Users/bronkscottema/Desktop/Development/Audible_Analytics/fonts/*', 'fonts' ),
          ]
