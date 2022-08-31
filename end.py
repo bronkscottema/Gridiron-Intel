@@ -1,5 +1,6 @@
 import urllib
-
+import sys
+import os
 import cv2
 from PyQt5 import QtGui, QtWidgets, QtCore
 from PyQt5.QtCore import Qt, QSortFilterProxyModel, QDataStream, QIODevice, QVariant, QRectF, \
@@ -482,14 +483,19 @@ class End(QWidget):
                 defense_name = result[1]
                 defense_name = defense_name.replace(" ", "").lower()
                 # set stylesheet here
-                offteamFile = resource_path("styles/" + offense_name + ".qss")
-                defteamFile = resource_path("styles/" + defense_name + ".qss")
+                offteamFile = self.resource_path("styles/" + offense_name + ".qss")
+                print(offteamFile)
+                defteamFile = self.resource_path("styles/" + defense_name + ".qss")
                 try:
                     with open(offteamFile, "r") as self.of, open(defteamFile, "r") as self.df:
                         self.setStyleSheet(self.df.read() + self.of.read() + self.style)
                 except:
                     pass
 
+    def resource_path(self, relative_path):
+        if hasattr(sys, '_MEIPASS'):
+            return os.path.join(sys._MEIPASS, relative_path)
+        return os.path.join(os.path.abspath("."), relative_path)
 
 class LabelClass(QLabel):
     def __init__(self, title):
@@ -636,7 +642,7 @@ class thegrid(QGridLayout):
                         self.path_pic = LabelClass("")
                         self.path_pic.style().unpolish(self.path_pic)
                         self.path_pic.style().polish(self.path_pic)
-                        self.path_pic.setPixmap(QPixmap(resource_path('/images/paths/slant.png')))
+                        self.path_pic.setPixmap(QPixmap(self.resource_path('images/slant.png')))
 
                         if z[1] is None:
                             self.name_label = LabelClass("Last, First #" + str(z[0]) + ", " + "null")
@@ -703,7 +709,7 @@ class thegrid(QGridLayout):
                         self.path_def_pic = QLabel()
                         self.path_def_pic.style().unpolish(self.path_def_pic)
                         self.path_def_pic.style().polish(self.path_def_pic)
-                        self.path_def_pic.setPixmap(QPixmap('/images/paths/spot.png'))
+                        self.path_def_pic.setPixmap(QPixmap(self.resource_path('images/spot.png')))
                         if z[1] is None:
                             self.name_label = LabelClass("Last, First #" + str(z[0]) + ", " + "null")
                         else:
@@ -764,69 +770,69 @@ class thegrid(QGridLayout):
                 deep = (["1/4 deep", "1/3 deep"])
                 line = (["blitz", "stunt left", "stunt right", "twist"])
                 if edits[i][1].currentText() in spot:
-                    edits[i][2].setPixmap(QPixmap('/images/paths/spot.png'))
+                    edits[i][2].setPixmap(QPixmap(self.resource_path('images/spot.png')))
                 elif edits[i][1].currentText() in deep:
-                    edits[i][2].setPixmap(QPixmap('/images/paths/deep.png'))
+                    edits[i][2].setPixmap(QPixmap(self.resource_path('images/deep.png')))
                 elif edits[i][1].currentText() in line:
                     if edits[i][1].currentText() == "blitz":
-                        edits[i][2].setPixmap(QPixmap('/images/paths/fire.png').transformed(QtGui.QTransform().rotate(45)))
+                        edits[i][2].setPixmap(QPixmap(self.resource_path('images/fire.png').transformed(QtGui.QTransform().rotate(45))))
                     elif edits[i][1].currentText() == "stunt right":
-                        edits[i][2].setPixmap(QPixmap('/images/paths/blitz.png'))
+                        edits[i][2].setPixmap(QPixmap(self.resource_path('images/blitz.png')))
                     elif edits[i][1].currentText() == "stunt left":
-                        img = cv2.imread('/images/paths/blitz.png')
+                        img = cv2.imread(self.resource_path('images/blitz.png'))
                         img_flip_lr = cv2.flip(img, 1)
                         height, width, channel = img_flip_lr.shape
                         bytesPerLine = 3 * width
                         qImg = QImage(img_flip_lr.data, width, height, bytesPerLine, QImage.Format_RGB888)
                         edits[i][2].setPixmap(QPixmap(qImg))
                     elif edits[i][1].currentText() == "twist":
-                        edits[i][2].setPixmap(QPixmap('/images/paths/loop.png'))
+                        edits[i][2].setPixmap(QPixmap(self.resource_path('images/loop.png')))
 
             else:
                 if edits[i][1].currentText() == "slant" or edits[i][1].currentText() == "post" or edits[i][1].currentText() == "corner":
-                    edits[i][2].setPixmap(QPixmap('/images/paths/slant.png'))
+                    edits[i][2].setPixmap(QPixmap(self.resource_path('images/slant.png')))
                 elif edits[i][1].currentText() == "wheel":
-                    edits[i][2].setPixmap(QPixmap('/images/paths/wheel.png'))
+                    edits[i][2].setPixmap(QPixmap(self.resource_path('images/wheel.png')))
                 elif edits[i][1].currentText() == "dig" or edits[i][1].currentText() == "in" or edits[i][1].currentText() == "out":
-                    edits[i][2].setPixmap(QPixmap('//images/paths/dig.png'))
+                    edits[i][2].setPixmap(QPixmap(self.resource_path('images/dig.png')))
                 elif edits[i][1].currentText() == "drag":
-                    edits[i][2].setPixmap(QPixmap('images/paths/dig.png'))
+                    edits[i][2].setPixmap(QPixmap(self.resource_path('images/dig.png')))
                 elif edits[i][1].currentText() == "whip":
-                    edits[i][2].setPixmap(QPixmap('images/paths/whip.png'))
+                    edits[i][2].setPixmap(QPixmap(self.resource_path('images/whip.png')))
                 elif edits[i][1].currentText() == "jerk":
-                    edits[i][2].setPixmap(QPixmap('images/paths/jerk.png'))
+                    edits[i][2].setPixmap(QPixmap(self.resource_path('images/jerk.png')))
                 elif edits[i][1].currentText() == "bubble" or edits[i][1].currentText() == "swing":
-                    edits[i][2].setPixmap(QPixmap('images/paths/bubble.png'))
+                    edits[i][2].setPixmap(QPixmap(self.resource_path('images/bubble.png')))
                 elif edits[i][1].currentText() == "comeback" or edits[i][1].currentText() == "curl" or edits[i][1].currentText() == "hitch":
-                    edits[i][2].setPixmap(QPixmap('images/paths/comeback.png'))
+                    edits[i][2].setPixmap(QPixmap(self.resource_path('images/comeback.png')))
                 elif edits[i][1].currentText() == "check release":
-                    edits[i][2].setPixmap(QPixmap('images/paths/check.png'))
+                    edits[i][2].setPixmap(QPixmap(self.resource_path('images/check.png')))
                 elif edits[i][1].currentText() == "slide left" or edits[i][1].currentText() == "slide right":
                     if edits[i][1].currentText() == "slide right":
-                        img = cv2.imread('images/paths/slideleft.png')
+                        img = cv2.imread('images/slideleft.png')
                         img_flip_lr = cv2.flip(img, 1)
                         height, width, channel = img_flip_lr.shape
                         bytesPerLine = 3 * width
                         qImg = QImage(img_flip_lr.data, width, height, bytesPerLine, QImage.Format_RGB888)
                         edits[i][2].setPixmap(QPixmap(qImg))
                     else:
-                        edits[i][2].setPixmap(QPixmap('images/paths/slideleft.png'))
+                        edits[i][2].setPixmap(QPixmap(self.resource_path('images/slideleft.png')))
                 elif edits[i][1].currentText() == "man" or edits[i][1].currentText() == "block" or edits[i][1].currentText() == "block right" or edits[i][1].currentText() == "block left":
                     if edits[i][1].currentText() == "block right":
-                        edits[i][2].setPixmap(QPixmap('images/paths/block.png'))
+                        edits[i][2].setPixmap(QPixmap(self.resource_path('images/block.png')))
                     elif edits[i][1].currentText() == "block left":
-                        edits[i][2].setPixmap(QPixmap('images/paths/block.png').transformed(QtGui.QTransform().rotate(-90)))
+                        edits[i][2].setPixmap(QPixmap(self.resource_path('images/block.png').transformed(QtGui.QTransform().rotate(-90))))
                     elif edits[i][1].currentText() == "block" or edits[i][1].currentText() == "man":
                         if edits[i][1].currentText() == "block":
-                            edits[i][2].setPixmap(QPixmap('images/paths/man.png').transformed(QtGui.QTransform().rotate(180)))
+                            edits[i][2].setPixmap(QPixmap(self.resource_path('images/man.png').transformed(QtGui.QTransform().rotate(180))))
                         else:
-                            edits[i][2].setPixmap(QPixmap('images/paths/man.png'))
+                            edits[i][2].setPixmap(QPixmap(self.resource_path('images/man.png')))
                 elif edits[i][1].currentText() == "pull":
-                    edits[i][2].setPixmap(QPixmap('images/paths/pull.png'))
+                    edits[i][2].setPixmap(QPixmap(self.resource_path('images/pull.png')))
                 elif edits[i][1].currentText() == "fade":
-                    edits[i][2].setPixmap(QPixmap('images/paths/fade.png'))
+                    edits[i][2].setPixmap(QPixmap(self.resource_path('images/fade.png')))
                 elif edits[i][1].currentText() == "seam":
-                    edits[i][2].setPixmap(QPixmap('images/paths/seam.png'))
+                    edits[i][2].setPixmap(QPixmap(self.resource_path('images/seam.png')))
 
     def update_players(self):
         try:
