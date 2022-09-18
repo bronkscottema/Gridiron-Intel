@@ -108,7 +108,7 @@ class End(QWidget):
         cur.execute("select offense,defense,year,league from recently_viewed order by date_added desc limit  1;")
         result = cur.fetchone()
         # layout section
-        self.fieldpic.setPixmap(QPixmap(resource_path('dottedfield.jpg')))
+        self.fieldpic.setPixmap(QPixmap(resource_path('images/dottedfield.jpg')))
         self.field_layout.addWidget(self.fieldpic)
 
 
@@ -146,7 +146,7 @@ class End(QWidget):
         self.play_layout.addLayout(self.off_def_play)
 
         self.image_layout.addLayout(self.play_layout)
-        self.viewer.setPhoto(QPixmap(resource_path("boxes.jpg")))
+        self.viewer.setPhoto(QPixmap(resource_path("images/boxes.jpg")))
         self.move_image_layout.addWidget(self.viewer)
         self.image_layout.setSpacing(0)
         self.image_layout.setContentsMargins(0, 0, 0, 0)
@@ -484,7 +484,7 @@ class End(QWidget):
                 defense_name = defense_name.replace(" ", "").lower()
                 # set stylesheet here
                 offteamFile = self.resource_path("styles/" + offense_name + ".qss")
-                print(offteamFile)
+                # print(offteamFile)
                 defteamFile = self.resource_path("styles/" + defense_name + ".qss")
                 try:
                     with open(offteamFile, "r") as self.of, open(defteamFile, "r") as self.df:
