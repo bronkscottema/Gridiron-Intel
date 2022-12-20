@@ -1,17 +1,17 @@
 import io
-import time
 import tkinter
 from datetime import datetime, timezone
 from tkinter import *
 from tkinter import simpledialog
-import sys
-import os
+
 import cv2.cuda
 import numpy as np
 import psycopg2.extras
 from PIL import Image, ImageDraw, ImageFont
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 from end import *
+import torch
+
 
 load_dotenv()
 
@@ -21,9 +21,8 @@ def resource_path(relative_path):
     return os.path.join(os.path.abspath("."), relative_path)
 
 
-def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard_line, offense, defense, league, year, week, regular_post, play_text):
+def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard_line, offense, defense, league, year, week, regular_post, play_text, start_pos, end_pos):
     global source_points
-    starting = time.time()
     total_players = 0
     tracker_name = 'csrt'
     cv2.setUseOptimized(True)
@@ -39,23 +38,8 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
     cap = cv2.VideoCapture(file)
     cap.set(cv2.CAP_PROP_BUFFERSIZE, 2)
 
-    length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-
-    def on_open(trackbarValue):
-        cap.set(cv2.CAP_PROP_POS_FRAMES, trackbarValue)
-        err, img = cap.read()
-        cv2.imshow("mywindow", img)
-        pass
-
-    cv2.namedWindow('mywindow')
-    cv2.createTrackbar('start', 'mywindow', 0, length, on_open)
-    cv2.createTrackbar('end', 'mywindow', 200, length, on_open)
-
-    on_open(0)
-    cv2.waitKey()
-
-    start = cv2.getTrackbarPos('start', 'mywindow')
-    end = cv2.getTrackbarPos('end', 'mywindow')
+    start = start_pos
+    end = end_pos
     if start >= end:
         raise Exception("start must be less than end")
 
@@ -192,89 +176,6 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
         (srcwins, src_pts) = srcpointTracker.update(points_image)
         (dstwins, dst_pts) = field_point_tracker.update(frame_cap)
 
-        if len(boxes) == 0 and exists == False:
-            cv2.imwrite("file.jpg", frame_cap)
-            # select the bounding box of the object we want to track (make
-            # sure you press ENTER or SPACE after selecting the ROI)
-            box = cv2.selectROIs("Frame", frame_cap, fromCenter=False,
-                                 showCrosshair=True)
-
-            parts = []
-            url_base = 'https://detect.roboflow.com/'
-            endpoint = os.getenv('ROBOFLOW_URL')
-            access_token = os.getenv('ROBOFLOW_API_KEY')
-            format = '&format=json'
-            confidence = '&confidence=75'
-            stroke = '&stroke=4'
-            overlap = '&overlap=0'
-            parts.append(url_base)
-            parts.append(endpoint)
-            parts.append(access_token)
-            parts.append(format)
-            parts.append(confidence)
-            parts.append(overlap)
-            parts.append(stroke)
-            url = ''.join(parts)
-
-            f = 'file.jpg'
-            image = Image.open(f).convert("RGB")
-            # Convert to JPEG Buffer
-            buffered = io.BytesIO()
-            image.save(buffered, quality=90, format="JPEG")
-            # Construct the URL
-            m = MultipartEncoder(fields={'file': (f, buffered.getvalue(), resource_path("image/jpeg"))})
-            r = requests.post(url, data=m, headers={'Content-Type': m.content_type})
-            # print('post took ' + str(time.time() - start))
-            # POST to the API
-            # re = requests.post("https://app.roboflow.com/bronkscottema/football-players-zm06l/upload?api_key=UkLzsuZSvsQOnmhR2JaS", data=img_str, headers={
-            #     'accept': 'application/json'})
-            # print(re.json())
-            # print(r.json())
-            preds = r.json()
-            detections = preds['predictions']
-
-            draw = ImageDraw.Draw(image)
-            font = ImageFont.load_default()
-            detect = detections
-
-            for xydata in detect:
-                for second in detections:
-                    if xydata['class'] != second['class'] or xydata['class'] == second['class']:
-                        if xydata['x'] - 5 <= second['x'] <= xydata['x'] + 5 or xydata['x'] == second['x']:
-                            if xydata['y'] - 5 <= second['y'] <= xydata['y'] + 5 or xydata['y'] == second['y']:
-                                second['remove'] = 'yes'
-                            second['remove'] = 'no'
-                        second['remove'] = 'no'
-
-            for box in detections:
-                if box['remove'] != 'yes':
-                    color = "#4892EA"
-                    w = box['width']
-                    h = box['height']
-                    player_class = box['class']
-                    x1 = box['x'] - box['width'] / 2
-                    y1 = box['y'] - box['height'] / 2
-                    json_prediction.append(player_class)
-                    tracker = cv2.TrackerCSRT_create()
-                    trackers.add(tracker, frame_cap, (x1, y1, w, h))
-                #     draw.rectangle([
-                #         x1, y1, x2, y2
-                #     ], outline=color, width=5)
-                #
-                #     if True:
-                #         text = box['class']
-                #         text_size = font.getsize(text)
-                #
-                #         # set button size + 10px margins
-                #         button_size = (text_size[0] + 20, text_size[1] + 20)
-                #         button_img = Image.new('RGBA', button_size, color)
-                #         # put text on button with 10px margins
-                #         button_draw = ImageDraw.Draw(button_img)
-                #         button_draw.text((10, 10), text, font=font, fill=(255, 255, 255, 255))
-                #
-                #         # put button on source image in position (0, 0)
-                #         image.paste(button_img, (int(x1), int(y1)))
-            screenshot = cap.get(cv2.CAP_PROP_POS_FRAMES)
 
         # loop over the bounding boxes and draw them on the frame
         for dstbox in enumerate(dst_pts):
@@ -355,15 +256,15 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
                                                       (int(abs(x1)) + 1, int(abs(y1)) + 1), home, 2)
 
                                     tup = (gameid_number, str(playid_number), int(box_id), (int(abs(x1))), (int(abs(y1))),
-                                         cap.get(cv2.CAP_PROP_POS_FRAMES), null_variable,
-                                         str(json_prediction[face_no]))
+                                           cap.get(cv2.CAP_PROP_POS_FRAMES), "defense",
+                                           str(json_prediction[face_no]))
 
                                     biglist.append(tup)
                                 else:
                                     cv2.rectangle(field, ((int(abs(x1))), int(abs(y1))),
                                                   (int(abs(x1)) + 1, int(abs(y1)) + 1), (0,0,0), 2)
                                     tup = (gameid_number, str(playid_number), int(box_id), (int(abs(x1))), (int(abs(y1))),
-                                           cap.get(cv2.CAP_PROP_POS_FRAMES), null_variable,
+                                           cap.get(cv2.CAP_PROP_POS_FRAMES), "offense",
                                            null_variable, gameid_number)
 
                                     biglist.append(tup)
@@ -439,8 +340,6 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
             cv2.setMouseCallback('field', mouse_func)
 
         if cap.get(cv2.CAP_PROP_POS_FRAMES) >= end:
-            ending = time.time()
-            print(ending - starting)
 
             def insert_execute_values_iterator(
                     connection,
@@ -474,15 +373,15 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
                 try:
                     cur.execute(sql.SQL(
                         "DELETE FROM main_table WHERE playerid = %s and playid = '" + str(playid_number) + "';"),
-                                (value,))
+                        (value,))
                 except:
                     continue
             if not exists:
                 cur.execute(sql.SQL(
                     "INSERT INTO recently_viewed (game_id, playid, offense, defense, play_text, date_added, league, year, regular_post, week)"
                     "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"),
-                            (gameid_number, playid_number, offense, defense,
-                             play_text, datetime.now(timezone.utc), league, year, regular_post, week))
+                    (gameid_number, playid_number, offense, defense,
+                     play_text, datetime.now(timezone.utc), league, year, regular_post, week))
 
 
             cur.execute(
@@ -496,34 +395,34 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
                         if y[3] < y_pos:
                             cur.execute(sql.SQL(
                                 "update main_table set color = 'defense' where playid = '" + playid_number + "' and playerid = %s"),
-                                        (playerid,))
+                                (playerid,))
                         else:
                             cur.execute(sql.SQL(
                                 "update main_table set color = 'offense' where playid = '" + playid_number + "' and playerid = %s"),
-                                        (playerid,))
+                                (playerid,))
                     break
                 else:
                     continue
             else:
                 # There was no center
                 CENTER_INP = simpledialog.askstring(title="Center Identification",
-                                                  prompt="Which Id number on the screen is the center?")
+                                                    prompt="Which Id number on the screen is the center?")
                 for x in off_vs_def:
                     if x[4] == CENTER_INP:
                         cur.execute(sql.SQL(
                             "update main_table set position = 'C' where playid = '" + playid_number + "' and playerid = %s"),
-                                    (int(USER_INP),))
+                            (int(USER_INP),))
                         y_pos = x[3]
                         for y in off_vs_def:
                             playerid = y[4]
                             if y[3] < y_pos:
                                 cur.execute(sql.SQL(
                                     "update main_table set color = 'defense' where playid = '" + playid_number + "' and playerid = %s"),
-                                            (playerid,))
+                                    (playerid,))
                             else:
                                 cur.execute(sql.SQL(
                                     "update main_table set color = 'offense' where playid = '" + playid_number + "' and playerid = %s"),
-                                            (playerid,))
+                                    (playerid,))
 
             # get players with no position and update them
             cur.execute("select distinct(playerid), position from main_table where playid = '" + playid_number + "';")
@@ -541,18 +440,18 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
                     if x[4] == 'C':
                         cur.execute(sql.SQL(
                             "update main_table set position = 'C' where playid = '" + playid_number + "' and playerid = %s"),
-                                    (int(USER_INP),))
+                            (int(USER_INP),))
                         y_pos = x[3]
                         for y in off_vs_def:
                             playerid = y[4]
                             if y[3] < y_pos:
                                 cur.execute(sql.SQL(
                                     "update main_table set color = 'defense' where playid = '" + playid_number + "' and playerid = %s"),
-                                            (playerid,))
+                                    (playerid,))
                             else:
                                 cur.execute(sql.SQL(
                                     "update main_table set color = 'offense' where playid = '" + playid_number + "' and playerid = %s"),
-                                            (playerid,))
+                                    (playerid,))
 
             else:
                 print("all positions updated")
@@ -566,4 +465,3 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
 
     cap.release()
     cv2.destroyAllWindows()
-opencv('C:\\Users\\bronkscottema\\Videos\\Captures\\Jaguars_vs_Lions_wk13_2022.mp4')
