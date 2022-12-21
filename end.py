@@ -18,9 +18,7 @@ import re
 from dotenv import load_dotenv
 
 load_dotenv()
-# prod
-# conn = connect(dbname="footballiq", host="52.91.161.249", user="postgres", password="F00tball")
-# testing
+
 conn = connect(dbname=os.getenv('DATABASE_NAME'), host=os.getenv('DATABASE_HOST'), user=os.getenv('DATABASE_USER'),
                password=os.getenv('DATABASE_PASSWORD'))
 conn.autocommit = True

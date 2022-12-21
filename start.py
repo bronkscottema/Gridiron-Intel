@@ -15,9 +15,7 @@ from qtwidgets import AnimatedToggle
 from dotenv import load_dotenv
 
 load_dotenv()
-# prod
-# conn = connect(dbname="footballiq", host="52.91.161.249", user="postgres", password="F00tball")
-# testing
+
 conn = connect(dbname=os.getenv('DATABASE_NAME'), host=os.getenv('DATABASE_HOST'), user=os.getenv('DATABASE_USER'), password=os.getenv('DATABASE_PASSWORD'))
 conn.autocommit = True
 cur = conn.cursor()
@@ -455,7 +453,8 @@ class Window(QWidget):
                 team_name = self.offense.currentText()
                 team_name = team_name.replace(" ", "").lower()
                 # set stylesheet here and uncomment to deploy
-                teamFile = self.resource_path("styles/" + team_name + ".qss")
+                teamFile = self.resource_path("styles\\ncaa\\" + team_name + ".qss")
+                print(teamFile)
                 try:
                     with open(teamFile, "r") as self.fh:
                         self.setStyleSheet(self.fh.read() + self.style)
@@ -465,7 +464,8 @@ class Window(QWidget):
                 team_name = self.offense.currentText()
                 team_name = team_name.replace(" ", "").lower()
                 # set stylesheet here and uncomment to deploy
-                teamFile = self.resource_path("styles/" + team_name + ".qss")
+                teamFile = self.resource_path("styles\\ncaa\\" + team_name + ".qss")
+                print(teamFile)
                 try:
                     with open(teamFile, "r") as self.fh:
                         self.setStyleSheet(self.fh.read() + self.style)

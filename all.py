@@ -7,6 +7,7 @@ import numpy as np
 import psycopg2.extras
 from PIL import Image, ImageDraw, ImageFont
 from requests_toolbelt.multipart.encoder import MultipartEncoder
+import opencv2 as cv2
 from end import *
 
 load_dotenv()
@@ -58,8 +59,7 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
     # test
     conn = connect(dbname=os.getenv('DATABASE_NAME'), host=os.getenv('DATABASE_HOST'), user=os.getenv('DATABASE_USER'),
                    password=os.getenv('DATABASE_PASSWORD'))
-    # prod
-    # conn = connect(dbname="footballiq", host="52.91.161.249", user="postgres", password="F00tball")
+
     conn.autocommit = True
     cur = conn.cursor()
 
