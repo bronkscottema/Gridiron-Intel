@@ -64,12 +64,12 @@ def opencv():
 
     cap.set(cv2.CAP_PROP_POS_FRAMES, start)
 
-    home = (188, 183, 176)
-    away = (44, 121, 159)
+    home = (176, 183, 188)
+    away = (159, 121, 44)
     player_pts3 = []
-    source_points = [(160, 800), (158, 600), (540, 800), (540, 600)]
-    points_image = cv2.imread(resource_path('images/nfl_20_30.png'))
-    field = cv2.imread(resource_path('images/nfl_20_30.png'))
+    source_points = [(160, 800), (158, 600), (540, 600), (540, 800)]
+    points_image = cv2.imread(resource_path('images/nfl_40_g.png'))
+    field = cv2.imread(resource_path('images/nfl_40_g.png'))
 
     field_points = []
     player_pts2 = []
@@ -87,6 +87,10 @@ def opencv():
         if frame_cap is None:
             break
         cv2.destroyWindow("mywindow")
+        frame_cap = cv2.flip(frame_cap, 1)
+        frame_cap = cv2.normalize(
+            frame_cap, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8UC1
+        )
 
         (success, boxes) = trackers.update(frame_cap)
         (dstwins, dst_pts) = field_point_tracker.update(frame_cap)
@@ -244,6 +248,9 @@ def opencv():
             print(ending-starting)
             cap.release()
             cv2.destroyAllWindows()
+            fps, w, h = 30, frame_cap.shape[1], frame_cap.shape[0]
+            save_path = filename + '.mp4'
+            cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
 
     cap.release()
     cv2.destroyAllWindows()
