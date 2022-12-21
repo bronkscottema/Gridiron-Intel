@@ -184,7 +184,7 @@ def opencv():
                             if face_no < len(json_prediction):
                                 if json_prediction[0] == "DB" or json_prediction[0] == "LB":
                                     cv2.rectangle(field, ((int(abs(x1))), int(abs(y1))),
-                                                  (int(abs(x1)) + 1, int(abs(y1)) + 1), away, 2)
+                                                  (int(abs(x1)) + 1, int(abs(y1)) + 1), (0,0,0), 2)
                                 else:
                                     cv2.rectangle(field, ((int(abs(x1))), int(abs(y1))),
                                                   (int(abs(x1)) + 1, int(abs(y1)) + 1), home, 2)
