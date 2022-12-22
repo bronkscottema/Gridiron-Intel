@@ -122,11 +122,11 @@ class Window(QWidget):
         # top Right
         # league question
         top_right_layout.addRow(self.leaque_label, self.league)
-        self.league.addItems(["NCAA", "NFL"])
+        self.league.addItems(["NCAA"])
         self.league.currentIndexChanged.connect(self.league_change)
 
         # year question
-        self.year.addItems(["2021", "2020", "2019", "2018", "2017", "2016", "2015",
+        self.year.addItems(["2022", "2021", "2020", "2019", "2018", "2017", "2016", "2015",
                             "2014", "2013", "2012", "2011", "2010", "2009"])
         top_right_layout.addRow(self.year_label, self.year)
 
@@ -284,13 +284,35 @@ class Window(QWidget):
             self.playid_value = self.api_table.item(self.current_row, 0).text()
             self.yard_value = self.api_table.item(self.current_row, 7).text()
             self.play_text = self.api_table.item(self.current_row, 9).text()
-            self.ok_btn.setVisible(True)
+
+            cur.execute("select distinct(playid) from main_table where playid = '" + self.playid_value + "';")
+            exists = cur.fetchone()[0]
+            if exists > 0:
+                msg = QMessageBox()
+                msg.setIcon(QMessageBox.Warning)
+                msg.setStandardButtons(QMessageBox.Ok)
+                msg.setText("This play has been done!")
+                msg.exec_()
+            else:
+                self.ok_btn.setVisible(True)
         else:
             self.gameid_value = self.api_table.item(self.current_row, 0).text()
             self.playid_value = self.api_table.item(self.current_row, 1).text()
             self.yard_value = self.api_table.item(self.current_row, 9).text()
             self.play_text = self.api_table.item(self.current_row, 11).text()
-            self.ok_btn.setVisible(True)
+            cur.execute("select distinct(playid) from main_table where playid = '" + self.playid_value + "';")
+            exists = cur.fetchone()
+
+            if exists is not None:
+                msg = QMessageBox()
+                msg.setIcon(QMessageBox.Warning)
+                msg.setStandardButtons(QMessageBox.Ok)
+                msg.setText("This play has been done!")
+                msg.exec_()
+                self.ok_btn.setVisible(True)
+            else:
+                self.ok_btn.setVisible(True)
+
 
     def submit_pushed(self):
         url = QFileDialog.getOpenFileName(self, "Open a file", "", "All Files(*);;")
@@ -453,7 +475,7 @@ class Window(QWidget):
                 team_name = self.offense.currentText()
                 team_name = team_name.replace(" ", "").lower()
                 # set stylesheet here and uncomment to deploy
-                teamFile = self.resource_path("styles\\ncaa\\" + team_name + ".qss")
+                teamFile = self.resource_path("styles/" + team_name + ".qss")
                 print(teamFile)
                 try:
                     with open(teamFile, "r") as self.fh:
@@ -464,7 +486,7 @@ class Window(QWidget):
                 team_name = self.offense.currentText()
                 team_name = team_name.replace(" ", "").lower()
                 # set stylesheet here and uncomment to deploy
-                teamFile = self.resource_path("styles\\ncaa\\" + team_name + ".qss")
+                teamFile = self.resource_path("styles/" + team_name + ".qss")
                 print(teamFile)
                 try:
                     with open(teamFile, "r") as self.fh:

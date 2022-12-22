@@ -482,7 +482,7 @@ class End(QWidget):
                 defense_name = defense_name.replace(" ", "").lower()
                 # set stylesheet here
                 offteamFile = self.resource_path("styles/" + offense_name + ".qss")
-                # print(offteamFile)
+                print(offteamFile)
                 defteamFile = self.resource_path("styles/" + defense_name + ".qss")
                 try:
                     with open(offteamFile, "r") as self.of, open(defteamFile, "r") as self.df:
@@ -640,6 +640,7 @@ class thegrid(QGridLayout):
                         self.path_pic = LabelClass("")
                         self.path_pic.style().unpolish(self.path_pic)
                         self.path_pic.style().polish(self.path_pic)
+                        print(self.resource_path('images/slant.png'))
                         self.path_pic.setPixmap(QPixmap(self.resource_path('images/slant.png')))
 
                         if z[1] is None:
