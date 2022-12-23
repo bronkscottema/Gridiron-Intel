@@ -70,7 +70,7 @@ class End(QWidget):
         screen = QDesktopWidget().screenGeometry()
         self.setGeometry(0, 0, screen.width(), screen.height())
         self.showMaximized()
-        self.setWindowTitle("Audible Analytics")
+        self.setWindowTitle("Gridiron Intelligence")
         self.font = QFont("proxima", 18)
         self.table_font = QFont("proxima", 11)
         self.fieldpic = QLabel(self)
