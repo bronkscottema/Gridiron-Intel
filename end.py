@@ -461,15 +461,27 @@ class End(QWidget):
                 cur.execute("select logo from college_team_colors where team_name IN %s;",
                             (data,))
                 url = cur.fetchall()
-                data_logo = urllib.request.urlopen(url[1][0]).read()
-                image = QtGui.QImage()
-                image.loadFromData(data_logo)
-                image1 = image.scaled(50, 50, Qt.KeepAspectRatio)
+                if len(url) > 1:
+                    data_logo = urllib.request.urlopen(url[1][0]).read()
+                    image = QtGui.QImage()
+                    image.loadFromData(data_logo)
+                    image1 = image.scaled(50, 50, Qt.KeepAspectRatio)
 
-                data_logo_2 = urllib.request.urlopen(url[0][0]).read()
-                image_away = QtGui.QImage()
-                image_away.loadFromData(data_logo_2)
-                image_away1 = image_away.scaled(50, 50, Qt.KeepAspectRatio)
+                    data_logo_2 = urllib.request.urlopen(url[0][0]).read()
+                    image_away = QtGui.QImage()
+                    image_away.loadFromData(data_logo_2)
+                    image_away1 = image_away.scaled(50, 50, Qt.KeepAspectRatio)
+                else:
+                    data_logo = urllib.request.urlopen(url[0][0]).read()
+                    image = QtGui.QImage()
+                    image.loadFromData(data_logo)
+                    image1 = image.scaled(50, 50, Qt.KeepAspectRatio)
+
+                    data_logo_2 = urllib.request.urlopen(url[0][0]).read()
+                    image_away = QtGui.QImage()
+                    image_away.loadFromData(data_logo_2)
+                    image_away1 = image_away.scaled(50, 50, Qt.KeepAspectRatio)
+
 
                 self.tabs.setIconSize(QtCore.QSize(60, 60))
                 self.tabs.setTabIcon(0, QIcon(QPixmap(image1).transformed(QtGui.QTransform().rotate(-90))))
@@ -510,6 +522,12 @@ class EditClass(QLineEdit):
 
 
 class thegrid(QGridLayout):
+
+    def resource_path(self, relative_path):
+        if hasattr(sys, '_MEIPASS'):
+            return os.path.join(sys._MEIPASS, relative_path)
+        return os.path.join(os.path.abspath("."), relative_path)
+
     def __init__(self, parent=None):
         cur.execute("select offense,defense,year,league from recently_viewed order by date_added desc limit  1;")
         result = cur.fetchone()
@@ -524,7 +542,7 @@ class thegrid(QGridLayout):
         self.timer.path.start(1000)
 
         cur.execute(
-            "select playid from main_table where playid = (select playid from recently_viewed order by date_added desc limit 1);")
+            "select playid from recently_viewed order by date_added desc limit 1;")
         result_main = cur.fetchone()
 
         cur.execute("select * from roster where playid = '" + result_main[0] + "';")
@@ -541,7 +559,7 @@ class thegrid(QGridLayout):
                     defense_count += 1
 
             playerid_list = []
-            if defense_count == 8:
+            if defense_count == 7:
                 gameid = play_table_result[0][2]
                 playid = play_table_result[0][3]
                 for i in play_table_result:
@@ -604,157 +622,166 @@ class thegrid(QGridLayout):
             0] + "' order by playerid;")
         result_distinct = cur.fetchall()
         count = 0
+        o_count = 0
+        d_count = 0
         data = (result[0], result[1])
         cur.execute("select logo from college_team_colors where team_name IN %s;", (data,))
         url = cur.fetchall()
-        data_logo = urllib.request.urlopen(url[1][0]).read()
-        image = QtGui.QImage()
-        image.loadFromData(data_logo)
-        image1 = image.scaled(50, 50, Qt.KeepAspectRatio)
+        if len(url) > 1:
+            data_logo = urllib.request.urlopen(url[1][0]).read()
+            image = QtGui.QImage()
+            image.loadFromData(data_logo)
+            image1 = image.scaled(50, 50, Qt.KeepAspectRatio)
 
-        data_logo_2 = urllib.request.urlopen(url[0][0]).read()
-        image_away = QtGui.QImage()
-        image_away.loadFromData(data_logo_2)
-        image_away1 = image_away.scaled(50, 50, Qt.KeepAspectRatio)
+            data_logo_2 = urllib.request.urlopen(url[0][0]).read()
+            image_away = QtGui.QImage()
+            image_away.loadFromData(data_logo_2)
+            image_away1 = image_away.scaled(50, 50, Qt.KeepAspectRatio)
+        else:
+            data_logo = urllib.request.urlopen(url[0][0]).read()
+            image = QtGui.QImage()
+            image.loadFromData(data_logo)
+            image1 = image.scaled(50, 50, Qt.KeepAspectRatio)
 
-       
+            data_logo_2 = urllib.request.urlopen(url[0][0]).read()
+            image_away = QtGui.QImage()
+            image_away.loadFromData(data_logo_2)
+            image_away1 = image_away.scaled(50, 50, Qt.KeepAspectRatio)
 
-        for x in range(12):
-            for y in range(2):
-                try:
-                    offense = ["SKILL", "QB", "RB", "WR", "RG", "LG", "C", "LT", "RT", "TE", "X", "Y", "Z", "H", "F",
-                               "None"]
-                    z = result_distinct[0 + count]
-                    if z[1] in offense:
-                        self.offframe = QFrame()
-                        self.offframe.setObjectName(result[0].replace(" ", ""))
-                        oline = ["RT", "LG", "C", "LT", "RT", "RG", "TE"]
-                        image_vert_layout = QVBoxLayout()
-                        image_vert_layout.setContentsMargins(0, 15, 0, 15)
-                        self.image_hori_layout = QHBoxLayout()
-                        self.pictureform = QFormLayout(self.offframe)
+        for x in range(len(result_distinct)):
+            offense = ["SKILL", "QB", "RB", "WR", "RG", "LG", "C", "LT", "RT", "TE", "X", "Y", "Z", "H", "F",
+                       "None"]
+            z = result_distinct[0 + count]
+            if z[1] in offense:
+                self.offframe = QFrame()
+                self.offframe.setObjectName(result[0].replace(" ", ""))
+                oline = ["RT", "LG", "C", "LT", "RT", "RG", "TE"]
+                image_vert_layout = QVBoxLayout()
+                image_vert_layout.setContentsMargins(0, 15, 0, 15)
+                self.image_hori_layout = QHBoxLayout()
+                self.pictureform = QFormLayout(self.offframe)
 
-                        # left vertical
-                        route_pic = QLabel()
-                        route_pic.setPixmap(QPixmap(image1))
-                        self.path_pic = LabelClass("")
-                        self.path_pic.style().unpolish(self.path_pic)
-                        self.path_pic.style().polish(self.path_pic)
-                        print(self.resource_path('images/slant.png'))
-                        self.path_pic.setPixmap(QPixmap(self.resource_path('images/slant.png')))
+                # left vertical
+                route_pic = QLabel()
+                route_pic.setPixmap(QPixmap(image1))
+                self.path_pic = LabelClass("")
+                self.path_pic.style().unpolish(self.path_pic)
+                self.path_pic.style().polish(self.path_pic)
+                print(self.resource_path('images/slant.png'))
+                self.path_pic.setPixmap(QPixmap(self.resource_path('images/slant.png')))
 
-                        if z[1] is None:
-                            self.name_label = LabelClass("Last, First #" + str(z[0]) + ", " + "null")
-                        else:
-                            self.name_label = LabelClass("Last, First #" + str(z[0]) + ", " + z[1])
+                if z[1] is None:
+                    self.name_label = LabelClass("Last, First #" + str(z[0]) + ", " + "null")
+                else:
+                    self.name_label = LabelClass("Last, First #" + str(z[0]) + ", " + z[1])
 
-                        self.name_label.setObjectName(result[0].replace(" ", "") + "offname")
-                        self.pictureform.addRow(self.name_label)
-                        self.name_label.setAlignment(Qt.AlignHCenter)
-                        self.playerid_label = QLabel("Player Id:")
-                        self.playerid_label.setObjectName(result[0].replace(" ", "") + "offlabel")
-                        self.playerid = QLabel(str(z[0]))
-                        self.playerid.setObjectName(result[0].replace(" ", "") + "offquestions")
-                        self.pictureform.addRow(self.playerid_label, self.playerid)
-                        player = QComboBox()
-                        player.setObjectName(result[0].replace(" ", "") + "offCombo")
-                        if z[1] in oline:
-                            if z[1] == "TE":
-                                player.addItems(
-                                    ["slide left", "slide right", "man", "block", "pull", "block left", "block right",
-                                     "slant", "post", "wheel", "dig", "drag", "out", "in", "whip", "jerk", "bubble",
-                                     "swing", "comeback", "curl", "hitch", "fade", "check release", "seam",
-                                     "corner", "block"])
-                            player.addItems(
-                                ["slide left", "slide right", "man", "block", "pull", "block left", "block right"])
-                        else:
-                            player.addItems(
-                                ["slant", "post", "wheel", "dig", "drag", "out", "in", "whip", "jerk", "bubble",
-                                 "swing", "comeback", "curl", "hitch", "fade", "check release", "seam",
-                                 "corner", "block"])
-                        grade_label = QLabel("Grade")
-                        grade_label.setObjectName(result[0].replace(" ", "") + "offlabel")
-                        grade = QComboBox()
-                        path_label = QLabel("Path:")
-                        path_label.setObjectName(result[0].replace(" ", "") + "offlabel")
-                        self.pictureform.addRow(path_label, player)
-                        grade.addItems(["10", "9", "8", "7", "6", "5", "4", "3", "2", "1"])
-                        grade.setObjectName(result[0].replace(" ", "") + "offCombo")
-                        self.pictureform.addRow(grade_label, grade)
-
-                        edits.append(tuple(("offense", player, self.path_pic, grade)))
-                        labels.append(self.name_label)
-
-                        # main
-                        self.image_hori_layout.addLayout(image_vert_layout)
-                        self.image_hori_layout.addWidget(self.offframe)
-                        # left Vert
-                        image_vert_layout.addWidget(route_pic)
-                        image_vert_layout.addWidget(self.path_pic)
-                        # rightform
-                        self.addLayout(self.image_hori_layout, x, y)
-                        count += 1
-                    else:
-                        self.defframe = QFrame()
-                        self.defframe.setObjectName(result[1].replace(" ", ""))
-                        image_vert_layout = QVBoxLayout()
-                        image_vert_layout.setContentsMargins(0, 15, 0, 15)
-                        self.image_hori_layout = QHBoxLayout()
-                        self.pictureform = QFormLayout(self.defframe)
-
-                        # left vertical
-                        route_pic = QLabel()
-                        route_pic.setPixmap(QPixmap(image_away1))
-                        self.path_def_pic = QLabel()
-                        self.path_def_pic.style().unpolish(self.path_def_pic)
-                        self.path_def_pic.style().polish(self.path_def_pic)
-                        self.path_def_pic.setPixmap(QPixmap(self.resource_path('images/spot.png')))
-                        if z[1] is None:
-                            self.name_label = LabelClass("Last, First #" + str(z[0]) + ", " + "null")
-                        else:
-                            self.name_label = LabelClass("Last, First #" + str(z[0]) + ", " + z[1])
-
-                        self.name_label.setObjectName(result[1].replace(" ", "") + "defname")
-                        self.pictureform.addRow(self.name_label)
-                        self.name_label.setAlignment(Qt.AlignHCenter)
-                        self.playerid_label = QLabel("Player Id:")
-                        self.playerid_label.setObjectName(result[1].replace(" ", "") + "deflabel")
-                        self.playerid = QLabel(str(z[0]))
-                        self.playerid.setObjectName(result[1].replace(" ", "") + "defquestions")
-                        self.pictureform.addRow(self.playerid_label, self.playerid)
-                        player = QComboBox()
-                        player.setObjectName(result[1].replace(" ", "") + "defcombo")
+                self.name_label.setObjectName(result[0].replace(" ", "") + "offname")
+                self.pictureform.addRow(self.name_label)
+                self.name_label.setAlignment(Qt.AlignHCenter)
+                self.playerid_label = QLabel("Player Id:")
+                self.playerid_label.setObjectName(result[0].replace(" ", "") + "offlabel")
+                self.playerid = QLabel(str(z[0]))
+                self.playerid.setObjectName(result[0].replace(" ", "") + "offquestions")
+                self.pictureform.addRow(self.playerid_label, self.playerid)
+                player = QComboBox()
+                player.setObjectName(result[0].replace(" ", "") + "offCombo")
+                if z[1] in oline:
+                    if z[1] == "TE":
                         player.addItems(
-                            ["1/4 seam flat", "1/4 hook", "1/4 mid hole", "1/2 hole", "1/2 curl", "1/2 flat",
-                             "1/3 deep",
-                             "1/3 hook", "1/3 flat", "blitz", "stunt left", "stunt right", "twist"])
-                        path_label = QLabel("Path:")
-                        path_label.setObjectName(result[1].replace(" ", "") + "deflabel")
-                        self.pictureform.addRow(path_label, player)
-                        grade_label = QLabel("Grade")
-                        grade_label.setObjectName(result[1].replace(" ", "") + "deflabel")
-                        grade = QComboBox()
-                        grade.addItems(["10", "9", "8", "7", "6", "5", "4", "3", "2", "1"])
-                        grade.setObjectName(result[1].replace(" ", "") + "defcombo")
-                        self.pictureform.addRow(grade_label, grade)
+                            ["slide left", "slide right", "man", "block", "pull", "block left", "block right",
+                             "slant", "post", "wheel", "dig", "drag", "out", "in", "whip", "jerk", "bubble",
+                             "swing", "comeback", "curl", "hitch", "fade", "check release", "seam",
+                             "corner", "block"])
+                    player.addItems(
+                        ["slide left", "slide right", "man", "block", "pull", "block left", "block right"])
+                else:
+                    player.addItems(
+                        ["slant", "post", "wheel", "dig", "drag", "out", "in", "whip", "jerk", "bubble",
+                         "swing", "comeback", "curl", "hitch", "fade", "check release", "seam",
+                         "corner", "block"])
+                grade_label = QLabel("Grade")
+                grade_label.setObjectName(result[0].replace(" ", "") + "offlabel")
+                grade = QComboBox()
+                path_label = QLabel("Path:")
+                path_label.setObjectName(result[0].replace(" ", "") + "offlabel")
+                self.pictureform.addRow(path_label, player)
+                grade.addItems(["10", "9", "8", "7", "6", "5", "4", "3", "2", "1"])
+                grade.setObjectName(result[0].replace(" ", "") + "offCombo")
+                self.pictureform.addRow(grade_label, grade)
 
-                        edits.append(tuple(("defense", player, self.path_def_pic, grade)))
-                        labels.append(self.name_label)
+                edits.append(tuple(("offense", player, self.path_pic, grade)))
+                labels.append(self.name_label)
 
-                        # main
-                        self.image_hori_layout.addLayout(image_vert_layout)
-                        self.image_hori_layout.addWidget(self.defframe)
+                # main
+                self.image_hori_layout.addLayout(image_vert_layout)
+                self.image_hori_layout.addWidget(self.offframe)
+                # left Vert
+                image_vert_layout.addWidget(route_pic)
+                image_vert_layout.addWidget(self.path_pic)
+                # rightform
+                self.addLayout(self.image_hori_layout, o_count, 1)
+                count += 1
+                o_count += 1
+            else:
+                self.defframe = QFrame()
+                self.defframe.setObjectName(result[1].replace(" ", ""))
+                image_vert_layout = QVBoxLayout()
+                image_vert_layout.setContentsMargins(0, 15, 0, 15)
+                self.image_hori_layout = QHBoxLayout()
+                self.pictureform = QFormLayout(self.defframe)
 
-                        # left Vert
-                        image_vert_layout.addWidget(route_pic)
-                        image_vert_layout.addWidget(self.path_def_pic)
-                        # rightform
+                # left vertical
+                route_pic = QLabel()
+                route_pic.setPixmap(QPixmap(image_away1))
+                self.path_def_pic = QLabel()
+                self.path_def_pic.style().unpolish(self.path_def_pic)
+                self.path_def_pic.style().polish(self.path_def_pic)
+                self.path_def_pic.setPixmap(QPixmap(self.resource_path('images/spot.png')))
+                if z[1] is None:
+                    self.name_label = LabelClass("Last, First #" + str(z[0]) + ", " + "null")
+                else:
+                    self.name_label = LabelClass("Last, First #" + str(z[0]) + ", " + z[1])
 
-                        self.addLayout(self.image_hori_layout, x, y)
-                        count += 1
+                self.name_label.setObjectName(result[1].replace(" ", "") + "defname")
+                self.pictureform.addRow(self.name_label)
+                self.name_label.setAlignment(Qt.AlignHCenter)
+                self.playerid_label = QLabel("Player Id:")
+                self.playerid_label.setObjectName(result[1].replace(" ", "") + "deflabel")
+                self.playerid = QLabel(str(z[0]))
+                self.playerid.setObjectName(result[1].replace(" ", "") + "defquestions")
+                self.pictureform.addRow(self.playerid_label, self.playerid)
+                player = QComboBox()
+                player.setObjectName(result[1].replace(" ", "") + "defcombo")
+                player.addItems(
+                    ["1/4 seam flat", "1/4 hook", "1/4 mid hole", "1/2 hole", "1/2 curl", "1/2 flat",
+                     "1/3 deep",
+                     "1/3 hook", "1/3 flat", "blitz", "stunt left", "stunt right", "twist"])
+                path_label = QLabel("Path:")
+                path_label.setObjectName(result[1].replace(" ", "") + "deflabel")
+                self.pictureform.addRow(path_label, player)
+                grade_label = QLabel("Grade")
+                grade_label.setObjectName(result[1].replace(" ", "") + "deflabel")
+                grade = QComboBox()
+                grade.addItems(["10", "9", "8", "7", "6", "5", "4", "3", "2", "1"])
+                grade.setObjectName(result[1].replace(" ", "") + "defcombo")
+                self.pictureform.addRow(grade_label, grade)
 
-                except:
-                    continue
+                edits.append(tuple(("defense", player, self.path_def_pic, grade)))
+                labels.append(self.name_label)
+
+                # main
+                self.image_hori_layout.addLayout(image_vert_layout)
+                self.image_hori_layout.addWidget(self.defframe)
+
+                # left Vert
+                image_vert_layout.addWidget(route_pic)
+                image_vert_layout.addWidget(self.path_def_pic)
+                # rightform
+
+                self.addLayout(self.image_hori_layout, d_count, 2)
+                count += 1
+                d_count += 1
+
 
     def startTimer(self, interval: int, timerType: Qt.TimerType = ...) -> int:
         self.timer.start()
