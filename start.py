@@ -89,7 +89,7 @@ class Window(QWidget):
         self.league_pic.style().unpolish(self.league_pic)
         self.league_pic.style().polish(self.league_pic)
         self.setGeometry(0, 0, 1920, 1080)
-        self.setWindowTitle("Audible Analytics")
+        self.setWindowTitle("Gridiron Intel")
         self.table_font = QFont("proxima", 12)
         self.font = QFont("proxima", 18)
         self.offense.setStyleSheet('QLineEdit {background-color:white}')

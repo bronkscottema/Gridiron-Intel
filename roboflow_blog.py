@@ -68,8 +68,8 @@ def opencv():
     away = (159, 121, 44)
     player_pts3 = []
     source_points = [(160, 800), (158, 600), (540, 600), (540, 800)]
-    points_image = cv2.imread(resource_path('images/nfl_40_g.png'))
-    field = cv2.imread(resource_path('images/nfl_40_g.png'))
+    points_image = cv2.imread(resource_path('images/nfl_30_20.png'))
+    field = cv2.imread(resource_path('images/nfl_30_20.png'))
 
     field_points = []
     player_pts2 = []
@@ -87,7 +87,7 @@ def opencv():
         if frame_cap is None:
             break
         cv2.destroyWindow("mywindow")
-        frame_cap = cv2.flip(frame_cap, 1)
+        # frame_cap = cv2.flip(frame_cap, 1)
         frame_cap = cv2.normalize(
             frame_cap, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8UC1
         )
@@ -104,8 +104,8 @@ def opencv():
             access_token = os.getenv('ROBOFLOW_API_KEY')
             format = '&format=json'
             confidence = '&confidence=50'
-            stroke = '&stroke=4'
-            overlap = '&overlap=10'
+            stroke = '&stroke=1'
+            overlap = '&overlap=60'
             parts.append(url_base)
             parts.append(endpoint)
             parts.append(access_token)
@@ -187,7 +187,7 @@ def opencv():
                                                   (int(abs(x1)) + 1, int(abs(y1)) + 1), (0,0,0), 2)
                                 else:
                                     cv2.rectangle(field, ((int(abs(x1))), int(abs(y1))),
-                                                  (int(abs(x1)) + 1, int(abs(y1)) + 1), home, 2)
+                                                  (int(abs(x1)) + 1, int(abs(y1)) + 1), (0,0,0), 2)
 
                             else:
                                 cv2.rectangle(field, ((int(abs(x1))), int(abs(y1))),
@@ -241,16 +241,14 @@ def opencv():
                 tracker = OPENCV_OBJECT_TRACKERS[tracker_name]()
                 field_point_tracker.add(tracker, frame_cap, dstbb)
 
-
         if cap.get(cv2.CAP_PROP_POS_FRAMES) >= end:
+            cv2.imwrite("dottedfield.jpg", field)
             cv2.imshow("field", field)
             ending = time.time()
             print(ending-starting)
-            cap.release()
-            cv2.destroyAllWindows()
-            fps, w, h = 30, frame_cap.shape[1], frame_cap.shape[0]
-            save_path = filename + '.mp4'
-            cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
+            if key == ord("q"):
+                cap.release()
+                cv2.destroyAllWindows()
 
     cap.release()
     cv2.destroyAllWindows()
