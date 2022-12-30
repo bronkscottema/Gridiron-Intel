@@ -37,7 +37,6 @@ def opencv():
 
     # initialize OpenCV's special multi-object tracker
     trackers = cv2.MultiTracker_create()
-    src_point_tracker = cv2.MultiTracker_create()
     field_point_tracker = cv2.MultiTracker_create()
     cap = cv2.VideoCapture(filename)
     cap.set(cv2.CAP_PROP_BUFFERSIZE, 2)
@@ -64,8 +63,6 @@ def opencv():
 
     cap.set(cv2.CAP_PROP_POS_FRAMES, start)
 
-    home = (176, 183, 188)
-    away = (159, 121, 44)
     player_pts3 = []
     source_points = [(160, 800), (158, 600), (540, 600), (540, 800)]
     points_image = cv2.imread(resource_path('images/nfl_30_20.png'))
@@ -157,21 +154,21 @@ def opencv():
             cv2.circle(frame_cap, (int(e[0]), int(e[1])), 5, (255, 255, 0), -1)
             field_points.append((int(e[0]), int(e[1])))
 
-        for face_no, box in enumerate(boxes):
+        for id_no, box in enumerate(boxes):
             (x, y, w, h) = [int(v) for v in box]
-            player_pts3.append(((x + int(w / 2), y + h), face_no))
+            player_pts3.append(((x + int(w / 2), y + h), id_no))
             cv2.rectangle(frame_cap, (x, y), (x + w, y + h), (0, 255, 0), 3)
             try:
-                cv2.putText(frame_cap, str((json_prediction[face_no]) + " " + str(face_no)), (x, y - 30), cv2.FONT_HERSHEY_TRIPLEX,
+                cv2.putText(frame_cap, str((json_prediction[id_no]) + " " + str(id_no)), (x, y - 30), cv2.FONT_HERSHEY_TRIPLEX,
                         .7, (0, 255, 0), 1, cv2.LINE_AA)
             except (IndexError):
-                cv2.putText(frame_cap, str(face_no + total_players), (x, y - 30), cv2.FONT_HERSHEY_TRIPLEX,
+                cv2.putText(frame_cap, str(id_no + total_players), (x, y - 30), cv2.FONT_HERSHEY_TRIPLEX,
                             .7, (0, 0, 0), 1, cv2.LINE_AA)
 
             if len(source_points) > 0:
                 if len(field_points) > 0:
                     box_id = player_pts3[0][1]
-                    if box_id == face_no:
+                    if box_id == id_no:
                         src_pts = np.float32(source_points).reshape(-1, 1, 2)
                         dst_pts = np.float32([field_points]).reshape(-1, 1, 2)
                         z, mask = cv2.findHomography(dst_pts, src_pts, cv2.RANSAC)
@@ -181,13 +178,13 @@ def opencv():
                         for x in pointsOut:
                             x1, y1 = x[0]
 
-                            if face_no < len(json_prediction):
+                            if id_no < len(json_prediction):
                                 if json_prediction[0] == "DB" or json_prediction[0] == "LB":
                                     cv2.rectangle(field, ((int(abs(x1))), int(abs(y1))),
-                                                  (int(abs(x1)) + 1, int(abs(y1)) + 1), (0,0,0), 2)
+                                                  (int(abs(x1)) + 1, int(abs(y1)) + 1), (130,255,255), 2)
                                 else:
                                     cv2.rectangle(field, ((int(abs(x1))), int(abs(y1))),
-                                                  (int(abs(x1)) + 1, int(abs(y1)) + 1), (0,0,0), 2)
+                                                  (int(abs(x1)) + 1, int(abs(y1)) + 1), (10,255,255), 2)
 
                             else:
                                 cv2.rectangle(field, ((int(abs(x1))), int(abs(y1))),
