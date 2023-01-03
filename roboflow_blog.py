@@ -32,14 +32,15 @@ def opencv():
     cv2.setUseOptimized(True)
 
     OPENCV_OBJECT_TRACKERS = {
-        "csrt": cv2.TrackerCSRT_create
+        "csrt": cv2.legacy.TrackerCSRT_create
     }
 
     # initialize OpenCV's special multi-object tracker
-    trackers = cv2.MultiTracker_create()
-    field_point_tracker = cv2.MultiTracker_create()
+    trackers = cv2.legacy.MultiTracker_create()
+    field_point_tracker = cv2.legacy.MultiTracker_create()
     cap = cv2.VideoCapture(filename)
     cap.set(cv2.CAP_PROP_BUFFERSIZE, 2)
+
 
     length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
@@ -143,7 +144,7 @@ def opencv():
                     x1 = box['x'] - box['width'] / 2
                     y1 = box['y'] - box['height'] / 2
                     json_prediction.append(player_class)
-                    tracker = cv2.TrackerCSRT_create()
+                    tracker = cv2.legacy.TrackerCSRT_create()
                     trackers.add(tracker, frame_cap, (x1, y1, w, h))
 
             screenshot = cap.get(cv2.CAP_PROP_POS_FRAMES)
@@ -189,7 +190,7 @@ def opencv():
                             else:
                                 cv2.rectangle(field, ((int(abs(x1))), int(abs(y1))),
                                               (int(abs(x1)) + 1, int(abs(y1)) + 1), (0,0,0), 2)
-                                
+
                             screenshot += 1
                             break
                         player_pts2.clear()

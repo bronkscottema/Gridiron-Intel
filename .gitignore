@@ -1,5 +1,5 @@
 # Project exclude paths
-/venv/
+/gridvenv/
 /config.txt
 /dist/
 /build/
