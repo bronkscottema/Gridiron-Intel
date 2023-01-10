@@ -128,7 +128,7 @@ class Window(QWidget):
         self.league.currentIndexChanged.connect(self.league_change)
 
         # year question
-        self.year.addItems(["2021", "2020", "2019", "2018", "2017", "2016", "2015",
+        self.year.addItems(["2022","2021", "2020", "2019", "2018", "2017", "2016", "2015",
                             "2014", "2013", "2012", "2011", "2010", "2009"])
         top_right_layout.addRow(self.year_label, self.year)
 
@@ -267,7 +267,8 @@ class Window(QWidget):
                     for column_number, data in enumerate(keys):
                         item = QTableWidgetItem(str(key.__getattribute__(data)))
                         if data == 'clock':
-                            item1 = str(key.__getattribute__(data)["minutes"]) + ":" + str(key.__getattribute__(data)["seconds"])
+                            item1 = str(getattr(getattr(key, "clock", None), "minutes")) + ":" + str(
+                                getattr(getattr(key, "clock", None), "seconds"))
                             item = QTableWidgetItem(str(item1))
                             item.setTextAlignment(4)
                             item.setFont(self.table_font)

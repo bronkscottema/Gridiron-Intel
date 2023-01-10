@@ -29,7 +29,6 @@ def opencv():
     global source_points
     total_players = 0
     tracker_name = 'csrt'
-    cv2.setUseOptimized(True)
 
     OPENCV_OBJECT_TRACKERS = {
         "csrt": cv2.legacy.TrackerCSRT_create
@@ -66,8 +65,8 @@ def opencv():
 
     player_pts3 = []
     source_points = [(160, 800), (158, 600), (540, 600), (540, 800)]
-    points_image = cv2.imread(resource_path('images/nfl_30_20.png'))
-    field = cv2.imread(resource_path('images/nfl_30_20.png'))
+    points_image = cv2.imread(resource_path('images/nfl_20_30.png'))
+    field = cv2.imread(resource_path('images/nfl_20_30.png'))
 
     field_points = []
     player_pts2 = []
@@ -89,6 +88,10 @@ def opencv():
         frame_cap = cv2.normalize(
             frame_cap, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8UC1
         )
+
+        gpu_frame = cv2.cuda_GpuMat()
+        gpu_frame.upload(frame_cap)
+        frame_cap = gpu_frame.download()
 
         (success, boxes) = trackers.update(frame_cap)
         (dstwins, dst_pts) = field_point_tracker.update(frame_cap)
@@ -180,12 +183,12 @@ def opencv():
                             x1, y1 = x[0]
 
                             if id_no < len(json_prediction):
-                                if json_prediction[0] == "DB" or json_prediction[0] == "LB":
+                                if json_prediction[id_no] == "DB" or json_prediction[id_no] == "LB":
                                     cv2.rectangle(field, ((int(abs(x1))), int(abs(y1))),
-                                                  (int(abs(x1)) + 1, int(abs(y1)) + 1), (130,255,255), 2)
+                                                  (int(abs(x1)) + 1, int(abs(y1)) + 1), (3, 56, 200), 2)
                                 else:
                                     cv2.rectangle(field, ((int(abs(x1))), int(abs(y1))),
-                                                  (int(abs(x1)) + 1, int(abs(y1)) + 1), (10,255,255), 2)
+                                                  (int(abs(x1)) + 1, int(abs(y1)) + 1), (182, 118, 0), 2)
 
                             else:
                                 cv2.rectangle(field, ((int(abs(x1))), int(abs(y1))),
@@ -231,7 +234,7 @@ def opencv():
                 cv2.imshow("points", points_image)
                 i += 1
 
-            field_point_tracker = cv2.MultiTracker_create()
+            field_point_tracker = cv2.legacy.MultiTracker_create()
 
             dstbox = cv2.selectROIs("Frame", frame_cap, fromCenter=False, showCrosshair=True)
             dstbox = tuple(map(tuple, dstbox))
