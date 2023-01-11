@@ -107,7 +107,7 @@ class End(QWidget):
         cur.execute("select offense,defense,year,league from recently_viewed order by date_added desc limit  1;")
         result = cur.fetchone()
         # layout section
-        self.fieldpic.setPixmap(QPixmap(resource_path('images/dottedfield.jpg')))
+        self.fieldpic.setPixmap(QPixmap(resource_path('dottedfield.jpg')))
         self.field_layout.addWidget(self.fieldpic)
 
         self.formation_label = QLabel("Formation:")
@@ -144,7 +144,7 @@ class End(QWidget):
         self.play_layout.addLayout(self.off_def_play)
 
         self.image_layout.addLayout(self.play_layout)
-        self.viewer.setPhoto(QPixmap(resource_path("images/boxes.jpg")))
+        self.viewer.setPhoto(QPixmap(resource_path("boxes.jpg")))
         self.move_image_layout.addWidget(self.viewer)
         self.image_layout.setSpacing(0)
         self.image_layout.setContentsMargins(0, 0, 0, 0)
