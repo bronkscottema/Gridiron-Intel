@@ -4,11 +4,12 @@
 block_cipher = None
 added_files = [
          ( 'C:/Users/bronkscottema/Desktop/Development/Audible_Analytics/images/*.png', 'images' ),
+         ( 'C:/Users/bronkscottema/Desktop/Development/Audible_Analytics/paths/*.png', 'paths' ),
          ( 'C:/Users/bronkscottema/Desktop/Development/Audible_Analytics/styles/*/*', 'styles' ),
          ( 'C:/Users/bronkscottema/Desktop/Development/Audible_Analytics/fonts/*', 'fonts' ),
          ]
 
-a = Analysis(['C:\\Users\\bronkscottema\\Desktop\\Development\\Audible_Analytics\\start.py'],
+a = Analysis(['C:/Users/bronkscottema/Desktop/Development/Audible_Analytics/start.py'],
              pathex=[],
              binaries=[],
              datas=added_files,
@@ -32,7 +33,7 @@ exe = EXE(pyz,
           a.zipfiles,
           a.datas,
           [],
-          name='start',
+          name='GridironIntel',
           debug=True,
           bootloader_ignore_signals=False,
           strip=False,

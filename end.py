@@ -1,5 +1,5 @@
+import logging
 import urllib
-
 import cv2
 from PyQt5 import QtGui, QtWidgets, QtCore
 from PyQt5.QtCore import Qt, QSortFilterProxyModel, QDataStream, QIODevice, QVariant, QRectF, \
@@ -43,7 +43,7 @@ def resource_path(relative_path):
 class End(QWidget):
     def __init__(self):
         super().__init__()
-
+        print('initializing variables')
         self.viewer = PhotoViewer()
         self.image_layout = QVBoxLayout()
         self.away_model = QStandardItemModel(len(team_roster), 1)
@@ -67,11 +67,11 @@ class End(QWidget):
         self.recently_viewed_table = roster_recent()
         self.away_roster_table = away_table()
         self.home_roster_table = home_table()
-        self.setWindowIcon(QIcon(resource_path('images/favicon.ico')))
+        #self.setWindowIcon(QIcon(resource_path('images/favicon.ico')))
         screen = QDesktopWidget().screenGeometry()
         self.setGeometry(0, 0, screen.width(), screen.height())
         self.showMaximized()
-        self.setWindowTitle("Audible Analytics")
+        self.setWindowTitle("Gridiron Intelligence")
         self.font = QFont("proxima", 18)
         self.table_font = QFont("proxima", 11)
         self.fieldpic = QLabel(self)
@@ -93,24 +93,26 @@ class End(QWidget):
         self.api_roster_layout = QVBoxLayout()
         self.button_layout = QHBoxLayout()
         self.route_layout = thegrid()
-        # self.update_play_table()
-        # self.update_roster_table()
+        self.update_play_table()
+        self.update_roster_table()
         self.scrollbar = QScrollArea(widgetResizable=True)
         self.toggle_2 = AnimatedToggle(
             checked_color="#4400B0EE",
             pulse_checked_color="#4400B0EE"
         )
-        # self.set_light_dark_mode()
+        self.set_light_dark_mode()
         self.ui()
 
     def ui(self):
+        print('starting UI')
+
         cur.execute("select offense,defense,year,league from recently_viewed order by date_added desc limit  1;")
         result = cur.fetchone()
         # layout section
         self.fieldpic.setPixmap(QPixmap(resource_path('dottedfield.jpg')))
         self.field_layout.addWidget(self.fieldpic)
 
-
+        print('Setting Upper Right Labels')
         self.formation_label = QLabel("Formation:")
         self.formation = QLineEdit()
         self.front_label = QLabel("Defensive Front:")
@@ -155,6 +157,7 @@ class End(QWidget):
         self.toptabs.addTab(self.field_tab, "Field")
         self.toptabs.addTab(self.scrollbar, "Breakdown")
 
+        print('Adding layouts')
         self.main_layout.addWidget(self.toptabs)
         self.scrollbar.setWidget(self.breakdown_tab)
         self.field_tab.layout = QVBoxLayout()
@@ -175,6 +178,7 @@ class End(QWidget):
         self.roster_layout.addLayout(self.game_roster_layout)
         self.roster_layout.addLayout(self.api_roster_layout)
 
+
         self.recently_viewed_table.setModel(self.recently_viewed_model)
         self.recently_viewed_table.horizontalHeader().setDefaultAlignment(Qt.AlignCenter)
         self.recently_viewed_table.horizontalHeader().setFont(self.table_font)
@@ -190,7 +194,7 @@ class End(QWidget):
         self.refresh_button.clicked.connect(self.refresh_pushed)
 
         # api roster data
-
+        print('roster data')
         self.tabs.addTab(self.tab1, "")
         self.tabs.addTab(self.tab2, "")
 
@@ -237,7 +241,13 @@ class End(QWidget):
         self.setLayout(self.main_layout)
         self.show()
 
+    def resource_path(relative_path):
+        if hasattr(sys, '_MEIPASS'):
+            return os.path.join(sys._MEIPASS, relative_path)
+        return os.path.join(os.path.abspath("."), relative_path)
+
     def update_play_table(self):
+        print("update play table")
         self.recently_viewed_table.setSortingEnabled(False)
         cur.execute(
             "select playid from main_table where playid = (select playid from recently_viewed order by date_added desc limit 1);")
@@ -246,33 +256,30 @@ class End(QWidget):
             0] + "' order by playerid;")
         result_distinct = cur.fetchall()
 
+        self.recently_viewed_model.clear()
+        self.recently_viewed_model.setHorizontalHeaderLabels(roster_labels)
+        for n, key in enumerate(result_distinct):
+            self.recently_viewed_model.insertRow(n)
+            for column_number, data in enumerate(recent_roster_keys):
+                if data == "first_name" or data == "last_name":
+                    item = QStandardItem(str(" "))
+                    item.setTextAlignment(Qt.AlignCenter)
+                    self.recently_viewed_model.setItem(n, column_number, item)
+                elif data == "playerid":
+                    item = QStandardItem(str(key[2]))
+                    item.setTextAlignment(Qt.AlignCenter)
+                    self.recently_viewed_model.setItem(n, column_number, item)
+                elif data == "jersey" or data == "weight" or data == "year" or data == "height":
+                    item = QStandardItem(str(0))
+                    item.setTextAlignment(Qt.AlignCenter)
+                    self.recently_viewed_model.setItem(n, column_number, item)
+                elif data == "position":
+                    item = QStandardItem(str(key[6]))
+                    item.setTextAlignment(Qt.AlignCenter)
+                    self.recently_viewed_model.setItem(n, column_number, item)
+                else:
+                    break
 
-        try:
-            self.recently_viewed_model.clear()
-            self.recently_viewed_model.setHorizontalHeaderLabels(roster_labels)
-            for n, key in enumerate(result_distinct):
-                self.recently_viewed_model.insertRow(n)
-                for column_number, data in enumerate(recent_roster_keys):
-                    if data == "first_name" or data == "last_name":
-                        item = QStandardItem(str(" "))
-                        item.setTextAlignment(Qt.AlignCenter)
-                        self.recently_viewed_model.setItem(n, column_number, item)
-                    elif data == "playerid":
-                        item = QStandardItem(str(key[2]))
-                        item.setTextAlignment(Qt.AlignCenter)
-                        self.recently_viewed_model.setItem(n, column_number, item)
-                    elif data == "jersey" or data == "weight" or data == "year" or data == "height":
-                        item = QStandardItem(str(0))
-                        item.setTextAlignment(Qt.AlignCenter)
-                        self.recently_viewed_model.setItem(n, column_number, item)
-                    elif data == "position":
-                        item = QStandardItem(str(key[6]))
-                        item.setTextAlignment(Qt.AlignCenter)
-                        self.recently_viewed_model.setItem(n, column_number, item)
-                    else:
-                        break
-        except:
-            pass
 
 
     def update_roster_table(self):
@@ -283,31 +290,29 @@ class End(QWidget):
 
             home_roster = get_whole_ncaa_home_roster(team=result[0], year=result[2])
 
-            try:
-                self.home_model.setHorizontalHeaderLabels(team_roster)
-                self.home_roster_table.setSortingEnabled(False)
-                for n, key in enumerate(home_roster):
-                    self.home_model.insertRow(n)
-                    for column_number, data in enumerate(roster_keys):
-                        item = QStandardItem(str(key.__getattribute__(data)))
-                        item.setTextAlignment(Qt.AlignCenter)
-                        self.home_model.setItem(n, column_number, item)
-            except:
-                pass
+            self.home_model.setHorizontalHeaderLabels(team_roster)
+            self.home_roster_table.setSortingEnabled(False)
+            for n, key in enumerate(home_roster):
+                self.home_model.insertRow(n)
+                for column_number, data in enumerate(roster_keys):
+                    item = QStandardItem(str(key.__getattribute__(data)))
+                    item.setTextAlignment(Qt.AlignCenter)
+                    self.home_model.setItem(n, column_number, item)
 
             away_roster = get_whole_ncaa_away_roster(team=result[1], year=result[2])
-            try:
-                self.away_model.clear()
-                self.away_model.setHorizontalHeaderLabels(team_roster)
-                self.away_roster_table.setSortingEnabled(False)
-                for n, key in enumerate(away_roster):
-                    self.away_model.insertRow(n)
-                    for column_number, data in enumerate(roster_keys):
-                        items = QStandardItem(str(key.__getattribute__(data)))
-                        items.setTextAlignment(Qt.AlignCenter)
-                        self.away_model.setItem(n, column_number, items)
-            except:
-                pass
+
+            print('Away Roster')
+            self.away_model.clear()
+            self.away_model.setHorizontalHeaderLabels(team_roster)
+            self.away_roster_table.setSortingEnabled(False)
+            for n, key in enumerate(away_roster):
+                self.away_model.insertRow(n)
+                for column_number, data in enumerate(roster_keys):
+                    items = QStandardItem(str(key.__getattribute__(data)))
+                    items.setTextAlignment(Qt.AlignCenter)
+                    self.away_model.setItem(n, column_number, items)
+
+
         else:
             print("NFL")
 
@@ -447,7 +452,7 @@ class End(QWidget):
                 team_name = result[0]
                 team_name = team_name.replace(" ", "").lower()
                 # set stylesheet here
-                teamFile = "/styles/nfl/" + team_name + ".qss"
+                teamFile = resource_path("/styles/nfl/" + team_name + ".qss")
                 #offteamFile = resource_path("styles/" + offense_name + ".qss")
                 #defteamFile = resource_path("styles/" + defense_name + ".qss")
 
@@ -462,15 +467,22 @@ class End(QWidget):
                 cur.execute("select logo from college_team_colors where team_name IN %s;",
                             (data,))
                 url = cur.fetchall()
-                data_logo = urllib.request.urlopen(url[1][0]).read()
-                image = QtGui.QImage()
-                image.loadFromData(data_logo)
-                image1 = image.scaled(50, 50, Qt.KeepAspectRatio)
-
-                data_logo_2 = urllib.request.urlopen(url[0][0]).read()
-                image_away = QtGui.QImage()
-                image_away.loadFromData(data_logo_2)
-                image_away1 = image_away.scaled(50, 50, Qt.KeepAspectRatio)
+                try:
+                    data_logo = urllib.request.urlopen(url[1][0]).read()
+                    image = QtGui.QImage()
+                    image.loadFromData(data_logo)
+                    image1 = image.scaled(50, 50, Qt.KeepAspectRatio)
+                except:
+                    image = QtGui.QImage(resource_path('images/fcs.png'))
+                    image1 = image.scaled(50, 50, Qt.KeepAspectRatio)
+                try:
+                    data_logo_2 = urllib.request.urlopen(url[0][0]).read()
+                    image_away = QtGui.QImage()
+                    image_away.loadFromData(data_logo_2)
+                    image_away1 = image_away.scaled(50, 50, Qt.KeepAspectRatio)
+                except:
+                    image_away = QtGui.QImage(resource_path('images/fcs.png'))
+                    image_away1 = image_away.scaled(50, 50, Qt.KeepAspectRatio)
 
                 self.tabs.setIconSize(QtCore.QSize(60, 60))
                 self.tabs.setTabIcon(0, QIcon(QPixmap(image1).transformed(QtGui.QTransform().rotate(-90))))
@@ -482,10 +494,10 @@ class End(QWidget):
                 defense_name = result[1]
                 defense_name = defense_name.replace(" ", "").lower()
                 # set stylesheet here
-                offteamFile = "styles/ncaa/" + offense_name + ".qss"
-                defteamFile = "styles/ncaa/" + defense_name + ".qss"
-                # offteamFile = resource_path("styles/" + offense_name + ".qss")
-                # defteamFile = resource_path("styles/" + defense_name + ".qss")
+                #offteamFile = resource_path("styles/ncaa/" + offense_name + ".qss")
+                #defteamFile = resource_path("styles/ncaa/" + defense_name + ".qss")
+                offteamFile = resource_path("styles/" + offense_name + ".qss")
+                defteamFile = resource_path("styles/" + defense_name + ".qss")
                 try:
                     with open(offteamFile, "r") as self.of, open(defteamFile, "r") as self.df:
                         self.setStyleSheet(self.df.read() + self.of.read() + self.style)
@@ -605,15 +617,22 @@ class thegrid(QGridLayout):
         data = (result[0], result[1])
         cur.execute("select logo from college_team_colors where team_name IN %s;", (data,))
         url = cur.fetchall()
-        data_logo = urllib.request.urlopen(url[1][0]).read()
-        image = QtGui.QImage()
-        image.loadFromData(data_logo)
-        image1 = image.scaled(50, 50, Qt.KeepAspectRatio)
-
-        data_logo_2 = urllib.request.urlopen(url[0][0]).read()
-        image_away = QtGui.QImage()
-        image_away.loadFromData(data_logo_2)
-        image_away1 = image_away.scaled(50, 50, Qt.KeepAspectRatio)
+        try:
+            data_logo = urllib.request.urlopen(url[1][0]).read()
+            image = QtGui.QImage()
+            image.loadFromData(data_logo)
+            image1 = image.scaled(50, 50, Qt.KeepAspectRatio)
+        except:
+            image = QtGui.QImage(resource_path('images/fcs.png'))
+            image1 = image.scaled(50, 50, Qt.KeepAspectRatio)
+        try:
+            data_logo_2 = urllib.request.urlopen(url[0][0]).read()
+            image_away = QtGui.QImage()
+            image_away.loadFromData(data_logo_2)
+            image_away1 = image_away.scaled(50, 50, Qt.KeepAspectRatio)
+        except:
+            image_away = QtGui.QImage(resource_path('images/fcs.png'))
+            image_away1 = image_away.scaled(50, 50, Qt.KeepAspectRatio)
 
        
 
@@ -638,7 +657,7 @@ class thegrid(QGridLayout):
                         self.path_pic = LabelClass("")
                         self.path_pic.style().unpolish(self.path_pic)
                         self.path_pic.style().polish(self.path_pic)
-                        self.path_pic.setPixmap(QPixmap(resource_path('/images/paths/slant.png')))
+                        self.path_pic.setPixmap(QPixmap(resource_path('paths/slant.png')))
 
                         if z[1] is None:
                             self.name_label = LabelClass("Last, First #" + str(z[0]) + ", " + "null")
@@ -705,7 +724,7 @@ class thegrid(QGridLayout):
                         self.path_def_pic = QLabel()
                         self.path_def_pic.style().unpolish(self.path_def_pic)
                         self.path_def_pic.style().polish(self.path_def_pic)
-                        self.path_def_pic.setPixmap(QPixmap('/images/paths/spot.png'))
+                        self.path_def_pic.setPixmap(QPixmap(resource_path('paths/spot.png')))
                         if z[1] is None:
                             self.name_label = LabelClass("Last, First #" + str(z[0]) + ", " + "null")
                         else:
@@ -766,69 +785,69 @@ class thegrid(QGridLayout):
                 deep = (["1/4 deep", "1/3 deep"])
                 line = (["blitz", "stunt left", "stunt right", "twist"])
                 if edits[i][1].currentText() in spot:
-                    edits[i][2].setPixmap(QPixmap('/images/paths/spot.png'))
+                    edits[i][2].setPixmap(QPixmap(resource_path('paths/spot.png')))
                 elif edits[i][1].currentText() in deep:
-                    edits[i][2].setPixmap(QPixmap('/images/paths/deep.png'))
+                    edits[i][2].setPixmap(QPixmap(resource_path('paths/deep.png')))
                 elif edits[i][1].currentText() in line:
                     if edits[i][1].currentText() == "blitz":
-                        edits[i][2].setPixmap(QPixmap('/images/paths/fire.png').transformed(QtGui.QTransform().rotate(45)))
+                        edits[i][2].setPixmap(QPixmap(resource_path('paths/fire.png')).transformed(QtGui.QTransform().rotate(45)))
                     elif edits[i][1].currentText() == "stunt right":
-                        edits[i][2].setPixmap(QPixmap('/images/paths/blitz.png'))
+                        edits[i][2].setPixmap(QPixmap(resource_path('paths/blitz.png')))
                     elif edits[i][1].currentText() == "stunt left":
-                        img = cv2.imread('/images/paths/blitz.png')
+                        img = cv2.imread(resource_path('paths/blitz.png'))
                         img_flip_lr = cv2.flip(img, 1)
                         height, width, channel = img_flip_lr.shape
                         bytesPerLine = 3 * width
                         qImg = QImage(img_flip_lr.data, width, height, bytesPerLine, QImage.Format_RGB888)
                         edits[i][2].setPixmap(QPixmap(qImg))
                     elif edits[i][1].currentText() == "twist":
-                        edits[i][2].setPixmap(QPixmap('/images/paths/loop.png'))
+                        edits[i][2].setPixmap(QPixmap(resource_path('paths/loop.png')))
 
             else:
                 if edits[i][1].currentText() == "slant" or edits[i][1].currentText() == "post" or edits[i][1].currentText() == "corner":
-                    edits[i][2].setPixmap(QPixmap('/images/paths/slant.png'))
+                    edits[i][2].setPixmap(QPixmap(resource_path('paths/slant.png')))
                 elif edits[i][1].currentText() == "wheel":
-                    edits[i][2].setPixmap(QPixmap('/images/paths/wheel.png'))
+                    edits[i][2].setPixmap(QPixmap(resource_path('paths/wheel.png')))
                 elif edits[i][1].currentText() == "dig" or edits[i][1].currentText() == "in" or edits[i][1].currentText() == "out":
-                    edits[i][2].setPixmap(QPixmap('//images/paths/dig.png'))
+                    edits[i][2].setPixmap(QPixmap(resource_path('paths/dig.png')))
                 elif edits[i][1].currentText() == "drag":
-                    edits[i][2].setPixmap(QPixmap('images/paths/dig.png'))
+                    edits[i][2].setPixmap(QPixmap(resource_path('paths/dig.png')))
                 elif edits[i][1].currentText() == "whip":
-                    edits[i][2].setPixmap(QPixmap('images/paths/whip.png'))
+                    edits[i][2].setPixmap(QPixmap(resource_path('paths/whip.png')))
                 elif edits[i][1].currentText() == "jerk":
-                    edits[i][2].setPixmap(QPixmap('images/paths/jerk.png'))
+                    edits[i][2].setPixmap(QPixmap(resource_path('paths/jerk.png')))
                 elif edits[i][1].currentText() == "bubble" or edits[i][1].currentText() == "swing":
-                    edits[i][2].setPixmap(QPixmap('images/paths/bubble.png'))
+                    edits[i][2].setPixmap(QPixmap(resource_path('paths/bubble.png')))
                 elif edits[i][1].currentText() == "comeback" or edits[i][1].currentText() == "curl" or edits[i][1].currentText() == "hitch":
-                    edits[i][2].setPixmap(QPixmap('images/paths/comeback.png'))
+                    edits[i][2].setPixmap(QPixmap(resource_path('paths/comeback.png')))
                 elif edits[i][1].currentText() == "check release":
-                    edits[i][2].setPixmap(QPixmap('images/paths/check.png'))
+                    edits[i][2].setPixmap(QPixmap(resource_path('paths/check.png')))
                 elif edits[i][1].currentText() == "slide left" or edits[i][1].currentText() == "slide right":
                     if edits[i][1].currentText() == "slide right":
-                        img = cv2.imread('images/paths/slideleft.png')
+                        img = cv2.imread(resource_path('paths/slideleft.png'))
                         img_flip_lr = cv2.flip(img, 1)
                         height, width, channel = img_flip_lr.shape
                         bytesPerLine = 3 * width
                         qImg = QImage(img_flip_lr.data, width, height, bytesPerLine, QImage.Format_RGB888)
                         edits[i][2].setPixmap(QPixmap(qImg))
                     else:
-                        edits[i][2].setPixmap(QPixmap('images/paths/slideleft.png'))
+                        edits[i][2].setPixmap(QPixmap(resource_path('paths/slideleft.png')))
                 elif edits[i][1].currentText() == "man" or edits[i][1].currentText() == "block" or edits[i][1].currentText() == "block right" or edits[i][1].currentText() == "block left":
                     if edits[i][1].currentText() == "block right":
-                        edits[i][2].setPixmap(QPixmap('images/paths/block.png'))
+                        edits[i][2].setPixmap(QPixmap(resource_path('paths/block.png')))
                     elif edits[i][1].currentText() == "block left":
-                        edits[i][2].setPixmap(QPixmap('images/paths/block.png').transformed(QtGui.QTransform().rotate(-90)))
+                        edits[i][2].setPixmap(QPixmap('paths/block.png').transformed(QtGui.QTransform().rotate(-90)))
                     elif edits[i][1].currentText() == "block" or edits[i][1].currentText() == "man":
                         if edits[i][1].currentText() == "block":
-                            edits[i][2].setPixmap(QPixmap('images/paths/man.png').transformed(QtGui.QTransform().rotate(180)))
+                            edits[i][2].setPixmap(QPixmap(resource_path('paths/man.png')).transformed(QtGui.QTransform().rotate(180)))
                         else:
-                            edits[i][2].setPixmap(QPixmap('images/paths/man.png'))
+                            edits[i][2].setPixmap(QPixmap(resource_path('paths/man.png')))
                 elif edits[i][1].currentText() == "pull":
-                    edits[i][2].setPixmap(QPixmap('images/paths/pull.png'))
+                    edits[i][2].setPixmap(QPixmap(resource_path('paths/pull.png')))
                 elif edits[i][1].currentText() == "fade":
-                    edits[i][2].setPixmap(QPixmap('images/paths/fade.png'))
+                    edits[i][2].setPixmap(QPixmap(resource_path('paths/fade.png')))
                 elif edits[i][1].currentText() == "seam":
-                    edits[i][2].setPixmap(QPixmap('images/paths/seam.png'))
+                    edits[i][2].setPixmap(QPixmap(resource_path('paths/seam.png')))
 
     def update_players(self):
         try:
