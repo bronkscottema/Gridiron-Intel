@@ -9,7 +9,7 @@ load_dotenv()
 
 # Configure API key authorization: ApiKeyAuth
 configuration = cfbd.Configuration()
-configuration.api_key['Authorization'] = os.getenv("API_KEY")
+configuration.api_key['Authorization'] = "838QllZxsFULyCZf4BRHZvwyMx9NEE12MQ1LE3T3NIePzC9WnunsOx71Zc5zhXB8"
 # Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
 configuration.api_key_prefix['Authorization'] = 'Bearer'
 

@@ -226,8 +226,8 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
 
             parts = []
             url_base = 'https://detect.roboflow.com/'
-            endpoint = os.getenv('ROBOFLOW_URL')
-            access_token = os.getenv('ROBOFLOW_API_KEY')
+            endpoint = 'football-players-zm06l/15'
+            access_token = '?api_key=UkLzsuZSvsQOnmhR2JaS'
             format = '&format=json'
             confidence = '&confidence=75'
             stroke = '&stroke=4'
