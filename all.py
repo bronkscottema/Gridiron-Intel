@@ -406,7 +406,7 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
         cv2.imshow("Frame", frame_cap)
         if screenshot > 0 or exists == True:
             cv2.imshow("field", field)
-            cv2.destroyWindow("points")
+            #cv2.destroyWindow("points")
 
         # if the 'space' key is selected, we are going to "select" a bounding
         # box to track
