@@ -23,28 +23,10 @@ global LB
 global QB
 global SKILL
 
-
 def resource_path(relative_path):
     if hasattr(sys, '_MEIPASS'):
         return os.path.join(sys._MEIPASS, relative_path)
     return os.path.join(os.path.abspath("."), relative_path)
-
-
-def latlong_to_3d(latr, lonr):
-    """Convert a point given latitude and longitude in radians to
-    3-dimensional space, assuming a sphere radius of one."""
-    return np.array((
-        math.cos(latr) * math.cos(lonr),
-        math.cos(latr) * math.sin(lonr),
-        math.sin(latr)
-    ))
-
-
-def angle_between_vectors_degrees(u, v):
-    """Return the angle between two vectors in any dimension space,
-    in degrees."""
-    return np.degrees(
-        math.acos(np.dot(u, v) / (np.linalg.norm(u) * np.linalg.norm(v))))
 
 
 # The points in tuple latitude/longitude degrees space
@@ -61,6 +43,8 @@ def losangle(Cpos, QBpos, Skillpos):
     myradians = math.atan2(C[1] - A[1], C[0] - A[0])
     mydegrees = math.degrees(myradians)
 
+    tackle_box_radians = math.atan2(A[1]-B[1], A[0]-B[0])
+    tackle_box_angle = math.degrees(tackle_box_radians)
 
     # Print the results
     print('\nThe angle ABC in 2D space in degrees:', mydegrees)
@@ -81,7 +65,7 @@ def losangle(Cpos, QBpos, Skillpos):
     cv2.line(pic, (int(endx1), int(endy1)), (int(endx2), int(endy2)), (0, 0, 255), 2)
     cv2.imshow("FRAME", pic)
     cv2.waitKey()
-    return endx1, endy1, endx2, endy2
+    return endx1, endy1, endx2, endy2, tackle_box_angle, mydegrees
 
 
 def is_left(x,y,a,b,c,d):
@@ -109,6 +93,50 @@ def player_count(players):
         elif i['class'] == 'OT' or i['class'] == 'OG':
             OL += 1
 
+def in_the_box(player_x, player_y, player_height, high_tackle, low_tackle, tack_angle, los, direction):
+    #first draw the line
+    length = 1000
+    angle = tack_angle
+    highy = 0
+    highx = 0
+    lowy = 0
+    lowx = 0
+
+    if direction == "left":
+        highy = high_tackle[1] + length * math.sin(math.radians(angle))
+        highx = high_tackle[0] + length * math.cos(math.radians(angle))
+
+        lowy = low_tackle[1] + length * math.sin(math.radians(angle))
+        lowx = low_tackle[0] + length * math.cos(math.radians(angle))
+    else:
+        highy = high_tackle[1] - length * math.sin(math.radians(angle))
+        highx = high_tackle[0] - length * math.cos(math.radians(angle))
+
+        lowy = low_tackle[1] - length * math.sin(math.radians(angle))
+        lowx = low_tackle[0] - length * math.cos(math.radians(angle))
+
+    pic = cv2.imread('boxes.jpg')
+    cv2.line(pic, (int(low_tackle[0]), int(low_tackle[1])), (int(lowx), int(lowy)), (0, 0, 255), 2)
+    cv2.line(pic, (int(high_tackle[0]), int(high_tackle[1])), (int(highx), int(highy)), (0, 0, 255), 2)
+    cv2.line(pic, (int(los[0]), int(los[1])), (int(los[2]), int(los[3])), (0, 0, 255), 2)
+    #cv2.circle(pic, (int(player_x), int(player_y)), 5, (255, 255, 0), -1)
+    #cv2.circle(pic, (int(player_x), int(player_y)+int(player_height/2)), 5, (255, 255, 0), -1)
+    cv2.imwrite('boxes.jpg', pic)
+    cv2.waitKey()
+    if direction == "left":
+        if (player_x < lowx and player_x < highx and player_y < lowy and player_y > highy):
+            return True
+        elif (player_x < lowx and player_x < highx and (player_y+(player_height/2)) < lowy and (player_y+(player_height/2)) > highy):
+            return True
+        else:
+            return False
+    else:
+        if (player_x > lowx and player_x < high_tackle[0] and player_y < lowy and player_y > highy):
+            return True
+        if (player_x > lowx and player_x < high_tackle[0] and (player_y+(player_height/2)) < lowy and (player_y+(player_height/2)) > highy):
+            return True
+        else:
+            return False
 
 def opencv():
     DB: int = 0
@@ -126,9 +154,9 @@ def opencv():
     endpoint = os.getenv('ROBOFLOW_URL')
     access_token = os.getenv('ROBOFLOW_API_KEY')
     format = '&format=json'
-    confidence = '&confidence=20'
+    confidence = '&confidence=10'
     stroke = '&stroke=4'
-    overlap = '&overlap=0'
+    overlap = '&overlap=20'
     parts.append(url_base)
     parts.append(endpoint)
     parts.append(access_token)
@@ -185,9 +213,14 @@ def opencv():
             if xydata['class'] != second['class'] or xydata['class'] == second['class']:
                 if xydata['x'] - 5 <= second['x'] <= xydata['x'] + 5 or xydata['x'] == second['x']:
                     if xydata['y'] - 5 <= second['y'] <= xydata['y'] + 5 or xydata['y'] == second['y']:
-                        second['remove'] = 'yes'
-                    second['remove'] = 'no'
-                second['remove'] = 'no'
+                        if xydata['id'] != second['id']:
+                            try:
+                                if second['remove'] == 'no' or xydata['remove'] == 'no':
+                                    second['remove'] = 'yes'
+                            except KeyError:
+                                continue
+                        else:
+                            second['remove'] = 'no'
 
     for box in detections:
         if box['remove'] != 'yes':
@@ -233,48 +266,99 @@ def opencv():
                 if i['x'] < CenterX:
                     left = True
                     right = False
-                    qb_x_y = i['x'], i['y']
+                    qb_y = i['y'] + (i['height'] / 2)
+                    qb_x_y = i['x'], qb_y
                 else:
                     right = True
                     left = False
-                    qb_x_y = i['x'], i['y']
+                    qb_y = i['y'] + (i['height'] / 2)
+                    qb_x_y = i['x'], qb_y
 
             if i['class'] == 'SKILL' or i['class'] == "WR":
                 lowest_skill_y.append((i['x'], i['y'], i['width'], i['height'], i['id']))
-        lowest_skill_y.sort()
+        lowest_skill_y.sort(key=lambda x: x[1], reverse=True)
         yes = losangle((int(CenterX + (CenterW / 2)), int(CenterY + (CenterH /2))), (qb_x_y),  (int(lowest_skill_y[0][0]+int(lowest_skill_y[0][2] / 2)), int(lowest_skill_y[0][1] + int(lowest_skill_y[0][3] / 2))))
     else:
         print("no center was found, we have added this image to the model please check again another day.")
 
-    a,b,c,d = yes
+    p1x,p1y,p2x,p2y,tackle_box_angle,los_angle = yes
+    los_line = (p1x,p1y,p2x,p2y)
 
-    for det in detections:
-        if is_left(det['x'], det['y'], a,b,c,d) is True and left == True and det['class'] != "CENTER":
-            #print("here offense", det)
-            det['odk'] = "offense"
-            if det['class'] == 'LB' or det['class'] == 'DB' :
-                det['class'] = 'SKILL'
-            elif det['class'] == "DT" or det['class'] == 'DL':
-                det['class'] = 'OL'
-        elif is_left(det['x'], det['y'], a,b,c,d) is False and left == False and det['class'] != "CENTER":
-            #print("here offense", det)
-            det['odk'] = "offense"
-            if det['class'] == 'LB' or det['class'] == 'DB':
-                det['class'] = 'SKILL'
-            elif det['class'] == "DT" or det['class'] == 'DL':
-                det['class'] = 'OL'
-        elif det['class'] != "CENTER":
-            #print("defense", det)
-            det['odk'] = "defense"
-            if det['class'] != 'LB' or det['class'] == 'DB':
-                det['class'] = 'DB'
-            elif det['class'] == "OT":
-                det['class'] = 'DE'
-            elif det['class'] == 'OG':
-                det['class'] = 'DT'
+    # do I try to do corrections?
+    # for det in detections:
+    #     if is_left(det['x'], det['y'], a,b,c,d) is True and left == True and det['class'] != "CENTER":
+    #         #print("here offense", det)
+    #         det['odk'] = "offense"
+    #         if det['class'] == 'LB' or det['class'] == 'DB' :
+    #             det['class'] = 'SKILL'
+    #         elif det['class'] == "DT" or det['class'] == 'DL':
+    #             det['class'] = 'OL'
+    #     elif is_left(det['x'], det['y'], a,b,c,d) is False and left == False and det['class'] != "CENTER":
+    #         #print("here offense", det)
+    #         det['odk'] = "offense"
+    #         if det['class'] == 'LB' or det['class'] == 'DB':
+    #             det['class'] = 'SKILL'
+    #         elif det['class'] == "DT" or det['class'] == 'DL':
+    #             det['class'] = 'OL'
+    #     elif det['class'] != "CENTER":
+    #         #print("defense", det)
+    #         det['odk'] = "defense"
+    #         if det['class'] != 'LB' or det['class'] == 'DB':
+    #             det['class'] = 'DB'
+    #         elif det['class'] == "OT":
+    #             det['class'] = 'DE'
+    #         elif det['class'] == 'OG':
+    #             det['class'] = 'DT'
 
     player_count(detections)
     #logic for identifying box
+    box_linebacker = 0
+    if left:
+        tackle_box = []
+        low_tackle_box = 0
+        high_tackle_box = 0
+        for player in detections:
+            if player['class'] == "OT":
+                tackle_box.append((player['x'], player['y'], player['width'], player['height']))
+        tackle_box.sort(key=lambda x: x[1])
+        if len(tackle_box) == 2:
+            low_tackle_box = (tackle_box[0][0] + (tackle_box[0][2] / 2), tackle_box[0][1] + (tackle_box[0][3] / 2))
+            high_tackle_box = (tackle_box[1][0] + (tackle_box[1][2] / 2), tackle_box[1][1] + (tackle_box[1][3] / 2))
+            for def_player in detections:
+                if def_player['class'] == "LB":
+                    if in_the_box(def_player['x'], def_player['y'], def_player['height'], low_tackle_box, high_tackle_box, tackle_box_angle, los_line, "left"):
+                        box_linebacker += 1
+        else:
+            upload(detections, file_name=name)
+        print(f'the front is {DL}-{box_linebacker}')
+        pic = cv2.imread("boxes.jpg")
+        cv2.imshow("frame", pic)
+        pyautogui.alert(text=f'the front is {DL}-{box_linebacker}', title='Front', button='OK')
+
+    else:
+        tackle_box = []
+        low_tackle_box = 0
+        high_tackle_box = 0
+        for player in detections:
+            if player['class'] == "OT":
+                tackle_box.append((player['x'], player['y'], player['width'], player['height']))
+        tackle_box.sort(key=lambda x: x[1])
+        if len(tackle_box) == 2:
+            low_tackle_box = (tackle_box[0][0] - (tackle_box[0][2] / 2), tackle_box[0][1] + (tackle_box[0][3] / 2))
+            high_tackle_box = (tackle_box[1][0] - (tackle_box[1][2] / 2), tackle_box[1][1] + (tackle_box[1][3] / 2))
+            for def_player in detections:
+                if def_player['class'] == "LB":
+                    if in_the_box(def_player['x'], def_player['y'], def_player['height'], low_tackle_box, high_tackle_box, tackle_box_angle, los_line, "right"):
+                        box_linebacker += 1
+        else:
+            upload(detections, file_name=name)
+
+        print(f'the front is {DL}-{box_linebacker}')
+        pic = cv2.imread("boxes.jpg")
+        cv2.imshow("frame", pic)
+        pyautogui.alert(text=f'the front is {DL}-{box_linebacker}', title='Front', button='OK')
+
+    #print(f'the formation is {formation}')
     upload(detections, name)
 
 def upload(detections, file_name):
@@ -293,46 +377,47 @@ def upload(detections, file_name):
     img_height = image.height
     img_width = image.width
     # Upload the image to your project
-    with open('annotate.coco.json', 'w') as pred:
-        for box in detections:
-            if box['remove'] != 'yes':
-
-                color = "#4892EA"
-                w = box['width']
-                h = box['height']
-                player_class = box['class']
-                x1 = box['x'] - box['width'] / 2
-                x2 = box['x'] + box['width'] / 2
-                y1 = box['y'] - box['height'] / 2
-                y2 = box['y'] + box['height'] / 2
-
-
-                if x1 > x2:
-                    x1, x2 = x2, x1
-                if y1 > y2:
-                    y1, y2 = y2, y1
-
-                width = x2 - x1
-                height = y2 - y1
-                x_centre, y_centre = int(width / 2), int(height / 2)
-
-                norm_xc = x_centre / img_width
-                norm_yc = y_centre / img_height
-                norm_width = width / img_width
-                norm_height = height / img_height
-
-                for name, number in classes.items():  # for name, age in dictionary.iteritems():  (for Python 2.x)
-                    if name == player_class:
-                        yolo_annotations = [str(number), ' ' + str(norm_xc),
-                                            ' ' + str(norm_yc),
-                                            ' ' + str(norm_width),
-                                            ' ' + str(norm_height), '\n']
-
-                pred.writelines(yolo_annotations)
+    # with open('annotate.coco.json', 'w') as pred:
+    #     for box in detections:
+    #         if box['remove'] != 'yes':
+    #
+    #             color = "#4892EA"
+    #             w = box['width']
+    #             h = box['height']
+    #             player_class = box['class']
+    #             x1 = box['x'] - box['width'] / 2
+    #             x2 = box['x'] + box['width'] / 2
+    #             y1 = box['y'] - box['height'] / 2
+    #             y2 = box['y'] + box['height'] / 2
+    #
+    #
+    #             if x1 > x2:
+    #                 x1, x2 = x2, x1
+    #             if y1 > y2:
+    #                 y1, y2 = y2, y1
+    #
+    #             width = x2 - x1
+    #             height = y2 - y1
+    #             x_centre, y_centre = int(width / 2), int(height / 2)
+    #
+    #             norm_xc = x_centre / img_width
+    #             norm_yc = y_centre / img_height
+    #             norm_width = width / img_width
+    #             norm_height = height / img_height
+    #
+    #             for name, number in classes.items():  # for name, age in dictionary.iteritems():  (for Python 2.x)
+    #                 if name == player_class:
+    #                     yolo_annotations = [str(number), ' ' + str(norm_xc),
+    #                                         ' ' + str(norm_yc),
+    #                                         ' ' + str(norm_width),
+    #                                         ' ' + str(norm_height), '\n']
+    #
+    #             pred.writelines(yolo_annotations)
 
     project.single_upload(image_path=file_name)
     print("success")
     if os.path.isfile(file_name):
         os.remove(file_name)
+    sys.exit(0)
 
 opencv()
