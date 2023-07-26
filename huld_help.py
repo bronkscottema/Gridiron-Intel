@@ -47,7 +47,7 @@ def losangle(Cpos, QBpos, Skillpos):
     tackle_box_angle = math.degrees(tackle_box_radians)
 
     # Print the results
-    print('\nThe angle ABC in 2D space in degrees:', mydegrees)
+    #print('\nThe angle ABC in 2D space in degrees:', mydegrees)
 
     x1_length = (Cpos[0] - 1440) / math.cos(mydegrees)
     y1_length = (Cpos[1] - 1440) / math.sin(mydegrees)
@@ -61,10 +61,10 @@ def losangle(Cpos, QBpos, Skillpos):
     endx2 = Cpos[0] + length * math.cos(math.radians(mydegrees + 180))
     endy2 = Cpos[1] + length * math.sin(math.radians(mydegrees + 180))
 
-    pic = cv2.imread('boxes.jpg')
-    cv2.line(pic, (int(endx1), int(endy1)), (int(endx2), int(endy2)), (0, 0, 255), 2)
-    cv2.imshow("FRAME", pic)
-    cv2.waitKey()
+    #pic = cv2.imread('boxes.jpg')
+    #cv2.line(pic, (int(endx1), int(endy1)), (int(endx2), int(endy2)), (0, 0, 255), 2)
+    #cv2.imshow("FRAME", pic)
+    #cv2.waitKey()
     return endx1, endy1, endx2, endy2, tackle_box_angle, mydegrees
 
 
@@ -115,14 +115,14 @@ def in_the_box(player_x, player_y, player_height, high_tackle, low_tackle, tack_
         lowy = low_tackle[1] - length * math.sin(math.radians(angle))
         lowx = low_tackle[0] - length * math.cos(math.radians(angle))
 
-    pic = cv2.imread('boxes.jpg')
-    cv2.line(pic, (int(low_tackle[0]), int(low_tackle[1])), (int(lowx), int(lowy)), (0, 0, 255), 2)
-    cv2.line(pic, (int(high_tackle[0]), int(high_tackle[1])), (int(highx), int(highy)), (0, 0, 255), 2)
-    cv2.line(pic, (int(los[0]), int(los[1])), (int(los[2]), int(los[3])), (0, 0, 255), 2)
+    #pic = cv2.imread('boxes.jpg')
+    #cv2.line(pic, (int(low_tackle[0]), int(low_tackle[1])), (int(lowx), int(lowy)), (0, 0, 255), 2)
+    #cv2.line(pic, (int(high_tackle[0]), int(high_tackle[1])), (int(highx), int(highy)), (0, 0, 255), 2)
+    #cv2.line(pic, (int(los[0]), int(los[1])), (int(los[2]), int(los[3])), (0, 0, 255), 2)
     #cv2.circle(pic, (int(player_x), int(player_y)), 5, (255, 255, 0), -1)
     #cv2.circle(pic, (int(player_x), int(player_y)+int(player_height/2)), 5, (255, 255, 0), -1)
-    cv2.imwrite('boxes.jpg', pic)
-    cv2.waitKey()
+    #cv2.imwrite('boxes.jpg', pic)
+    # cv2.waitKey()
     if direction == "left":
         if (player_x < lowx and player_x < highx and player_y < lowy and player_y > highy):
             return True
@@ -137,6 +137,42 @@ def in_the_box(player_x, player_y, player_height, high_tackle, low_tackle, tack_
             return True
         else:
             return False
+
+
+def check_formation(players, cx, cy, is_left):
+    formation = []
+    qbx = 0
+    wr_right = 0
+    wr_left = 0
+    for i in players:
+        if i['class'] == 'QB':
+            qbx = i['x']
+            if is_left == True:
+                if i['x'] - cx < -50:
+                    formation.append("shotgun")
+                else:
+                    formation.append("under center")
+            else:
+                if i['x'] - cx > 50:
+                    formation.append("under center")
+                else:
+                    formation.append("shotgun")
+        if i['class'] == 'WR' or i['class'] == 'TE' or i['class'] == 'WING':
+            if cy - i['y'] < 0:
+                wr_right += 1
+            else:
+                wr_left += 1
+        if i['class'] == 'RB':
+            if -10 <= i['y'] - qbx <= 10:
+                formation.append("pistol")
+            elif i['y'] - qbx > 25:
+                formation.append("rb right")
+            else:
+                formation.append("rb left")
+
+    formation.append(str(wr_left) + "X" + str(wr_right))
+
+    return formation
 
 def opencv():
     DB: int = 0
@@ -277,9 +313,14 @@ def opencv():
             if i['class'] == 'SKILL' or i['class'] == "WR":
                 lowest_skill_y.append((i['x'], i['y'], i['width'], i['height'], i['id']))
         lowest_skill_y.sort(key=lambda x: x[1], reverse=True)
-        yes = losangle((int(CenterX + (CenterW / 2)), int(CenterY + (CenterH /2))), (qb_x_y),  (int(lowest_skill_y[0][0]+int(lowest_skill_y[0][2] / 2)), int(lowest_skill_y[0][1] + int(lowest_skill_y[0][3] / 2))))
+        if len(lowest_skill_y) > 0:
+            yes = losangle((int(CenterX + (CenterW / 2)), int(CenterY + (CenterH /2))), (qb_x_y),  (int(lowest_skill_y[0][0]+int(lowest_skill_y[0][2] / 2)), int(lowest_skill_y[0][1] + int(lowest_skill_y[0][3] / 2))))
+        else:
+            print("no skill player was found, we have added this image to the model please check again another day.")
+            upload(detections, name)
     else:
         print("no center was found, we have added this image to the model please check again another day.")
+        upload(detections, name)
 
     p1x,p1y,p2x,p2y,tackle_box_angle,los_angle = yes
     los_line = (p1x,p1y,p2x,p2y)
@@ -358,7 +399,9 @@ def opencv():
         cv2.imshow("frame", pic)
         pyautogui.alert(text=f'the front is {DL}-{box_linebacker}', title='Front', button='OK')
 
-    #print(f'the formation is {formation}')
+
+    formation = check_formation(detections, CenterX, CenterY, left)
+    print(f'the formation is {formation}')
     upload(detections, name)
 
 def upload(detections, file_name):
