@@ -1,7 +1,6 @@
 import io
 import math
 import time
-from datetime import datetime
 from tkinter import *
 import sys
 import os
@@ -173,6 +172,16 @@ def check_formation(players, cx, cy, is_left):
     formation.append(str(wr_left) + "X" + str(wr_right))
 
     return formation
+
+
+def check_safeties(players, cx, cy, is_left):
+    safeties_count = 0
+    for i in players:
+        if i['class'] == "S":
+            #check how far they from center width and height
+            safeties_count += 1
+            return "mofc"
+
 
 def opencv():
     DB: int = 0
@@ -399,9 +408,13 @@ def opencv():
         cv2.imshow("frame", pic)
         pyautogui.alert(text=f'the front is {DL}-{box_linebacker}', title='Front', button='OK')
 
-
+    mofo_mofc = check_safeties(detections, CenterX, CenterY, left)
     formation = check_formation(detections, CenterX, CenterY, left)
     print(f'the formation is {formation}')
+    if mofo_mofc == "MOFO":
+        print(f'{mofo_mofc} possible coverages: 0,2,4,6')
+    else:
+        print(f'{mofo_mofc} possible coverages: 0,1,3')
     upload(detections, name)
 
 def upload(detections, file_name):
