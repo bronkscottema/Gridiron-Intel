@@ -68,7 +68,7 @@ def losangle(Cpos, QBpos, Skillpos):
 
 
 def is_left(x,y,a,b,c,d):
-    return (c - a)*(y - b) - (d - b)*(x - a) > 0
+    return (c - a)*(y - b) - (d - b)*(x - a) < 0
 
 
 def player_count(players):
@@ -147,12 +147,12 @@ def check_formation(players, cx, cy, is_left):
         if i['class'] == 'QB':
             qbx = i['x']
             if is_left == True:
-                if i['x'] - cx < -50:
+                if i['x'] - cx < -20:
                     formation.append("shotgun")
                 else:
                     formation.append("under center")
             else:
-                if i['x'] - cx > 50:
+                if i['x'] - cx > 20:
                     formation.append("under center")
                 else:
                     formation.append("shotgun")
@@ -164,7 +164,7 @@ def check_formation(players, cx, cy, is_left):
         if i['class'] == 'RB':
             if -10 <= i['y'] - qbx <= 10:
                 formation.append("pistol")
-            elif i['y'] - qbx > 25:
+            elif i['y'] - qbx < 10:
                 formation.append("rb right")
             else:
                 formation.append("rb left")
@@ -181,6 +181,25 @@ def check_safeties(players, cx, cy, is_left):
             #check how far they from center width and height
             safeties_count += 1
             return "mofc"
+
+def draw_players(detections, file_name):
+    image = cv2.imread(file_name)
+    for box in detections:
+        if box['remove'] != 'yes':
+
+            x = int(box['x'])
+            y = int(box['y'])
+            w = int(box['width'] / 2)
+            h = int(box['height'] / 2)
+            player_class = box['class']
+
+            cv2.rectangle(image, (x - w, y-h), (x + w, y + h), (0, 255, 0), 3)
+            cv2.putText(image, player_class + str(box['id']), (x, y - 30), cv2.FONT_HERSHEY_TRIPLEX,
+                        .7, (0, 0, 0), 1, cv2.LINE_AA)
+    cv2.imwrite("boxes.jpg", image)
+    picture = cv2.imread("boxes.jpg")
+    cv2.imshow("frame", picture)
+    cv2.waitKey()
 
 
 def opencv():
@@ -199,9 +218,9 @@ def opencv():
     endpoint = os.getenv('ROBOFLOW_URL')
     access_token = os.getenv('ROBOFLOW_API_KEY')
     format = '&format=json'
-    confidence = '&confidence=10'
-    stroke = '&stroke=4'
-    overlap = '&overlap=20'
+    confidence = '&confidence=30'
+    stroke = '&stroke=3'
+    overlap = '&overlap=50'
     parts.append(url_base)
     parts.append(endpoint)
     parts.append(access_token)
@@ -214,7 +233,17 @@ def opencv():
     my_screenshot = pyautogui.screenshot()
     my_screenshot.save(name)
     f = name
-    image = Image.open(f).convert("RGB")
+    # Creating the kernel(2d convolution matrix)
+    kernel = np.array([
+        [0, -1, 0],
+        [-1, 5, -1],
+        [0, -1, 0]
+    ])
+    image = cv2.imread(f)
+    # Applying the filter2D() function
+    img = cv2.filter2D(src=image, ddepth=-1, kernel=kernel)
+    clean = cv2.imwrite(name, img)
+    image = Image.open(name).convert("RGB")
     # Convert to JPEG Buffer
     buffered = io.BytesIO()
     image.save(buffered, quality=90, format="JPEG")
@@ -299,7 +328,6 @@ def opencv():
             cv2.imwrite("boxes.jpg", opencvImage)
 
 
-
     left = False
     right = False
     lowest_skill_y = []
@@ -335,31 +363,29 @@ def opencv():
     los_line = (p1x,p1y,p2x,p2y)
 
     # do I try to do corrections?
-    # for det in detections:
-    #     if is_left(det['x'], det['y'], a,b,c,d) is True and left == True and det['class'] != "CENTER":
-    #         #print("here offense", det)
-    #         det['odk'] = "offense"
-    #         if det['class'] == 'LB' or det['class'] == 'DB' :
-    #             det['class'] = 'SKILL'
-    #         elif det['class'] == "DT" or det['class'] == 'DL':
-    #             det['class'] = 'OL'
-    #     elif is_left(det['x'], det['y'], a,b,c,d) is False and left == False and det['class'] != "CENTER":
-    #         #print("here offense", det)
-    #         det['odk'] = "offense"
-    #         if det['class'] == 'LB' or det['class'] == 'DB':
-    #             det['class'] = 'SKILL'
-    #         elif det['class'] == "DT" or det['class'] == 'DL':
-    #             det['class'] = 'OL'
-    #     elif det['class'] != "CENTER":
-    #         #print("defense", det)
-    #         det['odk'] = "defense"
-    #         if det['class'] != 'LB' or det['class'] == 'DB':
-    #             det['class'] = 'DB'
-    #         elif det['class'] == "OT":
-    #             det['class'] = 'DE'
-    #         elif det['class'] == 'OG':
-    #             det['class'] = 'DT'
-
+    for det in detections:
+        if is_left(det['x'], det['y'], p1x,p1y,p2x,p2y) is True and left == True and det['class'] != "CENTER":
+            #print("here offense", det)
+            det['odk'] = "offense"
+            if det['class'] == 'LB' or det['class'] == 'DB':
+                det['class'] = 'SKILL'
+            elif det['class'] == "DT" or det['class'] == 'DL':
+                det['class'] = 'OL'
+        elif is_left(det['x'], det['y'], p1x,p1y,p2x,p2y) is False and left == False and det['class'] != "CENTER":
+            #print("here offense", det)
+            det['odk'] = "offense"
+            if det['class'] == 'LB' or det['class'] == 'DB':
+                det['class'] = 'SKILL'
+            elif det['class'] == "DT" or det['class'] == 'DL':
+                det['class'] = 'OL'
+        elif det['class'] != "CENTER":
+            #print("defense", det)
+            det['odk'] = "defense"
+            if det['class'] == "OT":
+                det['class'] = 'DE'
+            elif det['class'] == 'OG':
+                det['class'] = 'DT'
+    draw_players(detections, name)
     player_count(detections)
     #logic for identifying box
     box_linebacker = 0
@@ -371,7 +397,7 @@ def opencv():
             if player['class'] == "OT":
                 tackle_box.append((player['x'], player['y'], player['width'], player['height']))
         tackle_box.sort(key=lambda x: x[1])
-        if len(tackle_box) == 2:
+        if len(tackle_box) >= 2:
             low_tackle_box = (tackle_box[0][0] + (tackle_box[0][2] / 2), tackle_box[0][1] + (tackle_box[0][3] / 2))
             high_tackle_box = (tackle_box[1][0] + (tackle_box[1][2] / 2), tackle_box[1][1] + (tackle_box[1][3] / 2))
             for def_player in detections:
@@ -393,7 +419,7 @@ def opencv():
             if player['class'] == "OT":
                 tackle_box.append((player['x'], player['y'], player['width'], player['height']))
         tackle_box.sort(key=lambda x: x[1])
-        if len(tackle_box) == 2:
+        if len(tackle_box) >= 2:
             low_tackle_box = (tackle_box[0][0] - (tackle_box[0][2] / 2), tackle_box[0][1] + (tackle_box[0][3] / 2))
             high_tackle_box = (tackle_box[1][0] - (tackle_box[1][2] / 2), tackle_box[1][1] + (tackle_box[1][3] / 2))
             for def_player in detections:
