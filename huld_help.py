@@ -108,19 +108,19 @@ def in_the_box(player_x, player_y, player_height, high_tackle, low_tackle, tack_
         lowy = low_tackle[1] + length * math.sin(math.radians(angle))
         lowx = low_tackle[0] + length * math.cos(math.radians(angle))
     else:
-        highy = high_tackle[1] - length * math.sin(math.radians(angle))
-        highx = high_tackle[0] - length * math.cos(math.radians(angle))
+        highy = high_tackle[1] + length * math.sin(math.radians(angle))
+        highx = high_tackle[0] + length * math.cos(math.radians(angle))
 
-        lowy = low_tackle[1] - length * math.sin(math.radians(angle))
-        lowx = low_tackle[0] - length * math.cos(math.radians(angle))
+        lowy = low_tackle[1] + length * math.sin(math.radians(angle))
+        lowx = low_tackle[0] + length * math.cos(math.radians(angle))
 
-    #pic = cv2.imread('boxes.jpg')
-    #cv2.line(pic, (int(low_tackle[0]), int(low_tackle[1])), (int(lowx), int(lowy)), (0, 0, 255), 2)
-    #cv2.line(pic, (int(high_tackle[0]), int(high_tackle[1])), (int(highx), int(highy)), (0, 0, 255), 2)
-    #cv2.line(pic, (int(los[0]), int(los[1])), (int(los[2]), int(los[3])), (0, 0, 255), 2)
-    #cv2.circle(pic, (int(player_x), int(player_y)), 5, (255, 255, 0), -1)
-    #cv2.circle(pic, (int(player_x), int(player_y)+int(player_height/2)), 5, (255, 255, 0), -1)
-    #cv2.imwrite('boxes.jpg', pic)
+    pic = cv2.imread('boxes.jpg')
+    # cv2.line(pic, (int(low_tackle[0]), int(low_tackle[1])), (int(lowx), int(lowy)), (0, 0, 255), 2)
+    # cv2.line(pic, (int(high_tackle[0]), int(high_tackle[1])), (int(highx), int(highy)), (0, 0, 255), 2)
+    # cv2.line(pic, (int(los[0]), int(los[1])), (int(los[2]), int(los[3])), (0, 0, 255), 2)
+    # cv2.circle(pic, (int(player_x), int(player_y)), 5, (255, 255, 0), -1)
+    # cv2.circle(pic, (int(player_x), int(player_y)+int(player_height/2)), 5, (255, 255, 0), -1)
+    cv2.imwrite('boxes.jpg', pic)
     # cv2.waitKey()
     if direction == "left":
         if (player_x < lowx and player_x < highx and player_y < lowy and player_y > highy):
@@ -152,7 +152,7 @@ def check_formation(players, cx, cy, is_left):
                 else:
                     formation.append("under center")
             else:
-                if i['x'] - cx > 20:
+                if i['x'] - cx < 20:
                     formation.append("under center")
                 else:
                     formation.append("shotgun")
@@ -162,9 +162,9 @@ def check_formation(players, cx, cy, is_left):
             else:
                 wr_left += 1
         if i['class'] == 'RB':
-            if -10 <= i['y'] - qbx <= 10:
+            if -50 <= i['x'] - qbx <= 50:
                 formation.append("pistol")
-            elif i['y'] - qbx < 10:
+            elif i['x'] - qbx > 50:
                 formation.append("rb right")
             else:
                 formation.append("rb left")
@@ -197,9 +197,9 @@ def draw_players(detections, file_name):
             cv2.putText(image, player_class + str(box['id']), (x, y - 30), cv2.FONT_HERSHEY_TRIPLEX,
                         .7, (0, 0, 0), 1, cv2.LINE_AA)
     cv2.imwrite("boxes.jpg", image)
-    picture = cv2.imread("boxes.jpg")
-    cv2.imshow("frame", picture)
-    cv2.waitKey()
+    #picture = cv2.imread("boxes.jpg")
+    #cv2.imshow("frame", picture)
+    #cv2.waitKey()
 
 
 def opencv():
@@ -218,7 +218,7 @@ def opencv():
     endpoint = os.getenv('ROBOFLOW_URL')
     access_token = os.getenv('ROBOFLOW_API_KEY')
     format = '&format=json'
-    confidence = '&confidence=30'
+    confidence = '&confidence=35'
     stroke = '&stroke=3'
     overlap = '&overlap=50'
     parts.append(url_base)
@@ -383,8 +383,16 @@ def opencv():
             det['odk'] = "defense"
             if det['class'] == "OT":
                 det['class'] = 'DE'
-            elif det['class'] == 'OG':
+            elif det['class'] == 'OG' or det['class'] == 'C':
                 det['class'] = 'DT'
+            elif det['class'] == 'WR':
+                if 250 < math.dist((det['x'], det['y']), (CenterX, CenterY)) < 500:
+                    if det['class'] == 'WR':
+                        det['class'] = 'S'
+
+
+
+
     draw_players(detections, name)
     player_count(detections)
     #logic for identifying box
@@ -432,15 +440,21 @@ def opencv():
         print(f'the front is {DL}-{box_linebacker}')
         pic = cv2.imread("boxes.jpg")
         cv2.imshow("frame", pic)
-        pyautogui.alert(text=f'the front is {DL}-{box_linebacker}', title='Front', button='OK')
 
     mofo_mofc = check_safeties(detections, CenterX, CenterY, left)
     formation = check_formation(detections, CenterX, CenterY, left)
     print(f'the formation is {formation}')
     if mofo_mofc == "MOFO":
         print(f'{mofo_mofc} possible coverages: 0,2,4,6')
+        text = f"Front = {DL}-{box_linebacker}\n" \
+               f"Formation = {formation}\n" \
+               f"{mofo_mofc} possible coverages: 0,2,4,6"
+        pyautogui.alert(text=text, title='Breakdown', button='OK')
     else:
-        print(f'{mofo_mofc} possible coverages: 0,1,3')
+        text = f"Front = {DL}-{box_linebacker}\n" \
+               f"Formation = {formation}\n" \
+               f"{mofo_mofc} possible coverages: 0,1,3"
+        pyautogui.alert(text=text, title='Breakdown', button='OK')
     upload(detections, name)
 
 def upload(detections, file_name):

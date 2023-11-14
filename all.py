@@ -216,192 +216,192 @@ def opencv(file, hash_or_num, gameid_number, playid_number, offense_l_or_r, yard
         if offense_l_or_r == "Offense Right":
             frame_cap = cv2.flip(frame_cap, 1)
         frame_cap = cv2.resize(frame_cap, (1280, 720))
+        if cv2.CAP_PROP_POS_FRAMES % 10 == 0:
+            (success, boxes) = trackers.update(frame_cap)
+            (srcwins, src_pts) = srcpointTracker.update(points_image)
+            (dstwins, dst_pts) = field_point_tracker.update(frame_cap)
 
-        (success, boxes) = trackers.update(frame_cap)
-        (srcwins, src_pts) = srcpointTracker.update(points_image)
-        (dstwins, dst_pts) = field_point_tracker.update(frame_cap)
+            if len(boxes) == 0 and exists == False:
+                cv2.imwrite("file.jpg", frame_cap)
+                # select the bounding box of the object we want to track (make
+                # sure you press ENTER or SPACE after selecting the ROI)
+                box = cv2.selectROIs("Frame", frame_cap, fromCenter=False,
+                                     showCrosshair=True)
 
-        if len(boxes) == 0 and exists == False:
-            cv2.imwrite("file.jpg", frame_cap)
-            # select the bounding box of the object we want to track (make
-            # sure you press ENTER or SPACE after selecting the ROI)
-            box = cv2.selectROIs("Frame", frame_cap, fromCenter=False,
-                                 showCrosshair=True)
+                parts = []
+                url_base = 'https://detect.roboflow.com/'
+                endpoint = os.getenv('ROBOFLOW_URL')
+                access_token = os.getenv('ROBOFLOW_API_KEY')
+                format = '&format=json'
+                confidence = '&confidence=75'
+                stroke = '&stroke=4'
+                overlap = '&overlap=0'
+                parts.append(url_base)
+                parts.append(endpoint)
+                parts.append(access_token)
+                parts.append(format)
+                parts.append(confidence)
+                parts.append(overlap)
+                parts.append(stroke)
+                url = ''.join(parts)
 
-            parts = []
-            url_base = 'https://detect.roboflow.com/'
-            endpoint = os.getenv('ROBOFLOW_URL')
-            access_token = os.getenv('ROBOFLOW_API_KEY')
-            format = '&format=json'
-            confidence = '&confidence=75'
-            stroke = '&stroke=4'
-            overlap = '&overlap=0'
-            parts.append(url_base)
-            parts.append(endpoint)
-            parts.append(access_token)
-            parts.append(format)
-            parts.append(confidence)
-            parts.append(overlap)
-            parts.append(stroke)
-            url = ''.join(parts)
+                f = 'file.jpg'
+                image = Image.open(f).convert("RGB")
+                # Convert to JPEG Buffer
+                buffered = io.BytesIO()
+                image.save(buffered, quality=90, format="JPEG")
+                # Construct the URL
+                m = MultipartEncoder(fields={'file': (f, buffered.getvalue(), resource_path("image/jpeg"))})
+                r = requests.post(url, data=m, headers={'Content-Type': m.content_type})
+                # print('post took ' + str(time.time() - start))
+                # POST to the API
+                # re = requests.post("https://app.roboflow.com/bronkscottema/football-players-zm06l/upload?api_key=UkLzsuZSvsQOnmhR2JaS", data=img_str, headers={
+                #     'accept': 'application/json'})
+                # print(re.json())
+                # print(r.json())
+                preds = r.json()
+                detections = preds['predictions']
 
-            f = 'file.jpg'
-            image = Image.open(f).convert("RGB")
-            # Convert to JPEG Buffer
-            buffered = io.BytesIO()
-            image.save(buffered, quality=90, format="JPEG")
-            # Construct the URL
-            m = MultipartEncoder(fields={'file': (f, buffered.getvalue(), resource_path("image/jpeg"))})
-            r = requests.post(url, data=m, headers={'Content-Type': m.content_type})
-            # print('post took ' + str(time.time() - start))
-            # POST to the API
-            # re = requests.post("https://app.roboflow.com/bronkscottema/football-players-zm06l/upload?api_key=UkLzsuZSvsQOnmhR2JaS", data=img_str, headers={
-            #     'accept': 'application/json'})
-            # print(re.json())
-            # print(r.json())
-            preds = r.json()
-            detections = preds['predictions']
+                draw = ImageDraw.Draw(image)
+                font = ImageFont.load_default()
+                detect = detections
 
-            draw = ImageDraw.Draw(image)
-            font = ImageFont.load_default()
-            detect = detections
-
-            for xydata in detect:
-                for second in detections:
-                    if xydata['class'] != second['class'] or xydata['class'] == second['class']:
-                        if xydata['x'] - 5 <= second['x'] <= xydata['x'] + 5 or xydata['x'] == second['x']:
-                            if xydata['y'] - 5 <= second['y'] <= xydata['y'] + 5 or xydata['y'] == second['y']:
-                                second['remove'] = 'yes'
+                for xydata in detect:
+                    for second in detections:
+                        if xydata['class'] != second['class'] or xydata['class'] == second['class']:
+                            if xydata['x'] - 5 <= second['x'] <= xydata['x'] + 5 or xydata['x'] == second['x']:
+                                if xydata['y'] - 5 <= second['y'] <= xydata['y'] + 5 or xydata['y'] == second['y']:
+                                    second['remove'] = 'yes'
+                                second['remove'] = 'no'
                             second['remove'] = 'no'
-                        second['remove'] = 'no'
 
-            for box in detections:
-                if box['remove'] != 'yes':
-                    color = "#4892EA"
-                    w = box['width']
-                    h = box['height']
-                    player_class = box['class']
-                    x1 = box['x'] - box['width'] / 2
-                    y1 = box['y'] - box['height'] / 2
-                    json_prediction.append(player_class)
-                    tracker = cv2.legacy.TrackerCSRT_create()
-                    trackers.add(tracker, frame_cap, (x1, y1, w, h))
-                #     draw.rectangle([
-                #         x1, y1, x2, y2
-                #     ], outline=color, width=5)
-                #
-                #     if True:
-                #         text = box['class']
-                #         text_size = font.getsize(text)
-                #
-                #         # set button size + 10px margins
-                #         button_size = (text_size[0] + 20, text_size[1] + 20)
-                #         button_img = Image.new('RGBA', button_size, color)
-                #         # put text on button with 10px margins
-                #         button_draw = ImageDraw.Draw(button_img)
-                #         button_draw.text((10, 10), text, font=font, fill=(255, 255, 255, 255))
-                #
-                #         # put button on source image in position (0, 0)
-                #         image.paste(button_img, (int(x1), int(y1)))
-            screenshot = cap.get(cv2.CAP_PROP_POS_FRAMES)
+                for box in detections:
+                    if box['remove'] != 'yes':
+                        color = "#4892EA"
+                        w = box['width']
+                        h = box['height']
+                        player_class = box['class']
+                        x1 = box['x'] - box['width'] / 2
+                        y1 = box['y'] - box['height'] / 2
+                        json_prediction.append(player_class)
+                        tracker = cv2.legacy.TrackerCSRT_create()
+                        trackers.add(tracker, frame_cap, (x1, y1, w, h))
+                    #     draw.rectangle([
+                    #         x1, y1, x2, y2
+                    #     ], outline=color, width=5)
+                    #
+                    #     if True:
+                    #         text = box['class']
+                    #         text_size = font.getsize(text)
+                    #
+                    #         # set button size + 10px margins
+                    #         button_size = (text_size[0] + 20, text_size[1] + 20)
+                    #         button_img = Image.new('RGBA', button_size, color)
+                    #         # put text on button with 10px margins
+                    #         button_draw = ImageDraw.Draw(button_img)
+                    #         button_draw.text((10, 10), text, font=font, fill=(255, 255, 255, 255))
+                    #
+                    #         # put button on source image in position (0, 0)
+                    #         image.paste(button_img, (int(x1), int(y1)))
+                screenshot = cap.get(cv2.CAP_PROP_POS_FRAMES)
 
-        # loop over the bounding boxes and draw them on the frame
-        for dstbox in enumerate(dst_pts):
-            (d, e) = [f for f in dstbox]
-            cv2.circle(frame_cap, (int(e[0]), int(e[1])), 5, (255, 255, 0), -1)
-            field_points.append((int(e[0]), int(e[1])))
+            # loop over the bounding boxes and draw them on the frame
+            for dstbox in enumerate(dst_pts):
+                (d, e) = [f for f in dstbox]
+                cv2.circle(frame_cap, (int(e[0]), int(e[1])), 5, (255, 255, 0), -1)
+                field_points.append((int(e[0]), int(e[1])))
 
-        for srcbox in enumerate(src_pts):
-            (a, b) = [c for c in srcbox]
-            cv2.circle(points_image, (int(b[0]), int(b[1])), 5, (255, 255, 0), -1)
-            points_image.append((int(b[0]), int(b[1])))
+            for srcbox in enumerate(src_pts):
+                (a, b) = [c for c in srcbox]
+                cv2.circle(points_image, (int(b[0]), int(b[1])), 5, (255, 255, 0), -1)
+                points_image.append((int(b[0]), int(b[1])))
 
-        if exists:
-            for face_no, box in enumerate(boxes):
-                (x, y, w, h) = [int(v) for v in box]
-                pt3.append(((x, y), face_no))
-                cv2.rectangle(frame_cap, (x, y), (x + w, y + h), (0, 255, 0), 3)
-                cv2.putText(frame_cap, str(face_no + total_players), (x, y - 30), cv2.FONT_HERSHEY_TRIPLEX,
-                            .7, (0, 0, 0), 1, cv2.LINE_AA)
-
-                if len(source_points) > 0:
-                    if len(field_points) > 0:
-
-                        box_id = pt3[0][1]
-                        if box_id == face_no:
-                            src_pts = np.float32(source_points).reshape(-1, 1, 2)
-                            dst_pts = np.float32([field_points]).reshape(-1, 1, 2)
-                            z, mask = cv2.findHomography(dst_pts, src_pts, cv2.RANSAC)
-                            a = np.float32(pt3[0][0]).reshape(-1, 1, 2)
-                            points_out = cv2.perspectiveTransform(a, z)
-                            np.split(points_out, 1)
-                            for x in points_out:
-                                x1, y1 = x[0]
-                                cv2.rectangle(field, ((int(abs(x1))), int(abs(y1))),
-                                              (int(abs(x1)) + 1, int(abs(y1)) + 1), (0, 0, 0), 2)
-                                tup = (gameid_number, str(playid_number), int(box_id), (int(abs(x1))), (int(abs(y1))),
-                                       cap.get(cv2.CAP_PROP_POS_FRAMES), null_variable,
-                                       null_variable, gameid_number)
-
-                                biglist.append(tup)
-                                screenshot += 1
-                                break
-                            speed_pts2.clear()
-                            speed_pts2 = pt3.copy()
-                        pt3.clear()
-            field_points.clear()
-        else:
-            for face_no, box in enumerate(boxes):
-                (x, y, w, h) = [int(v) for v in box]
-                pt3.append(((x + int(w / 2), y + h), face_no))
-                cv2.rectangle(frame_cap, (x, y), (x + w, y + h), (0, 255, 0), 3)
-                try:
-                    cv2.putText(frame_cap, str((json_prediction[face_no]) + " " + str(face_no)), (x, y - 30), cv2.FONT_HERSHEY_TRIPLEX,
-                            .7, (0, 255, 0), 1, cv2.LINE_AA)
-                except (IndexError):
+            if exists:
+                for face_no, box in enumerate(boxes):
+                    (x, y, w, h) = [int(v) for v in box]
+                    pt3.append(((x, y), face_no))
+                    cv2.rectangle(frame_cap, (x, y), (x + w, y + h), (0, 255, 0), 3)
                     cv2.putText(frame_cap, str(face_no + total_players), (x, y - 30), cv2.FONT_HERSHEY_TRIPLEX,
                                 .7, (0, 0, 0), 1, cv2.LINE_AA)
 
-                if len(source_points) > 0:
-                    if len(field_points) > 0:
-                        box_id = pt3[0][1]
-                        if box_id == face_no:
-                            src_pts = np.float32(source_points).reshape(-1, 1, 2)
-                            dst_pts = np.float32([field_points]).reshape(-1, 1, 2)
-                            z, mask = cv2.findHomography(dst_pts, src_pts, cv2.RANSAC)
-                            a = np.float32(pt3[0][0]).reshape(-1, 1, 2)
-                            pointsOut = cv2.perspectiveTransform(a, z)
-                            np.split(pointsOut, 1)
-                            for x in pointsOut:
-                                x1, y1 = x[0]
+                    if len(source_points) > 0:
+                        if len(field_points) > 0:
 
-                                if face_no < len(json_prediction):
-                                    if json_prediction[0] == "DB" or json_prediction[0] == "LB":
-                                        cv2.rectangle(field, ((int(abs(x1))), int(abs(y1))),
-                                                      (int(abs(x1)) + 1, int(abs(y1)) + 1), away, 2)
-                                    else:
-                                        cv2.rectangle(field, ((int(abs(x1))), int(abs(y1))),
-                                                      (int(abs(x1)) + 1, int(abs(y1)) + 1), home, 2)
-
-                                    tup = (gameid_number, str(playid_number), int(box_id), (int(abs(x1))), (int(abs(y1))),
-                                         cap.get(cv2.CAP_PROP_POS_FRAMES), null_variable,
-                                         str(json_prediction[face_no]))
-
-                                    biglist.append(tup)
-                                else:
+                            box_id = pt3[0][1]
+                            if box_id == face_no:
+                                src_pts = np.float32(source_points).reshape(-1, 1, 2)
+                                dst_pts = np.float32([field_points]).reshape(-1, 1, 2)
+                                z, mask = cv2.findHomography(dst_pts, src_pts, cv2.RANSAC)
+                                a = np.float32(pt3[0][0]).reshape(-1, 1, 2)
+                                points_out = cv2.perspectiveTransform(a, z)
+                                np.split(points_out, 1)
+                                for x in points_out:
+                                    x1, y1 = x[0]
                                     cv2.rectangle(field, ((int(abs(x1))), int(abs(y1))),
-                                                  (int(abs(x1)) + 1, int(abs(y1)) + 1), (0,0,0), 2)
+                                                  (int(abs(x1)) + 1, int(abs(y1)) + 1), (0, 0, 0), 2)
                                     tup = (gameid_number, str(playid_number), int(box_id), (int(abs(x1))), (int(abs(y1))),
                                            cap.get(cv2.CAP_PROP_POS_FRAMES), null_variable,
                                            null_variable, gameid_number)
 
                                     biglist.append(tup)
-                                screenshot += 1
-                                break
-                            speed_pts2.clear()
-                            speed_pts2 = pt3.copy()
-                        pt3.clear()
-            field_points.clear()
+                                    screenshot += 1
+                                    break
+                                speed_pts2.clear()
+                                speed_pts2 = pt3.copy()
+                            pt3.clear()
+                field_points.clear()
+            else:
+                for face_no, box in enumerate(boxes):
+                    (x, y, w, h) = [int(v) for v in box]
+                    pt3.append(((x + int(w / 2), y + h), face_no))
+                    cv2.rectangle(frame_cap, (x, y), (x + w, y + h), (0, 255, 0), 3)
+                    try:
+                        cv2.putText(frame_cap, str((json_prediction[face_no]) + " " + str(face_no)), (x, y - 30), cv2.FONT_HERSHEY_TRIPLEX,
+                                .7, (0, 255, 0), 1, cv2.LINE_AA)
+                    except (IndexError):
+                        cv2.putText(frame_cap, str(face_no + total_players), (x, y - 30), cv2.FONT_HERSHEY_TRIPLEX,
+                                    .7, (0, 0, 0), 1, cv2.LINE_AA)
+
+                    if len(source_points) > 0:
+                        if len(field_points) > 0:
+                            box_id = pt3[0][1]
+                            if box_id == face_no:
+                                src_pts = np.float32(source_points).reshape(-1, 1, 2)
+                                dst_pts = np.float32([field_points]).reshape(-1, 1, 2)
+                                z, mask = cv2.findHomography(dst_pts, src_pts, cv2.RANSAC)
+                                a = np.float32(pt3[0][0]).reshape(-1, 1, 2)
+                                pointsOut = cv2.perspectiveTransform(a, z)
+                                np.split(pointsOut, 1)
+                                for x in pointsOut:
+                                    x1, y1 = x[0]
+
+                                    if face_no < len(json_prediction):
+                                        if json_prediction[0] == "DB" or json_prediction[0] == "LB":
+                                            cv2.rectangle(field, ((int(abs(x1))), int(abs(y1))),
+                                                          (int(abs(x1)) + 1, int(abs(y1)) + 1), away, 2)
+                                        else:
+                                            cv2.rectangle(field, ((int(abs(x1))), int(abs(y1))),
+                                                          (int(abs(x1)) + 1, int(abs(y1)) + 1), home, 2)
+
+                                        tup = (gameid_number, str(playid_number), int(box_id), (int(abs(x1))), (int(abs(y1))),
+                                             cap.get(cv2.CAP_PROP_POS_FRAMES), null_variable,
+                                             str(json_prediction[face_no]))
+
+                                        biglist.append(tup)
+                                    else:
+                                        cv2.rectangle(field, ((int(abs(x1))), int(abs(y1))),
+                                                      (int(abs(x1)) + 1, int(abs(y1)) + 1), (0,0,0), 2)
+                                        tup = (gameid_number, str(playid_number), int(box_id), (int(abs(x1))), (int(abs(y1))),
+                                               cap.get(cv2.CAP_PROP_POS_FRAMES), null_variable,
+                                               null_variable, gameid_number)
+
+                                        biglist.append(tup)
+                                    screenshot += 1
+                                    break
+                                speed_pts2.clear()
+                                speed_pts2 = pt3.copy()
+                            pt3.clear()
+                field_points.clear()
 
         cv2.imshow("Frame", frame_cap)
         if screenshot > 0 or exists == True:
