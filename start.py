@@ -53,11 +53,6 @@ class Window(QWidget):
         self.offense_left_or_right_label.setObjectName("questions")
         self.offense_left_or_right = QComboBox(self)
 
-        self.hashmark_number_label = QLabel("Hashmarks of Numbers?")
-        self.hashmark_number_label.setWordWrap(True)
-        self.hashmark_number_label.setObjectName("questions")
-        self.hashmark_number = QComboBox(self)
-
         self.opponent_label = QLabel("Who is the opponent?")
         self.opponent_label.setObjectName("questions")
         self.opponent_label.setWordWrap(True)
@@ -143,9 +138,6 @@ class Window(QWidget):
         self.opponent.addItems(getOpponent(self.year.currentText(), self.regular_post.currentText(), self.offense.currentText()))
         top_right_layout.addRow(self.opponent_label, self.opponent)
 
-        self.hashmark_number.addItems(["Hashmark", "Numbers"])
-        top_right_layout.addRow(self.hashmark_number_label, self.hashmark_number)
-
         self.offense_left_or_right.addItems(["Offense Left", "Offense Right"])
         top_right_layout.addRow(self.offense_left_or_right_label, self.offense_left_or_right)
         top_right_layout.setAlignment(Qt.AlignCenter)
@@ -154,6 +146,7 @@ class Window(QWidget):
         self.year.currentIndexChanged.connect(self.update_opponent)
         self.regular_post.currentIndexChanged.connect(self.update_opponent)
         self.offense.currentIndexChanged.connect(self.update_opponent)
+        self.offense.currentIndexChanged.connect(self.update_table)
         self.league.currentIndexChanged.connect(self.update_opponent)
         self.year.currentIndexChanged.connect(self.update_table)
         self.regular_post.currentIndexChanged.connect(self.update_table)
@@ -192,8 +185,9 @@ class Window(QWidget):
     def update_table(self, ix):
         self.api_table.setRowCount(0)
         self.api_table.setSortingEnabled(False)
-
+        self.api_table.clear()
         if self.league.currentText() == 'NFL':
+            self.api_table.update()
             self.api_table.setColumnCount(len(nflheaders))
             self.week = getNFLWeek(yearOf=self.year.currentText(), teamName=self.offense.currentText(), opponent=self.opponent.currentText())
             result = getNFLGameData(self.offense.currentText(), self.year.currentText(), self.opponent.currentText())
@@ -245,6 +239,7 @@ class Window(QWidget):
             except:
                 pass
         else:
+            self.api_table.update()
             self.api_table.setColumnCount(len(keys))
             self.header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
             self.header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
@@ -298,7 +293,7 @@ class Window(QWidget):
     def submit_pushed(self):
         url = QFileDialog.getOpenFileName(self, "Open a file", "", "All Files(*);;")
 
-        all.opencv(url[0], hash_or_num=self.hashmark_number.currentText(), gameid_number=self.gameid_value, playid_number=self.playid_value,
+        all.opencv(url[0], gameid_number=self.gameid_value, playid_number=self.playid_value,
                    offense_l_or_r=self.offense_left_or_right.currentText(), yard_line=int(self.yard_value), offense=self.offense.currentText(),
                    defense=self.opponent.currentText(), league=self.league.currentText(), year=self.year.currentText(),
                    week=self.week[0], regular_post=self.regular_post.currentText(), play_text=self.play_text)

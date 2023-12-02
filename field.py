@@ -14,7 +14,7 @@ pd_options = {
 font_dirs = ['C:\\Users\\bronkscottema\\Desktop\\Development\\Audible_Analytics\\fonts\\']
 for font in font_manager.findSystemFonts(font_dirs):
     font_manager.fontManager.addfont(font)
-plt.rcParams['font.family'] = 'Superstar M54'
+plt.rcParams['font.family'] = 'Besley-Bold'
 
 def create_football_field(linenumbers=True,
                           endzones=True,
@@ -28,7 +28,7 @@ def create_football_field(linenumbers=True,
     Allows for showing or hiding endzones.
     """
     rect = patches.Rectangle((0, 0), 53.3, 120, linewidth=0.1,
-                             edgecolor='black', facecolor='white', zorder=0)
+                             edgecolor='white', facecolor='green', zorder=0)
 
     fig, ax = plt.subplots(1, figsize=figsize)
     ax.add_patch(rect)
@@ -39,19 +39,19 @@ def create_football_field(linenumbers=True,
               [10, 10, 10, 15, 15, 15, 20, 20, 20, 25, 25, 25, 30, 30, 30, 35, 35, 35, 40, 40, 40, 45, 45, 45, 50, 50, 50,
               55, 55, 55, 60, 60, 60, 65, 65, 65, 70, 70, 70, 75, 75, 75, 80, 80, 80, 85, 85, 85, 90, 90, 90, 95, 95, 95,
               100, 100, 100, 105, 105, 105, 110, 110, 110],
-             color='black')
+             color='white')
     # Endzones
     if endzones:
         ez1 = patches.Rectangle((0, 0), 53.3, 10,
                                 linewidth=0.1,
-                                edgecolor='black',
-                                facecolor='black',
+                                edgecolor='white',
+                                facecolor='white',
                                 alpha=0.2,
                                 zorder=0)
         ez2 = patches.Rectangle((0, 110), 53.3, 120,
                                 linewidth=0.1,
-                                edgecolor='black',
-                                facecolor='black',
+                                edgecolor='white',
+                                facecolor='white',
                                 alpha=0.2,
                                 zorder=0)
         ax.add_patch(ez1)
@@ -66,41 +66,42 @@ def create_football_field(linenumbers=True,
                 numb = 120 - x
             #10 yard line
             if numb - 10 == 10:
-                plt.text(12, x - .65, str(numb - 10).replace("", " "),
+                plt.text(12, x - 1.1, str(numb - 10).replace("", " "),
                          horizontalalignment='center',
-                         fontsize=19, fontname='Superstar M54',
-                         color='black', rotation=90)
-                plt.text(53.3 - 12, x - .65, str(numb - 10).replace("", " "),
+                         fontsize=19, fontname='Besley-Bold',
+                         color='white', rotation=90)
+                plt.text(53.3 - 12, x - 1.1, str(numb - 10).replace("", " "),
                          horizontalalignment='center',
-                         fontsize=19, fontname='Superstar M54',
-                         color='black', rotation=90)
+                         fontsize=19, fontname='Besley-Bold',
+                         color='white', rotation=90)
             elif numb - 10 == 30:
-                plt.text(12, x - .75, str(numb - 10).replace("", " "),
+                plt.text(12, x - 1.1, str(numb - 10).replace("", " "),
                          horizontalalignment='center',
-                         fontsize=19, fontname='Superstar M54',
-                         color='black', rotation=90)
-                plt.text(53.3 - 12, x - 1, str(numb - 10).replace("", " "),
+                         fontsize=19, fontname='Besley-Bold',
+                         color='white', rotation=90)
+                plt.text(53.3 - 12, x - 1.1, str(numb - 10).replace("", " "),
                          horizontalalignment='center',
-                         fontsize=19, fontname='Superstar M54',
-                         color='black', rotation=90)
+                         fontsize=19, fontname='Besley-Bold',
+                         color='white', rotation=90)
             elif numb - 10 == 40:
-                plt.text(12, x - .75, str(numb - 10).replace("", " "),
+                plt.text(12, x - 1.1, str(numb - 10).replace("", " "),
                          horizontalalignment='center',
-                         fontsize=19, fontname='Superstar M54',
-                         color='black', rotation=90)
+                         fontsize=19, fontname='Besley-Bold',
+                         color='white', rotation=90)
+                plt.text(53.3 - 12, x - 1.1, str(numb - 10).replace("", " "),
+                         horizontalalignment='center',
+                         fontsize=19, fontname='Besley-Bold',
+                         color='white', rotation=90)
+            else:
+                plt.text(12, x - 1, str(numb - 10).replace("", " "),
+                         horizontalalignment='center',
+                         fontsize=19, fontname='Besley-Bold',
+                         color='white', rotation=90)
                 plt.text(53.3 - 12, x - 1, str(numb - 10).replace("", " "),
                          horizontalalignment='center',
-                         fontsize=19, fontname='Superstar M54',
-                         color='black', rotation=90)
-            else:
-                plt.text(12, x - .85, str(numb - 10).replace("", " "),
-                         horizontalalignment='center',
-                         fontsize=19, fontname='Superstar M54',
-                         color='black', rotation=90)
-                plt.text(53.3 - 12, x - .85, str(numb - 10).replace("", " "),
-                         horizontalalignment='center',
-                         fontsize=19, fontname='Superstar M54',
-                         color='black', rotation=90)
+                         fontsize=19, fontname='Besley-Bold',
+                         color='white', rotation=90)
+
     if endzones:
         hash_range = range(11, 110)
     else:
@@ -108,21 +109,21 @@ def create_football_field(linenumbers=True,
 
     for x in hash_range:
         #NFL
-        # ax.plot([0.4, 0.7], [x,x], color='black')
-        # ax.plot([53.0, 52.5], [x,x], color='black')
-        # ax.plot([23.33, 24.00], [x,x], color='black')
-        # ax.plot([29.33, 30.00], [x,x], color='black')
+        # ax.plot([0.4, 0.7], [x,x], color='white')
+        # ax.plot([53.0, 52.5], [x,x], color='white')
+        # ax.plot([23.33, 24.00], [x,x], color='white')
+        # ax.plot([29.33, 30.00], [x,x], color='white')
         #COLLEGE
-        ax.plot([0.4, 0.7], [x, x], color='black')
-        ax.plot([53.0, 52.5], [x, x], color='black')
-        ax.plot([20.00, 20.66], [x, x], color='black')
-        ax.plot([32.66, 33.33], [x, x], color='black')
+        ax.plot([0.4, 0.7], [x, x], color='white')
+        ax.plot([53.0, 52.5], [x, x], color='white')
+        ax.plot([20.00, 20.66], [x, x], color='white')
+        ax.plot([32.66, 33.33], [x, x], color='white')
 
     if highlight_line:
         hl = highlight_line_number + 10
-        plt.plot([hl, hl], [0, 53.3], color='black')
+        plt.plot([hl, hl], [0, 53.3], color='white')
         plt.text(hl + 2, 50, '<- {}'.format(highlighted_name),
-                 color='black')
+                 color='white')
     return fig, ax
 
 create_football_field()
@@ -139,132 +140,96 @@ plt.show()
 # if numb - 10 == 10:
 #     plt.text(12, x - 2, str(numb - 10).replace("", " "),
 #              horizontalalignment='center',
-#              fontsize=19, fontname='Superstar M54',
-#              color='black', rotation=90)
+#              fontsize=19, fontname='Besley-Bold',
+#              color='white', rotation=90)
 #     plt.text(53.3 - 12, x - 2, str(numb - 10).replace("", " "),
 #              horizontalalignment='center',
-#              fontsize=19, fontname='Superstar M54',
-#              color='black', rotation=90)
+#              fontsize=19, fontname='Besley-Bold',
+#              color='white', rotation=90)
 #     # 40
 # elif numb - 10 == 40:
 #     plt.text(12, x - 2.7, str(numb - 10).replace("", " "),
 #              horizontalalignment='center',
-#              fontsize=19, fontname='Superstar M54',
-#              color='black', rotation=90)
+#              fontsize=19, fontname='Besley-Bold',
+#              color='white', rotation=90)
 #     plt.text(53.3 - 12, x - 2.7, str(numb - 10).replace("", " "),
 #              horizontalalignment='center',
-#              fontsize=19, fontname='Superstar M54',
-#              color='black', rotation=90)
+#              fontsize=19, fontname='Besley-Bold',
+#              color='white', rotation=90)
 # else:
 #     plt.text(12, x - 2.5, str(numb - 10).replace("", " "),
 #              horizontalalignment='center',
-#              fontsize=19, fontname='Superstar M54',
-#              color='black', rotation=90)
+#              fontsize=19, fontname='Besley-Bold',
+#              color='white', rotation=90)
 #     plt.text(53.3 - 12, x - 2.5, str(numb - 10).replace("", " "),
 #              horizontalalignment='center',
-#              fontsize=19, fontname='Superstar M54',
-#              color='black', rotation=90)
+#              fontsize=19, fontname='Besley-Bold',
+#              color='white', rotation=90)
 # NFL Zoomed IN
-# if numb - 10 == 10:
-#     plt.text(7, x - .75, str(numb - 10).replace("", " "),
-#              horizontalalignment='center',
-#              fontsize=19, fontname='Superstar M54',
-#              color='black', rotation=90)
-#     plt.text(53.3 - 7, x - .75, str(numb - 10).replace("", " "),
-#              horizontalalignment='center',
-#              fontsize=19, fontname='Superstar M54',
-#              color='black', rotation=90)
-# elif numb - 10 == 30:
-#     plt.text(12, x - 1.1, str(numb - 10).replace("", " "),
-#              horizontalalignment='center',
-#              fontsize=19, fontname='Superstar M54',
-#              color='black', rotation=90)
-#     plt.text(53.3 - 12, x - 1.1, str(numb - 10).replace("", " "),
-#              horizontalalignment='center',
-#              fontsize=19, fontname='Superstar M54',
-#              color='black', rotation=90)
-# elif numb - 10 == 40:
-#     plt.text(12, x - 1.1, str(numb - 10).replace("", " "),
-#              horizontalalignment='center',
-#              fontsize=19, fontname='Superstar M54',
-#              color='black', rotation=90)
-#     plt.text(53.3 - 12, x - 1.1, str(numb - 10).replace("", " "),
-#              horizontalalignment='center',
-#              fontsize=19, fontname='Superstar M54',
-#              color='black', rotation=90)
-# else:
-#     plt.text(12, x - 1, str(numb - 10).replace("", " "),
-#              horizontalalignment='center',
-#              fontsize=19, fontname='Superstar M54',
-#              color='black', rotation=90)
-#     plt.text(53.3 - 12, x - 1, str(numb - 10).replace("", " "),
-#              horizontalalignment='center',
-#              fontsize=19, fontname='Superstar M54',
-#              color='black', rotation=90)
 
 # # NCAA not zoomed in
 # if numb - 10 == 10:
 #     plt.text(7, x - 2, str(numb - 10).replace("", " "),
 #              horizontalalignment='center',
-#              fontsize=19, fontname='Superstar M54',
-#              color='black', rotation=90)
+#              fontsize=19, fontname='Besley-Bold',
+#              color='white', rotation=90)
 #     plt.text(53.3 - 7, x - 2, str(numb - 10).replace("", " "),
 #              horizontalalignment='center',
-#              fontsize=19, fontname='Superstar M54',
-#              color='black', rotation=90)
+#              fontsize=19, fontname='Besley-Bold',
+#              color='white', rotation=90)
 #     # 40
 # elif numb - 10 == 40:
 #     plt.text(7, x - 2.7, str(numb - 10).replace("", " "),
 #              horizontalalignment='center',
-#              fontsize=19, fontname='Superstar M54',
-#              color='black', rotation=90)
+#              fontsize=19, fontname='Besley-Bold',
+#              color='white', rotation=90)
 #     plt.text(53.3 - 7, x - 2.7, str(numb - 10).replace("", " "),
 #              horizontalalignment='center',
-#              fontsize=19, fontname='Superstar M54',
-#              color='black', rotation=90)
+#              fontsize=19, fontname='Besley-Bold',
+#              color='white', rotation=90)
 # else:
 #     plt.text(7, x - 2.5, str(numb - 10).replace("", " "),
 #              horizontalalignment='center',
-#              fontsize=19, fontname='Superstar M54',
-#              color='black', rotation=90)
+#              fontsize=19, fontname='Besley-Bold',
+#              color='white', rotation=90)
 #     plt.text(53.3 - 7, x - 2.5, str(numb - 10).replace("", " "),
 #              horizontalalignment='center',
-#              fontsize=19, fontname='Superstar M54',
-#              color='black', rotation=90)
+#              fontsize=19, fontname='Besley-Bold',
+#              color='white', rotation=90)
 #NCAA ZOOMED IN
 # if numb - 10 == 10:
 #     plt.text(12, x - .75, str(numb - 10).replace("", " "),
 #              horizontalalignment='center',
-#              fontsize=19, fontname='Superstar M54',
-#              color='black', rotation=90)
+#              fontsize=19, fontname='Besley-Bold',
+#              color='white', rotation=90)
 #     plt.text(53.3 - 12, x - .75, str(numb - 10).replace("", " "),
 #              horizontalalignment='center',
-#              fontsize=19, fontname='Superstar M54',
-#              color='black', rotation=90)
+#              fontsize=19, fontname='Besley-Bold',
+#              color='white', rotation=90)
 # elif numb - 10 == 30:
 #     plt.text(12, x - 1.1, str(numb - 10).replace("", " "),
 #              horizontalalignment='center',
-#              fontsize=19, fontname='Superstar M54',
-#              color='black', rotation=90)
+#              fontsize=19, fontname='Besley-Bold',
+#              color='white', rotation=90)
 #     plt.text(53.3 - 12, x - 1.1, str(numb - 10).replace("", " "),
 #              horizontalalignment='center',
-#              fontsize=19, fontname='Superstar M54',
-#              color='black', rotation=90)
+#              fontsize=19, fontname='Besley-Bold',
+#              color='white', rotation=90)
 # elif numb - 10 == 40:
 #     plt.text(12, x - 1.1, str(numb - 10).replace("", " "),
 #              horizontalalignment='center',
-#              fontsize=19, fontname='Superstar M54',
-#              color='black', rotation=90)
+#              fontsize=19, fontname='Besley-Bold',
+#              color='white', rotation=90)
 #     plt.text(53.3 - 12, x - 1.1, str(numb - 10).replace("", " "),
 #              horizontalalignment='center',
-#              fontsize=19, fontname='Superstar M54',
-#              color='black', rotation=90)
+#              fontsize=19, fontname='Besley-Bold',
+#              color='white', rotation=90)
 # else:
 #     plt.text(12, x - 1, str(numb - 10).replace("", " "),
 #              horizontalalignment='center',
-#              fontsize=19, fontname='Superstar M54',
-#              color='black', rotation=90)
+#              fontsize=19, fontname='Besley-Bold',
+#              color='white', rotation=90)
 #     plt.text(53.3 - 12, x - 1, str(numb - 10).replace("", " "),
 #              horizontalalignment='center',
-#              fontsize=19, fontname='Superstar M54',
-#              color='black', rotation=90)
+#              fontsize=19, fontname='Besley-Bold',
+#              color='white', rotation=90)
